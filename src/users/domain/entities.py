@@ -1,27 +1,11 @@
-import datetime
-import enum
-
 from pydantic import BaseModel
 
 
-class TokenType(enum.StrEnum):
-    access_token = "access"
-    refresh_token = "refresh"
+class User(BaseModel):
+    id: int = None
+    email: str = None
+    password: str = None
 
 
-class TokenPair(BaseModel):
-    access: str
-    refresh: str
-
-
-class TokenData(BaseModel):
-    iss: str | None = None
-    exp: datetime.datetime | None = None
-    type: TokenType | None = None
-    user_id: int | None
-    payload: dict | None = None
-
-
-class UserCreate(BaseModel):
-    email: str
-    password: str
+class AnonymousUser(User):
+    pass

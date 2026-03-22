@@ -11,12 +11,17 @@ class AuthConfig(BaseSettings):
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
-    EXPIRE_ACCESS_TOKEN_MIN: int = 15
-    EXPIRE_REFRESH_TOKEN_MIN: int = 60 * 60
+    ACCESS_TOKEN_EXPIRE_SECONDS: int = 60 * 15
+    REFRESH_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 30
+
+
+class DatabaseConfig(BaseSettings):
+    DATABASE_URI: str = "sqlite+aiosqlite:///test.db"
 
 
 class Config(BaseSettings):
     auth: AuthConfig = AuthConfig()
+    database: DatabaseConfig = DatabaseConfig()
 
 
 config = Config()
