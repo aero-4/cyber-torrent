@@ -1,7 +1,9 @@
 import datetime
+import logging
+import uuid
 
 from jose.jwt import encode, decode
-
+from jose.exceptions import JWTError
 from src.core.config import config
 from src.auth.domain.entities import TokenData
 from src.auth.domain.interfaces.token_provider import ITokenProvider
@@ -9,16 +11,33 @@ from src.auth.domain.interfaces.token_provider import ITokenProvider
 
 class JWTProvider(ITokenProvider):
 
-    def create_access_token(self, token_data: TokenData):
-        return self.encode_token(token_data.payload, config.auth.ACCESS_TOKEN_EXPIRE_SECONDS)
+    def create_access_token(self, token_data: TokenData) -> str:
+        return self._encode_jwt(token_data.payload, config.auth.ACCESS_TOKEN_EXPIRE_SECONDS)
 
-    def create_refresh_token(self, token_data: TokenData):
-        return self.encode_token(token_data.payload, config.auth.REFRESH_TOKEN_EXPIRE_SECONDS)
+    def create_refresh_token(self, token_data: TokenData) -> str:
+        return self._encode_jwt(token_data.payload, config.auth.REFRESH_TOKEN_EXPIRE_SECONDS)
 
-    def encode_token(self, payload: dict, expires: int, secret_key: str = config.auth.JWT_SECRET_KEY, algorithm: str = config.auth.JWT_ALGORITHM) -> str:
-        payload = payload.copy()
+    def read_token(self, token: str) -> None | TokenData:
+        if not token:
+            return None
 
-        payload["exp"] = (datetime.datetime.now() + datetime.timedelta(seconds=expires)).astimezone()
+        try:
+            token_data = self._decode_jwt(token=token)
+            if not token_data.get("sub"):
+                return None
+
+            return TokenData(**token_data)
+
+        except JWTError as exp:
+            logging.error(exp)
+            return None
+
+    def _encode_jwt(self, payload: dict, expires: int, secret_key: str = config.auth.JWT_SECRET_KEY, algorithm: str = config.auth.JWT_ALGORITHM) -> str:
+        payload["iss"] = config.auth.JWT_SERVICE_ISSUER
+        payload["exp"] = datetime.datetime.now() + datetime.timedelta(seconds=expires)
+        payload["iat"] = datetime.datetime.now()
+        payload["jti"] = str(uuid.uuid4())
+
         token = encode(
             claims=payload,
             key=secret_key,
@@ -26,14 +45,11 @@ class JWTProvider(ITokenProvider):
         )
         return token
 
-    def decode_token(self, token: str, secret_key: str = config.auth.JWT_SECRET_KEY, algorithm: str = config.auth.JWT_ALGORITHM) -> dict:
-        try:
-            payload = decode(
-                token,
-                key=secret_key,
-                algorithms=[algorithm]
-            )
+    def _decode_jwt(self, token: str, secret_key: str = config.auth.JWT_SECRET_KEY, algorithm: str = config.auth.JWT_ALGORITHM) -> dict:
+        payload = decode(
+            token,
+            key=secret_key,
+            algorithms=[algorithm]
+        )
 
-            return payload
-        except Exception as e:
-            raise Exception("Not valid jwt token") from e
+        return payload

@@ -20,8 +20,27 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
                 async with uow:
                     if user := await uow.users.get_by_id(access_token_data.id):
                         request.state.user = user
-            except Exception as e:
+            except:
                 request.state.user = AnonymousUser()
 
         response = await call_next(request)
+        return response
+
+
+class RefreshMiddleware(BaseHTTPMiddleware):
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        # auth = get_token_auth(request=request)
+
+        response = await call_next(request)
+
+        auth = get_token_auth(request=request, response=response)
+
+        if not await auth.read_token(TokenType.ACCESS):
+            try:
+                access_token = await auth.refresh_access_token()
+                print(f"Token refreshed: {access_token}")
+            except:
+                pass
+
         return response

@@ -9,6 +9,7 @@ class AuthConfig(BaseSettings):
         env_file=ENV_FILE
     )
 
+    JWT_SERVICE_ISSUER: str = "auth-service"
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_SECONDS: int = 60 * 15

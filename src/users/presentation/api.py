@@ -6,4 +6,7 @@ router = APIRouter()
 
 @router.get("/me")
 async def get_me(request: Request):
-    return request.state.user
+    try:
+        return request.state.user.model_dump(exclude={"password"})
+    except:
+        pass

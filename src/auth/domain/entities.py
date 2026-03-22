@@ -10,18 +10,19 @@ class TokenType(enum.StrEnum):
 
 
 class Tokens(BaseModel):
-    access: str
-    refresh: str
+    access: str | None = None
+    refresh: str | None = None
 
 
 class TokenData(BaseModel):
-    iss: str | None = None
+    iat: datetime.datetime | None = None
     exp: datetime.datetime | None = None
+    iss: str | None = None
+    sub: int | None = None
+    jti: str | None = None
     payload: dict | None = None
 
 
 class UserCreate(BaseModel):
     email: str
     password: str
-
-
