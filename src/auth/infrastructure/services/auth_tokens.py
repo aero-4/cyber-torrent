@@ -7,6 +7,7 @@ from starlette.responses import Response
 from src.auth.domain.entities import TokenType, TokenData, Tokens
 from src.auth.domain.interfaces.token_auth import ITokenAuth
 from src.auth.domain.interfaces.token_provider import ITokenProvider
+from src.core.config import config
 from src.users.domain.entities import User
 from src.users.infrastructure.db.orm import UsersOrm
 
@@ -32,18 +33,32 @@ class TokenAuth(ITokenAuth, ABC):
             id=token_data.sub
         )
 
+    async def inject_access(self, response: Response):
+        if hasattr(self.request.state, "access_token"):
+            access_token = self.request.state.access_token
+            self.response = response
+
+            await self.set_token(access_token)
+
+    async def set_token(self, token: str):
+        tokens = Tokens(access=token)
+
+        self.set_cookies(tokens)
+        self.set_headers(tokens)
+
     async def refresh_access_token(self):
-        refresh_data = await self.read_token(TokenType.REFRESH)
-        if not refresh_data:
-            raise HTTPException(
-                status_code=401,
-                detail="Not valid refresh token"
+        refresh_data_user: User = await self.read_token(TokenType.REFRESH)
+
+        if not refresh_data_user:
+            raise Exception(
+                "Not valid refresh token"
             )
 
-        token_data = TokenData(
-            payload={"sub": str(refresh_data.id)}
-        )
+        token_data = {"sub": str(refresh_data_user.id)}
         access_token = self.token_provider.create_access_token(token_data)
+
+        self.request.state.access_token = access_token
+
         tokens = Tokens(access=access_token)
 
         self.set_headers(tokens)
@@ -52,9 +67,7 @@ class TokenAuth(ITokenAuth, ABC):
         return access_token
 
     async def set_tokens(self, user: User):
-        token_data = TokenData(
-            payload={"sub": str(user.id)}
-        )
+        token_data = {"sub": str(user.id)}
 
         access = self.token_provider.create_access_token(token_data)
         refresh = self.token_provider.create_refresh_token(token_data)
@@ -82,11 +95,13 @@ class TokenAuth(ITokenAuth, ABC):
     def set_cookies(self, tokens: Tokens):
         if self.response:
             self.response.set_cookie(
-                "access_token", tokens.access
+                key="access_token",
+                value=tokens.access,
             )
             if tokens.refresh:
                 self.response.set_cookie(
-                    "refresh_token", tokens.refresh
+                    key="refresh_token",
+                    value=tokens.refresh
                 )
 
     def set_headers(self, tokens: Tokens):

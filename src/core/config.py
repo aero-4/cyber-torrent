@@ -1,3 +1,5 @@
+import secrets
+
 from dotenv import find_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -9,8 +11,8 @@ class AuthConfig(BaseSettings):
         env_file=ENV_FILE
     )
 
+    JWT_SECRET_KEY: str = secrets.token_urlsafe(256)
     JWT_SERVICE_ISSUER: str = "auth-service"
-    JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_SECONDS: int = 60 * 15
     REFRESH_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 30

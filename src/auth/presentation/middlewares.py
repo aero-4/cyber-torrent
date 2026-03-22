@@ -30,17 +30,19 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
 class RefreshMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        # auth = get_token_auth(request=request)
+        pre_auth = get_token_auth(request)
+        access_data = await pre_auth.read_token(TokenType.ACCESS)
+        if not access_data:
+            try:
+                await pre_auth.refresh_access_token()
+            except:
+                pass
 
         response = await call_next(request)
 
-        auth = get_token_auth(request=request, response=response)
-
-        if not await auth.read_token(TokenType.ACCESS):
-            try:
-                access_token = await auth.refresh_access_token()
-                print(f"Token refreshed: {access_token}")
-            except:
-                pass
+        post_auth = get_token_auth(request=request, response=response)
+        refresh_data = await post_auth.read_token(TokenType.REFRESH)
+        if refresh_data:
+            await post_auth.inject_access(response)
 
         return response

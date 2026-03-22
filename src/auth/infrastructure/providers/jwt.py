@@ -11,11 +11,11 @@ from src.auth.domain.interfaces.token_provider import ITokenProvider
 
 class JWTProvider(ITokenProvider):
 
-    def create_access_token(self, token_data: TokenData) -> str:
-        return self._encode_jwt(token_data.payload, config.auth.ACCESS_TOKEN_EXPIRE_SECONDS)
+    def create_access_token(self, data: dict) -> str:
+        return self._encode_jwt(data, config.auth.ACCESS_TOKEN_EXPIRE_SECONDS)
 
-    def create_refresh_token(self, token_data: TokenData) -> str:
-        return self._encode_jwt(token_data.payload, config.auth.REFRESH_TOKEN_EXPIRE_SECONDS)
+    def create_refresh_token(self, data: dict) -> str:
+        return self._encode_jwt(data, config.auth.REFRESH_TOKEN_EXPIRE_SECONDS)
 
     def read_token(self, token: str) -> None | TokenData:
         if not token:
@@ -34,8 +34,8 @@ class JWTProvider(ITokenProvider):
 
     def _encode_jwt(self, payload: dict, expires: int, secret_key: str = config.auth.JWT_SECRET_KEY, algorithm: str = config.auth.JWT_ALGORITHM) -> str:
         payload["iss"] = config.auth.JWT_SERVICE_ISSUER
-        payload["exp"] = datetime.datetime.now() + datetime.timedelta(seconds=expires)
-        payload["iat"] = datetime.datetime.now()
+        payload["exp"] = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=expires)
+        payload["iat"] = datetime.datetime.now(tz=datetime.UTC)
         payload["jti"] = str(uuid.uuid4())
 
         token = encode(
