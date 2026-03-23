@@ -5,8 +5,8 @@ from src.auth.presentation.dtos import UserRegisterDTO
 from src.users.infrastructure.db.uow import UsersUnitOfWork
 
 
-async def registration(user_data: UserRegisterDTO, auth: ITokenAuth) -> None:
-    user_data = UserCreate(**user_data.model_dump())
+async def registration(email: str, password: str, auth: ITokenAuth) -> None:
+    user_data = UserCreate(email=email, password=password)
 
     uow = UsersUnitOfWork()
     hasher_provider = HasherProvider()

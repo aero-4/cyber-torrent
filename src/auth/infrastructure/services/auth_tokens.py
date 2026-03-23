@@ -25,10 +25,8 @@ class TokenAuth(ITokenAuth, ABC):
     async def read_token(self, token_type: TokenType) -> User | None:
         token: str = self._get_access_token() if token_type == TokenType.ACCESS else self._get_refresh_token()
         token_data: TokenData = self.token_provider.read_token(token)
-
         if not token_data:
             return None
-
         return User(
             id=token_data.sub
         )
@@ -97,11 +95,15 @@ class TokenAuth(ITokenAuth, ABC):
             self.response.set_cookie(
                 key="access_token",
                 value=tokens.access,
+                samesite="lax",
+                secure=True
             )
             if tokens.refresh:
                 self.response.set_cookie(
                     key="refresh_token",
-                    value=tokens.refresh
+                    value=tokens.refresh,
+                    samesite="lax",
+                    secure=True
                 )
 
     def set_headers(self, tokens: Tokens):

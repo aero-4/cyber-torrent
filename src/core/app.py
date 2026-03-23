@@ -14,6 +14,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# app.add_middleware(CsrfProtectMiddleware)
 app.add_middleware(AuthorizationMiddleware)
 app.add_middleware(RefreshMiddleware)
 

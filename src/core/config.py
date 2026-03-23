@@ -1,9 +1,16 @@
 import secrets
 
 from dotenv import find_dotenv
+from fastapi_csrf_protect import CsrfProtect
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = find_dotenv()
+
+
+class CsrfConfig(BaseSettings):
+    secret_key: str = secrets.token_urlsafe(128)
+    cookie_samesite: str = "none"
+    cookie_secure: bool = True
 
 
 class AuthConfig(BaseSettings):
@@ -25,6 +32,12 @@ class DatabaseConfig(BaseSettings):
 class Config(BaseSettings):
     auth: AuthConfig = AuthConfig()
     database: DatabaseConfig = DatabaseConfig()
+    csrf: CsrfConfig = CsrfConfig()
+
+
+@CsrfProtect.load_config
+def get_csrf_config():
+    return CsrfConfig()
 
 
 config = Config()
