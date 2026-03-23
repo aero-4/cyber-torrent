@@ -1,4 +1,5 @@
 import secrets
+from typing import Literal
 
 from dotenv import find_dotenv
 from fastapi_csrf_protect import CsrfProtect
@@ -9,8 +10,10 @@ ENV_FILE = find_dotenv()
 
 class CsrfConfig(BaseSettings):
     secret_key: str = secrets.token_urlsafe(128)
-    cookie_samesite: str = "none"
     cookie_secure: bool = True
+    cookie_samesite: str = "lax"
+    token_location: Literal["body", "header"] = "body"
+    token_key: str = "token_key"
 
 
 class AuthConfig(BaseSettings):

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, Body
 from fastapi_csrf_protect import CsrfProtect
 from starlette.requests import Request
 from starlette.templating import Jinja2Templates
@@ -25,12 +25,10 @@ async def view_login_user(request: Request):
 @router.post("/register")
 async def register_user(request: Request,
                         auth: TokenAuthDep,
-                        email: str = Form(...),
-                        password: str = Form(...)):
-    if request.cookies.get("fastapi-csrf-token"):
-        await csrf_protect.validate_csrf(request)
-        await registration(email, password, auth)
-        return {"message": "User registered!"}
+                        auth_form: UserRegisterDTO = Form()):
+    await csrf_protect.validate_csrf(request)
+    await registration(auth_form.email, auth_form.password, auth)
+    return {"message": "User registered!"}
 
 
 @router.post("/login")
@@ -40,4 +38,4 @@ async def login_user():
 
 @router.post("/logout")
 async def logout_user():
-    pass
+    return {"message": "Success log out"}

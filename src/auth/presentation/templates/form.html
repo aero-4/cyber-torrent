@@ -9,8 +9,11 @@
     {% if message %}
     <div class="message {{ message_class }}">{{ message }}</div>
     {% endif %}
-    <form method="post" style="background-color: #f0f0f0; padding: 30px; border-radius: 10px;">
+    <form method="post" action="/auth/register" style="background-color: #f0f0f0; padding: 30px; border-radius: 10px;">
+        <input type="hidden" name="token_key" value="{{ csrf_token }}">
+
         <label for="email">Email:</label>
+
         <input type="text" name="email" id="email" required>
 
         <label for="password">Password:</label>
