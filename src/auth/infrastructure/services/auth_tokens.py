@@ -7,6 +7,7 @@ from starlette.responses import Response
 from src.auth.domain.entities import TokenType, TokenData, Tokens
 from src.auth.domain.interfaces.token_auth import ITokenAuth
 from src.auth.domain.interfaces.token_provider import ITokenProvider
+from src.auth.domain.interfaces.transport import IAuthTransport
 from src.core.config import config
 from src.users.domain.entities import User
 from src.users.infrastructure.db.orm import UsersOrm
@@ -17,19 +18,17 @@ class TokenAuth(ITokenAuth, ABC):
     Create authorization tokens and read
     """
 
-    def __init__(self, request: Request, provider: ITokenProvider, response: Response = None):
+    def __init__(self, request: Request, provider: ITokenProvider, token_storage, transports: dict[TokenType, list[IAuthTransport]], response: Response = None):
         self.response = response
         self.request = request
         self.token_provider = provider
+        self.token_storage = token_storage
+        self.transports = transports
 
-    async def read_token(self, token_type: TokenType) -> User | None:
+    async def read_token(self, token_type: TokenType) -> TokenData | None:
         token: str = self._get_access_token() if token_type == TokenType.ACCESS else self._get_refresh_token()
         token_data: TokenData = self.token_provider.read_token(token)
-        if not token_data:
-            return None
-        return User(
-            id=token_data.sub
-        )
+        return await self._validate_token_or_none(token_data)
 
     async def inject_access(self, response: Response):
         if hasattr(self.request.state, "access_token"):
@@ -45,14 +44,14 @@ class TokenAuth(ITokenAuth, ABC):
         self.set_headers(tokens)
 
     async def refresh_access_token(self):
-        refresh_data_user: User = await self.read_token(TokenType.REFRESH)
+        refresh_data: TokenData = await self.read_token(TokenType.REFRESH)
 
-        if not refresh_data_user:
+        if not refresh_data:
             raise Exception(
                 "Not valid refresh token"
             )
 
-        token_data = {"sub": str(refresh_data_user.id)}
+        token_data = {"sub": str(refresh_data.sub)}
         access_token = self.token_provider.create_access_token(token_data)
 
         self.request.state.access_token = access_token
@@ -111,3 +110,14 @@ class TokenAuth(ITokenAuth, ABC):
             self.response.headers["Authorization"] = f"Bearer {tokens.access}"
             if tokens.refresh:
                 self.response.headers["X-Refresh-Token"] = f"Bearer {tokens.refresh}"
+
+    async def _validate_token_or_none(self, token_data: TokenData) -> None | TokenData:
+        if not token_data:
+            return None
+
+        if self.token_storage and token_data.jti:
+            is_active = await self.token_storage.is_active(token_data.jti)
+            if not is_active:
+                return None
+
+        return token_data

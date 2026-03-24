@@ -23,7 +23,7 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
             try:
                 uow = UsersUnitOfWork()
                 async with uow:
-                    if user := await uow.users.get_by_id(access_token_data.id):
+                    if user := await uow.users.get_by_id(access_token_data.sub):
                         request.state.user = user
             except:
                 request.state.user = AnonymousUser()
