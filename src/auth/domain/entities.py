@@ -20,7 +20,6 @@ class TokenData(BaseModel):
     iss: str | None = None
     sub: int | None = None
     jti: str | None = None
-    payload: dict | None = None
 
 
 class UserCreate(BaseModel):
