@@ -13,7 +13,7 @@ class RedisTokenStorage:
 
     async def add_store_token(self, token_data: TokenData) -> None:
         key = f"tokens:{token_data.jti}"
-        total_seconds = (token_data.exp - get_timezone_now()).total_seconds()  # because need int seconds
+        total_seconds = int((token_data.exp - get_timezone_now()).total_seconds())  # because need int seconds
 
         await self.redis.setex(name=key, value=token_data.sub, time=total_seconds)
         await self.redis.sadd(f"user_tokens:{token_data.sub}", token_data.jti)

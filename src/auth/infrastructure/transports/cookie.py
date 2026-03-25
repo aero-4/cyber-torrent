@@ -10,7 +10,7 @@ class CookiesTransport(IAuthTransport):
         self.cookie_name = cookie_name
 
     def get_token(self, request: Request) -> str | None:
-        return request.get(self.cookie_name, None)
+        return request.cookies.get(self.cookie_name, None)
 
     def set_token(self, response: Response, token: str) -> None:
         response.set_cookie(

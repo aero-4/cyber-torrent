@@ -5,7 +5,7 @@ from src.auth.domain.entities import TokenData
 
 class ITokenProvider(abc.ABC):
 
-    def read_token(self, token: str) -> TokenData:
+    def token_read(self, token: str) -> TokenData:
         pass
 
     def create_access_token(self, data: dict) -> str:

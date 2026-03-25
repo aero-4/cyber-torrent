@@ -24,8 +24,9 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
                 uow = UsersUnitOfWork()
                 async with uow:
                     if user := await uow.users.get_by_id(access_token_data.sub):
-                        request.state.user = user
-            except:
+                        request.state.user = user or AnonymousUser()
+            except Exception as e:
+                print(e)
                 request.state.user = AnonymousUser()
 
         response = await call_next(request)

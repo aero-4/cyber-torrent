@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 
 class TokenType(enum.StrEnum):
-    ACCESS = "access"
-    REFRESH = "refresh"
+    ACCESS = "access_token"
+    REFRESH = "refresh_token"
 
 
 class Tokens(BaseModel):

@@ -17,7 +17,7 @@ class JWTProvider(ITokenProvider):
     def create_refresh_token(self, data: dict) -> str:
         return self._encode_jwt(data, config.auth.REFRESH_TOKEN_EXPIRE_SECONDS)
 
-    def read_token(self, token: str) -> None | TokenData:
+    def token_read(self, token: str) -> None | TokenData:
         if not token:
             return None
 

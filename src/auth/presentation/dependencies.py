@@ -19,14 +19,17 @@ def get_token_auth(request: Request = None,
     token_storage = RedisTokenStorage()
 
     transports = {
-        TokenType.ACCESS: [CookiesTransport("access_token"), HeadersTransport()],
-        TokenType.REFRESH: []
+        TokenType.ACCESS: [CookiesTransport("access_token"),
+                           HeadersTransport("Authorization", "Bearer")],
+        TokenType.REFRESH: [CookiesTransport("refresh_token"),
+                            HeadersTransport("X-Refresh-Token", "Bearer")]
     }
 
     return TokenAuth(request=request,
                      response=response,
                      token_storage=token_storage,
-                     provider=jwt_provider)
+                     provider=jwt_provider,
+                     transports=transports)
 
 
 TokenAuthDep = Annotated[ITokenAuth, Depends(get_token_auth)]
