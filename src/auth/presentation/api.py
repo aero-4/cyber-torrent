@@ -34,11 +34,13 @@ async def register_user(request: Request,
 
 
 @router.post("/login")
-async def login_user(login_data: UserLoginDTO):
-    await authenticate(login_data)
-    return {"message": "User login"}
+async def login_user(login_data: UserLoginDTO,
+                     auth: TokenAuthDep):
+    await authenticate(login_data, auth)
+    return {"message": "User sign up"}
 
 
 @router.post("/logout")
-async def logout_user():
-    return {"message": "Success log out"}
+async def logout_user(auth: TokenAuthDep):
+    await auth.unset_tokens_user()
+    return {"message": "Logout"}

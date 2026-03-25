@@ -57,6 +57,18 @@ class TokenAuth(ITokenAuth, ABC):
         await self._set_token(access, TokenType.ACCESS)
         return access
 
+    async def unset_tokens_user(self):
+        access_data = await self.read_token(TokenType.ACCESS)
+        if not access_data:
+            return None
+
+        if self.token_storage:
+            await self.token_storage.remove_tokens_user(access_data)
+
+        for _, transports in self.transports.items():
+            for transport in transports:
+                transport.delete_token(self.response)
+
     async def set_tokens(self, user: User):
         token_data = {"sub": str(user.id)}
 

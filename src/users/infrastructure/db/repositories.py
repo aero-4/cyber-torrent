@@ -31,8 +31,8 @@ class PGUsersRepository:
         stmt = select(UsersOrm).where(UsersOrm.email == email)
         result = await self.session.execute(stmt)
         obj = result.scalar_one_or_none()
-
-        return obj.to_entity()
+        if obj:
+            return obj.to_entity()
 
     async def add(self, user: UserCreate) -> User:
         obj = UsersOrm(**user.model_dump())

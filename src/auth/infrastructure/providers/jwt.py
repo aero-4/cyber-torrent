@@ -33,10 +33,10 @@ class JWTProvider(ITokenProvider):
             return None
 
     def _encode_jwt(self, payload: dict, expires: int, secret_key: str = config.auth.JWT_SECRET_KEY, algorithm: str = config.auth.JWT_ALGORITHM) -> str:
-        payload["iss"] = config.auth.JWT_SERVICE_ISSUER
-        payload["exp"] = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=expires)
-        payload["iat"] = datetime.datetime.now(tz=datetime.UTC)
-        payload["jti"] = str(uuid.uuid4())
+        payload["iss"] = config.auth.JWT_SERVICE_ISSUER  # creator name OR site
+        payload["exp"] = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=expires)  # expire
+        payload["iat"] = datetime.datetime.now(tz=datetime.UTC)  # create now
+        payload["jti"] = str(uuid.uuid4())  # id
 
         token = encode(
             claims=payload,
