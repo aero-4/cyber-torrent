@@ -4,7 +4,8 @@ from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 
 from src.auth.presentation.dependencies import TokenAuthDep
-from src.auth.presentation.dtos import UserRegisterDTO
+from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO
+from src.auth.usecase.authentication import authenticate
 from src.auth.usecase.registration import registration
 
 router = APIRouter()
@@ -33,7 +34,8 @@ async def register_user(request: Request,
 
 
 @router.post("/login")
-async def login_user():
+async def login_user(login_data: UserLoginDTO):
+    await authenticate(login_data)
     return {"message": "User login"}
 
 

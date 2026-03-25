@@ -9,9 +9,7 @@ from src.auth.domain.interfaces.token_auth import ITokenAuth
 from src.auth.domain.interfaces.token_provider import ITokenProvider
 from src.auth.domain.interfaces.transport import IAuthTransport
 from src.auth.infrastructure.providers.redis_storage import RedisTokenStorage
-from src.core.config import config
 from src.users.domain.entities import User
-from src.users.infrastructure.db.orm import UsersOrm
 
 
 class TokenAuth(ITokenAuth, ABC):

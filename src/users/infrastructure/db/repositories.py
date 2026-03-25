@@ -27,19 +27,12 @@ class PGUsersRepository:
 
         return obj.to_entity()
 
-
-    async def get_by_email(self, user: UserCreate) -> None:
-        stmt = select(UsersOrm).where(UsersOrm.email == user.email)
+    async def get_by_email(self, email: str) -> User:
+        stmt = select(UsersOrm).where(UsersOrm.email == email)
         result = await self.session.execute(stmt)
         obj = result.scalar_one_or_none()
 
-        if obj:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="User already exists"
-            )
-
-        return None
+        return obj.to_entity()
 
     async def add(self, user: UserCreate) -> User:
         obj = UsersOrm(**user.model_dump())
