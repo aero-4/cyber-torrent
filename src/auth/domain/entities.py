@@ -9,10 +9,6 @@ class TokenType(enum.StrEnum):
     REFRESH = "refresh_token"
 
 
-class Tokens(BaseModel):
-    access: str | None = None
-    refresh: str | None = None
-
 
 class TokenData(BaseModel):
     iat: datetime.datetime | None = None

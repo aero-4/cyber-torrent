@@ -11,7 +11,7 @@ class IAuthTransport(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_token(self, response: Response, token: str) -> None:
+    def set_token(self) -> None:
         pass
 
     @abc.abstractmethod

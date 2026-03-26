@@ -8,8 +8,8 @@ class RedisTokenStorage:
     def __init__(self):
         self.redis = get_redis_client()
 
-    async def is_active_token(self, token_data: TokenData) -> bool:
-        return await self.redis.exists(f'tokens:{token_data.jti}')
+    async def is_active_token(self, jti: str) -> bool:
+        return await self.redis.exists(f'tokens:{jti}')
 
     async def add_store_token(self, token_data: TokenData) -> None:
         key = f"tokens:{token_data.jti}"

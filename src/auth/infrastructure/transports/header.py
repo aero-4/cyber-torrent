@@ -21,10 +21,8 @@ class HeadersTransport(IAuthTransport):
             except:
                 return None
 
-
-    def set_token(self, response: Response, token: str) -> None:
+    def set_token(self, response: Response, token: str, **kwargs) -> None:
         response.headers[self.header_name] = f"{self.header_type} {token}" if self.header_type else token
-
 
     def delete_token(self, response: Response):
         response.headers[self.header_name] = ""

@@ -24,8 +24,12 @@ class AuthConfig(BaseSettings):
     JWT_SECRET_KEY: str = secrets.token_urlsafe(256)
     JWT_SERVICE_ISSUER: str = "auth-service"
     JWT_ALGORITHM: str = "HS256"
+    ACCESS_HEADER_NAME: str = "Authorization"
     ACCESS_TOKEN_EXPIRE_SECONDS: int = 60 * 15
+    REFRESH_HEADER_NAME: str = "X-Refresh-Token"
     REFRESH_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 30
+    TOKENS_HEADER_TYPE: str = "Bearer"
+
 
 
 class DatabaseConfig(BaseSettings):

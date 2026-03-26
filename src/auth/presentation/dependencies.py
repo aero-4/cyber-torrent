@@ -11,6 +11,7 @@ from src.auth.infrastructure.providers.redis_storage import RedisTokenStorage
 from src.auth.infrastructure.services.auth_tokens import TokenAuth
 from src.auth.infrastructure.transports.cookie import CookiesTransport
 from src.auth.infrastructure.transports.header import HeadersTransport
+from src.core.config import config
 
 
 def get_token_auth(request: Request = None,
@@ -19,10 +20,14 @@ def get_token_auth(request: Request = None,
     token_storage = RedisTokenStorage()
 
     transports = {
-        TokenType.ACCESS: [CookiesTransport("access_token"),
-                           HeadersTransport("Authorization", "Bearer")],
-        TokenType.REFRESH: [CookiesTransport("refresh_token"),
-                            HeadersTransport("X-Refresh-Token", "Bearer")]
+        TokenType.ACCESS: [CookiesTransport(TokenType.ACCESS,
+                                            max_age=config.auth.ACCESS_TOKEN_EXPIRE_SECONDS),
+                           HeadersTransport(config.auth.ACCESS_HEADER_NAME,
+                                            config.auth.TOKENS_HEADER_TYPE)],
+        TokenType.REFRESH: [CookiesTransport(TokenType.REFRESH,
+                                             max_age=config.auth.REFRESH_TOKEN_EXPIRE_SECONDS),
+                            HeadersTransport(config.auth.REFRESH_HEADER_NAME,
+                                             config.auth.TOKENS_HEADER_TYPE)]
     }
 
     return TokenAuth(request=request,

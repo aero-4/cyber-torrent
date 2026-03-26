@@ -1,10 +1,9 @@
 from abc import ABC
 
-from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import Response
 
-from src.auth.domain.entities import TokenType, TokenData, Tokens
+from src.auth.domain.entities import TokenType, TokenData
 from src.auth.domain.interfaces.token_auth import ITokenAuth
 from src.auth.domain.interfaces.token_provider import ITokenProvider
 from src.auth.domain.interfaces.transport import IAuthTransport
@@ -14,7 +13,7 @@ from src.users.domain.entities import User
 
 class TokenAuth(ITokenAuth, ABC):
     """
-    Create authorization tokens and read
+    Creating token for authorization
     """
 
     def __init__(self,
@@ -49,7 +48,9 @@ class TokenAuth(ITokenAuth, ABC):
                 "Not valid refresh token"
             )
 
-        token_data = {"sub": str(refresh_data.sub)}
+        token_data = {
+            "sub": str(refresh_data.sub)
+        }
         access = self.token_provider.create_access_token(token_data)
 
         self.request.state.access_token = access
@@ -79,13 +80,14 @@ class TokenAuth(ITokenAuth, ABC):
         await self._set_token(refresh, TokenType.REFRESH)
 
     async def _set_token(self, token: str, token_type: TokenType):
+        token_data = self.token_provider.token_read(token)
+
         for transport in self.get_transports(transport_type=token_type):
-            transport.set_token(self.response, token)
+            transport.set_token(self.response, token, expires=token_data.exp)
 
         if not self.token_storage:
             return None
 
-        token_data = self.token_provider.token_read(token)
         if token_data:
             await self.token_storage.add_store_token(token_data)
 
@@ -94,7 +96,7 @@ class TokenAuth(ITokenAuth, ABC):
             return None
 
         if self.token_storage and token_data.jti:
-            is_active = await self.token_storage.is_active_token(token_data)
+            is_active = await self.token_storage.is_active_token(token_data.jti)
             if not is_active:
                 return None
 
