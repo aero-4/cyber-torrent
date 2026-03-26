@@ -4,10 +4,18 @@ import enum
 from pydantic import BaseModel
 
 
+class UserRoles(enum.IntEnum):
+    SUPER_ADMIN = 4
+    ADMIN = 3
+    MANAGER = 2
+    USER = 1
+
+
+
+
 class TokenType(enum.StrEnum):
     ACCESS = "access_token"
     REFRESH = "refresh_token"
-
 
 
 class TokenData(BaseModel):

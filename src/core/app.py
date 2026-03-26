@@ -21,7 +21,7 @@ app.add_middleware(
 )
 app.add_middleware(AuthorizationMiddleware)
 app.add_middleware(RefreshMiddleware)
-app.add_middleware(CSRFMiddleware, secret=config.csrf.secret_key)
+# app.add_middleware(CSRFMiddleware, secret=config.csrf.secret_key)
 
 app.include_router(router=auth_api_router, prefix="/auth", tags=["Auth"])
 app.include_router(router=users_api_router, prefix="/users", tags=["Users"])

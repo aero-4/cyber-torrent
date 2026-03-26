@@ -27,8 +27,8 @@ async def view_login_user(request: Request):
 async def register_user(request: Request,
                         auth: TokenAuthDep,
                         auth_form: UserRegisterDTO = Form()):
-    if request.cookies.get("fastapi-csrf-token"):
-        await csrf_protect.validate_csrf(request)
+    # if request.cookies.get("fastapi-csrf-token"):
+    #     await csrf_protect.validate_csrf(request)
     await registration(auth_form.email, auth_form.password, auth)
     return {"message": "User registered!"}
 
