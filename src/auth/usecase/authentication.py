@@ -5,7 +5,9 @@ from fastapi import HTTPException
 from src.auth.infrastructure.providers.hasher import HasherProvider
 from src.auth.presentation.dependencies import TokenAuthDep
 from src.auth.presentation.dtos import UserLoginDTO
+from src.core.domain.exceptions import AppException
 from src.users.infrastructure.db.uow import UsersUnitOfWork
+
 
 
 
@@ -19,8 +21,10 @@ async def authenticate(login_data: UserLoginDTO, auth: TokenAuthDep):
 
         if not user or not hasher_provider.verify_password(login_data.password, user.password):
             logging.error(f"Not valid password or email {login_data.model_dump()}")
-            raise HTTPException(status_code=400,
-                                detail="Not valid password or email")
+            raise AppException(message="Not valid password or email",
+                               status_code=404,
+                               details=login_data.model_dump(),
+                               error_code="NOT_FOUND")
 
         logging.info("User authenticated")
         await auth.set_tokens(user)

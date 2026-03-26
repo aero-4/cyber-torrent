@@ -29,7 +29,6 @@ class JWTProvider(ITokenProvider):
             return TokenData(**token_data)
 
         except JWTError as exp:
-            logging.error(exp)
             return None
 
     def _encode_jwt(self, payload: dict, expires: int, secret_key: str = config.auth.JWT_SECRET_KEY, algorithm: str = config.auth.JWT_ALGORITHM) -> str:

@@ -53,7 +53,6 @@ class RefreshMiddleware(BaseHTTPMiddleware):
 
         return response
 
-#
 # class CsrfProtectMiddleware(BaseHTTPMiddleware):
 #
 #     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:

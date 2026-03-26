@@ -1,16 +1,20 @@
 import abc
 
 from src.auth.domain.entities import TokenType
+from src.users.domain.entities import User
 from src.users.infrastructure.db.orm import UsersOrm
 
 
 class ITokenAuth(abc.ABC):
-
 
     @abc.abstractmethod
     async def read_token(self, token_type: TokenType):
         pass
 
     @abc.abstractmethod
-    async def set_tokens(self, user: UsersOrm):
+    async def set_tokens(self, user: User):
+        pass
+
+    @abc.abstractmethod
+    async def refresh_access_token(self):
         pass

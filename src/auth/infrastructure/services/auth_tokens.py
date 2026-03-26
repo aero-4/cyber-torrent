@@ -45,7 +45,7 @@ class TokenAuth(ITokenAuth, ABC):
 
         if not refresh_data:
             raise Exception(
-                "Not valid refresh token"
+                "Not valid refresh token"  # expired
             )
 
         token_data = {
@@ -56,7 +56,6 @@ class TokenAuth(ITokenAuth, ABC):
         self.request.state.access_token = access
 
         await self._set_token(access, TokenType.ACCESS)
-        return access
 
     async def unset_tokens_user(self):
         access_data = await self.read_token(TokenType.ACCESS)

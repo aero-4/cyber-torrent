@@ -44,3 +44,9 @@ async def login_user(login_data: UserLoginDTO,
 async def logout_user(auth: TokenAuthDep):
     await auth.unset_tokens_user()
     return {"message": "Logout"}
+
+
+@router.post("/refresh")
+async def refresh_token(auth: TokenAuthDep):
+    await auth.refresh_access_token()
+    return {"message": "Token refreshed"}

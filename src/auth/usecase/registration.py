@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from src.auth.domain.entities import UserCreate
 from src.auth.domain.interfaces.token_auth import ITokenAuth
 from src.auth.infrastructure.providers.hasher import HasherProvider
-from src.auth.presentation.dtos import UserRegisterDTO
+from src.core.domain.exceptions import AppException
 from src.users.infrastructure.db.uow import UsersUnitOfWork
 
 
@@ -20,8 +20,8 @@ async def registration(email: str, password: str, auth: ITokenAuth) -> None:
 
         if await uow.users.get_by_email(email):
             logging.error("User already exists with email=%s", email)
-            raise HTTPException(status_code=409,
-                                detail="Email already exists")
+            raise AppException(message="Email already exists",
+                               status_code=404)
 
         user_data.password = hasher_provider.hash_password(
             user_data.password
