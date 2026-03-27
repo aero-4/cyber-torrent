@@ -5,7 +5,7 @@ from starlette.templating import Jinja2Templates
 
 from src.auth.presentation.dependencies import TokenAuthDep
 from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO
-from src.auth.usecase.authentication import authenticate
+from src.auth.usecase.authentication import authenticate, generate_qr_code, authenticate_with_qr
 from src.auth.usecase.registration import registration
 
 router = APIRouter()
@@ -27,7 +27,6 @@ async def view_login_user(request: Request):
 async def register_user(request: Request,
                         auth: TokenAuthDep,
                         auth_form: UserRegisterDTO = Form()):
-
     try:
         if request.cookies.get("fastapi-csrf-token"):
             await csrf_protect.validate_csrf(request)
@@ -35,6 +34,16 @@ async def register_user(request: Request,
         pass
     await registration(auth_form.email, auth_form.password, auth)
     return {"message": "User registered!"}
+
+
+@router.post("/qr")
+async def qr_code():
+    return await generate_qr_code()
+
+
+@router.get("/qr?token={token}")
+async def qr_code_auth(token: str):
+    return await authenticate_with_qr(token)
 
 
 @router.post("/login")
