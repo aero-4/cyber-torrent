@@ -26,7 +26,6 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
                     if user := await uow.users.get_by_id(access_token_data.sub):
                         request.state.user = user or AnonymousUser()
             except Exception as e:
-                print(e)
                 request.state.user = AnonymousUser()
 
         response = await call_next(request)
@@ -47,6 +46,7 @@ class RefreshMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         post_auth = get_token_auth(request=request, response=response)
+
         refresh_data = await post_auth.read_token(TokenType.REFRESH)
         if refresh_data:
             await post_auth.inject_access(response)

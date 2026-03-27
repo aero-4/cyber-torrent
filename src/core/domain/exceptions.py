@@ -25,25 +25,21 @@ class AppException(Exception):
                          self.details)
 
 
-class AuthRequired(AppException):
-    message = "Authentication required"
-    error_code = ERROR_CODES.get(401)
-    status_code = 401
 
 
 class AlreadyExists(AppException):
     message = "Already exists"
-    error_code = ERROR_CODES.get(409)
     status_code = 409
+    error_code = ERROR_CODES.get(status_code)
 
 
 class BadRequest(AppException):
     message = "Bad request"
-    error_code = ERROR_CODES.get(400)
     status_code = 400
+    error_code = ERROR_CODES.get(status_code)
 
 
 class NotFound(AppException):
     message = "Not found"
-    error_code = ERROR_CODES.get(404)
     status_code = 404
+    error_code = ERROR_CODES.get(status_code)

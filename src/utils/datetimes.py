@@ -1,5 +1,4 @@
 import datetime
-
 import pytz
 
 tz = pytz.timezone("Europe/Moscow")

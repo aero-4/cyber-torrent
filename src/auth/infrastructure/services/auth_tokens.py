@@ -4,6 +4,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from src.auth.domain.entities import TokenType, TokenData
+from src.auth.domain.exceptions import RefreshInvalid
 from src.auth.domain.interfaces.token_auth import ITokenAuth
 from src.auth.domain.interfaces.token_provider import ITokenProvider
 from src.auth.domain.interfaces.transport import IAuthTransport
@@ -44,9 +45,7 @@ class TokenAuth(ITokenAuth, ABC):
         refresh_data: TokenData = await self.read_token(TokenType.REFRESH)
 
         if not refresh_data:
-            raise Exception(
-                "Not valid refresh token"  # expired
-            )
+            raise RefreshInvalid()
 
         token_data = {
             "sub": str(refresh_data.sub)
