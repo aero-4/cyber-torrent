@@ -23,8 +23,7 @@ async def authenticate(login_data: UserLoginDTO, auth: TokenAuthDep):
             logging.error(f"Not valid password or email {login_data.model_dump()}")
             raise AppException(message="Not valid password or email",
                                status_code=404,
-                               details=login_data.model_dump(),
-                               error_code="NOT_FOUND")
+                               details=login_data.model_dump())
 
         logging.info("User authenticated")
         await auth.set_tokens(user)

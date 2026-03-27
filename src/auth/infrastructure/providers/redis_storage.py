@@ -1,5 +1,5 @@
 from src.auth.domain.entities import TokenData
-from src.core.redis import get_redis_client
+from src.core.infrastructure.redis import get_redis_client
 from src.utils.datetimes import get_timezone_now
 
 
