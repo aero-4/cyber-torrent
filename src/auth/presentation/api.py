@@ -1,23 +1,24 @@
 from fastapi import APIRouter, Form, Body
 from fastapi_csrf_protect import CsrfProtect
 from starlette.requests import Request
+from starlette.responses import Response, FileResponse
 from starlette.templating import Jinja2Templates
 
 from src.auth.presentation.dependencies import TokenAuthDep
 from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO
 from src.auth.usecase.authentication import authenticate, generate_qr_code, authenticate_with_qr
 from src.auth.usecase.registration import registration
+from templates.templates import templates
 
 router = APIRouter()
 csrf_protect = CsrfProtect()
-templates = Jinja2Templates(directory="src/auth/presentation/templates")
 
 
 @router.get("/register")
-async def view_login_user(request: Request):
+async def view_register_user(request: Request):
     csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
     resp = templates.TemplateResponse(
-        "form.html", {"request": request, "csrf_token": csrf_token}
+        "register.html", {"request": request, "csrf_token": csrf_token}
     )
     csrf_protect.set_csrf_cookie(signed_token, resp)
     return resp
@@ -36,14 +37,28 @@ async def register_user(request: Request,
     return {"message": "User registered!"}
 
 
-@router.post("/qr")
-async def qr_code():
-    return await generate_qr_code()
-
-
 @router.get("/qr?token={token}")
 async def qr_code_auth(token: str):
     return await authenticate_with_qr(token)
+
+
+@router.get("/qr")
+async def qr_code():
+    qr_data = await generate_qr_code()
+    return Response(
+        content=qr_data,
+        media_type="image/png"
+    )
+
+
+@router.get("/login")
+async def login_user(request: Request):
+    csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
+    resp = templates.TemplateResponse(
+        "login.html", {"request": request, "csrf_token": csrf_token}
+    )
+    csrf_protect.set_csrf_cookie(signed_token, resp)
+    return resp
 
 
 @router.post("/login")

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block header %}Login{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto;">
+    {% if message %}
+    <div class="message {{ message_class }}">{{ message }}</div>
+    {% endif %}
+
+    <div style="margin-bottom: 20px; text-align: center;">
+        <img
+            id="qrImage"
+            alt="QR code"
+            style="width: 220px; height: 220px; object-fit: contain; border: 1px solid #ddd; border-radius: 10px; background: #fff;"
+        >
+    </div>
+
+    <form method="post" action="/auth/login" style="background-color: #f0f0f0; padding: 30px; border-radius: 10px;">
+        <input type="hidden" name="token_key" value="{{ csrf_token }}">
+
+        <label for="email">Email:</label>
+        <input type="text" name="email" id="email" required>
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required>
+
+        <input type="submit" value="Login">
+    </form>
+</div>
+
+<script>
+    async function loadQr() {
+        try {
+            const response = await fetch('/auth/qr', {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            const img = document.getElementById('qrImage');
+            img.src = url;
+        } catch (error) {
+            console.error('Не удалось загрузить QR:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadQr);
+</script>
+{% endblock %}

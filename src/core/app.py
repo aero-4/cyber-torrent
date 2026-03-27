@@ -7,6 +7,7 @@ from time import perf_counter
 
 from starlette.responses import JSONResponse, Response
 from starlette.middleware.cors import CORSMiddleware
+from starlette.templating import Jinja2Templates
 from starlette_csrf import CSRFMiddleware
 
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
@@ -29,6 +30,7 @@ async def lifespan(app: FastAPI):
 
 logger = logging.getLogger(__name__)
 app = FastAPI(lifespan=lifespan)
+
 
 app.add_middleware(
     CORSMiddleware,
