@@ -1,12 +1,16 @@
+import secrets
+
 from fastapi import APIRouter, Form, Body
 from fastapi_csrf_protect import CsrfProtect
 from starlette.requests import Request
 from starlette.responses import Response, FileResponse
 from starlette.templating import Jinja2Templates
+from two_fast_auth import TwoFactorMiddleware, TwoFactorAuth
 
 from src.auth.presentation.dependencies import TokenAuthDep
 from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO
-from src.auth.usecase.authentication import authenticate, generate_qr_code, authenticate_with_qr
+from src.auth.usecase.authentication import authenticate
+from src.auth.usecase.auth_qr import *
 from src.auth.usecase.registration import registration
 from templates.templates import templates
 
@@ -43,8 +47,8 @@ async def qr_code_auth(token: str):
 
 
 @router.get("/qr")
-async def qr_code():
-    qr_data = await generate_qr_code()
+async def qr_code(email: str = Form(..., description="Email required")):
+    qr_data = TwoFactorAuth.generate_qr_code(email)
     return Response(
         content=qr_data,
         media_type="image/png"

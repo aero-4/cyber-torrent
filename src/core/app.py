@@ -1,5 +1,7 @@
+import base64
 import datetime
 import logging
+import secrets
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -20,6 +22,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from src.core.domain.exceptions import AppException
+from two_fast_auth import TwoFactorMiddleware
 
 
 @asynccontextmanager
@@ -31,7 +34,6 @@ async def lifespan(app: FastAPI):
 logger = logging.getLogger(__name__)
 app = FastAPI(lifespan=lifespan)
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -39,8 +41,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(AuthorizationMiddleware)
+
+
+async def get_secret(user_id: str = None):
+    return str(secrets.token_urlsafe(64))
+
+
+app.add_middleware(TwoFactorMiddleware,
+                   get_user_secret_callback=get_secret,
+                   excluded_paths=["/docs", "/auth/qr"],
+                   header_name="X-2FA-Code",)
+                   # encryption_key=base64.b64encode(secrets.token_bytes(32))  # Optional)
 app.add_middleware(RefreshMiddleware)
+app.add_middleware(AuthorizationMiddleware)
+
 # app.add_middleware(CSRFMiddleware, secret=config.csrf.secret_key)
 
 app.include_router(router=auth_api_router, prefix="/auth", tags=["Auth"])
@@ -90,8 +104,6 @@ async def app_exception_handler(request: Request, exc: AppException):
     )
     return JSONResponse(status_code=exc.status_code,
                         content=content_error)
-
-
 
 
 @app.middleware("http")

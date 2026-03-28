@@ -21,7 +21,7 @@ class AuthConfig(BaseSettings):
         env_file=ENV_FILE
     )
 
-    JWT_SECRET_KEY: str = secrets.token_urlsafe(256)
+    JWT_SECRET_KEY: str = "SECRET-KEY"
     JWT_SERVICE_ISSUER: str = "auth-service"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_HEADER_NAME: str = "Authorization"
