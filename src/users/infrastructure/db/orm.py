@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, Enum
+from sqlalchemy import Integer, String, Enum, Boolean
 from sqlalchemy.orm import mapped_column, Mapped
 
 from src.auth.domain.entities import UserRoles
@@ -13,6 +13,7 @@ class UsersOrm(Base):
     email: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(), nullable=False)
     role: Mapped[UserRoles] = mapped_column(Integer(), default=UserRoles.USER, nullable=True)
+    is_verify_otp: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     def to_entity(self):
         return User(

@@ -47,10 +47,10 @@ async def get_secret(user_id: str = None):
     return str(secrets.token_urlsafe(64))
 
 
-app.add_middleware(TwoFactorMiddleware,
-                   get_user_secret_callback=get_secret,
-                   excluded_paths=["/docs", "/auth/qr"],
-                   header_name="X-2FA-Code",)
+# app.add_middleware(TwoFactorMiddleware,
+#                    get_user_secret_callback=get_secret,
+#                    excluded_paths=["/docs", "/auth/qr"],
+#                    header_name="X-2FA-Code",)
                    # encryption_key=base64.b64encode(secrets.token_bytes(32))  # Optional)
 app.add_middleware(RefreshMiddleware)
 app.add_middleware(AuthorizationMiddleware)

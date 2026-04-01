@@ -1,14 +1,11 @@
-import secrets
-
 from fastapi import APIRouter, Form, Body
 from fastapi_csrf_protect import CsrfProtect
 from starlette.requests import Request
 from starlette.responses import Response, FileResponse
-from starlette.templating import Jinja2Templates
 from two_fast_auth import TwoFactorMiddleware, TwoFactorAuth
 
 from src.auth.presentation.dependencies import TokenAuthDep
-from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO
+from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO, UserOtpVerifyDTO
 from src.auth.usecase.authentication import authenticate
 from src.auth.usecase.auth_qr import *
 from src.auth.usecase.registration import registration
@@ -41,14 +38,16 @@ async def register_user(request: Request,
     return {"message": "User registered!"}
 
 
-@router.get("/qr?token={token}")
-async def qr_code_auth(token: str):
-    return await authenticate_with_qr(token)
+@router.post("/otp/confirm")
+async def qr_code_auth(otp_form: UserOtpVerifyDTO = Form()):
+    await authenticate_opt_code(otp_form.otp_code, otp_form.email)
+    return {"message": "Otp verify confirm"}
 
 
-@router.get("/qr")
-async def qr_code(email: str = Form(..., description="Email required")):
-    qr_data = TwoFactorAuth.generate_qr_code(email)
+@router.post("/qr")
+async def qr_code(email: str = Form(..., description="Email required for qr auth")):
+    # qr_data = TwoFactorAuth.generate_qr_code(email)
+    qr_data = generate_qr_code(email)
     return Response(
         content=qr_data,
         media_type="image/png"

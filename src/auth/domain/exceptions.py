@@ -14,3 +14,7 @@ class NotValidEmailPassword(BadRequest):
 
 class RefreshInvalid(AuthRequired):
     message = "Refresh token invalid"
+
+
+class OTPRequired(AuthRequired):
+    message = "Not input OTP code"

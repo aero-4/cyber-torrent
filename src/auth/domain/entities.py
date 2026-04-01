@@ -11,8 +11,6 @@ class UserRoles(enum.IntEnum):
     USER = 1
 
 
-
-
 class TokenType(enum.StrEnum):
     ACCESS = "access_token"
     REFRESH = "refresh_token"
@@ -29,3 +27,8 @@ class TokenData(BaseModel):
 class UserCreate(BaseModel):
     email: str
     password: str
+
+
+class UserUpdate(BaseModel):
+    email: str
+    is_verify_otp: bool

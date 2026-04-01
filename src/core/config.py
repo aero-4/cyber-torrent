@@ -31,6 +31,11 @@ class AuthConfig(BaseSettings):
     TOKENS_HEADER_TYPE: str = "Bearer"
 
 
+class OTPAuthConfig(BaseSettings):
+    OTP_SECRET: str = "secret-key"
+    OTP_ISSUER: str = "qr-test"
+
+
 
 class DatabaseConfig(BaseSettings):
     DATABASE_URI: str = "sqlite+aiosqlite:///test.db"
@@ -40,6 +45,7 @@ class Config(BaseSettings):
     auth: AuthConfig = AuthConfig()
     database: DatabaseConfig = DatabaseConfig()
     csrf: CsrfConfig = CsrfConfig()
+    otp: OTPAuthConfig = OTPAuthConfig()
 
 
 @CsrfProtect.load_config

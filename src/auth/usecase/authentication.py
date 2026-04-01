@@ -1,6 +1,6 @@
 import secrets
 
-from src.auth.domain.exceptions import NotValidEmailPassword
+from src.auth.domain.exceptions import NotValidEmailPassword, OTPRequired
 from src.auth.infrastructure.providers.hasher import HasherProvider
 from src.auth.infrastructure.providers.qr import QrCodeProvider
 from src.auth.presentation.dependencies import TokenAuthDep
@@ -17,5 +17,8 @@ async def authenticate(login_data: UserLoginDTO, auth: TokenAuthDep):
 
         if not user or not hasher_provider.verify_password(login_data.password, user.password):
             raise NotValidEmailPassword()
+
+        if user.is_verify_otp and login_data.otp_code:
+            raise OTPRequired()
 
         await auth.set_tokens(user)
