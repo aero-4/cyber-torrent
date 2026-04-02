@@ -8,9 +8,9 @@ from src.users.infrastructure.db.uow import UsersUnitOfWork
 qr_provider = QrCodeProvider()
 
 
-async def generate_qr_code(user_email: str) -> bytes:
-    qr_data = qr_provider.create_qr_code(user_email)
-    return qr_data
+def generate_qr_code(user_email: str) -> str:
+    qr_file_name = qr_provider.create_qr_code(user_email)
+    return qr_file_name
 
 
 async def authenticate_opt_code(code: str, email: str):

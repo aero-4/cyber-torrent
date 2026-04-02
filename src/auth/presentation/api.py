@@ -1,7 +1,10 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Form, Body
 from fastapi_csrf_protect import CsrfProtect
 from starlette.requests import Request
 from starlette.responses import Response, FileResponse
+from starlette.staticfiles import StaticFiles
 from two_fast_auth import TwoFactorMiddleware, TwoFactorAuth
 
 from src.auth.presentation.dependencies import TokenAuthDep
@@ -13,6 +16,11 @@ from templates.templates import templates
 
 router = APIRouter()
 csrf_protect = CsrfProtect()
+
+
+# router.mount("/static", StaticFiles(directory="static"), name="static")
+# QR_DIR = Path("static/qr")
+# QR_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @router.get("/register")
@@ -47,11 +55,8 @@ async def qr_code_auth(otp_form: UserOtpVerifyDTO = Form()):
 @router.post("/qr")
 async def qr_code(email: str = Form(..., description="Email required for qr auth")):
     # qr_data = TwoFactorAuth.generate_qr_code(email)
-    qr_data = generate_qr_code(email)
-    return Response(
-        content=qr_data,
-        media_type="image/png"
-    )
+    qr_path = generate_qr_code(email)
+    return FileResponse(qr_path)
 
 
 @router.get("/login")

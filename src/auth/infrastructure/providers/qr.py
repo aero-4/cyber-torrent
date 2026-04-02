@@ -5,6 +5,8 @@ import pyotp
 import qrcode
 from base64 import b64encode, b64decode
 
+from PIL.Image import Image
+
 from src.core.config import config
 
 
@@ -16,17 +18,17 @@ class QrCodeProvider:
 
         self.totp = pyotp.totp.TOTP(self.secret)
 
-    def create_qr_code(self, email: str) -> bytes:
+    def create_qr_code(self, email: str) -> str:
         qr = qrcode.QRCode()
         uri = self._get_opt_code_uri(email)
 
         qr.add_data(uri)
-
         qr.make(fit=True)
-
+        file_name: str = f"static/qr/photo_{uuid.uuid4()}.jpeg"
         img = qr.make_image(fill_color="black",
                             back_color="white")
-        return self._get_bytes(img)
+        img.save(file_name)
+        return file_name
 
     def check_otp_code(self, code: str) -> bool:
         return self.totp.verify(code)
@@ -35,10 +37,3 @@ class QrCodeProvider:
         uri = self.totp.provisioning_uri(name=email,
                                          issuer_name=self.issuer)
         return uri
-
-    def _get_bytes(self, img) -> bytes:
-        f = io.BytesIO()
-        img.save(f)
-        img_bytes = f.getvalue()
-
-        return img_bytes
