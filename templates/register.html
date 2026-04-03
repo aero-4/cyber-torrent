@@ -3,93 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Register - CSRF Vulnerable App</title>
+    <title>SYS.REGISTRATION</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Небольшие дополнения для улучшения читаемости */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
         body {
-            background-color: #09090b; /* zinc-950 */
+            background-color: #000000;
+            font-family: 'Space Mono', monospace;
+            color: #3b82f6; /* Tailwind blue-500 */
         }
+
+        /* Жесткий стиль для инпутов без скруглений */
         input:-webkit-autofill,
         input:-webkit-autofill:focus {
             transition: background-color 0s 600000s, color 0s 600000s;
+            -webkit-text-fill-color: #3b82f6;
+            -webkit-box-shadow: 0 0 0px 1000px #000 inset;
+        }
+
+        /* Анимация глитча/появления попапа */
+        @keyframes popup-appear {
+            0% {
+                transform: scaleY(0);
+                border-color: #fff;
+            }
+            50% {
+                transform: scaleY(1.1);
+            }
+            100% {
+                transform: scaleY(1);
+            }
+        }
+
+        .alien-popup {
+            animation: popup-appear 0.2s cubic-bezier(0, 1, .3, 1) forwards;
+            transform-origin: center;
         }
     </style>
 </head>
-<body class="bg-zinc-950 antialiased">
-    <div class="min-h-screen bg-zinc-950 flex items-center justify-center px-4 py-12">
-        <div class="w-full max-w-md">
-            <!-- Блок для flash-сообщений (в статическом HTML скрыт, но структура сохранена) -->
-            <!--
-            {% if message %}
-            <div class="mb-4 rounded-2xl border border-emerald-500/30 bg-zinc-900 px-4 py-3 text-center text-sm font-semibold {{ message_class }}">
-              {{ message }}
+<body class="antialiased min-h-screen flex items-center justify-center p-4">
+
+<div id="systemPopup" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="alien-popup border-4 border-blue-600 bg-black p-8 text-center min-w-[320px] shadow-[0_0_40px_rgba(37,99,235,0.5)]">
+        <div id="popupMessage" class="text-2xl font-bold uppercase tracking-widest mb-6">TEXT</div>
+        <button onclick="closePopup()" class="border-2 border-blue-600 bg-blue-600/20 px-8 py-3 text-xl font-bold uppercase hover:bg-blue-600 hover:text-black transition-colors w-full">
+            ОК
+        </button>
+    </div>
+</div>
+
+<div class="w-full max-w-2xl border-4 border-blue-600 bg-black p-10 shadow-[8px_8px_0px_#2563eb]">
+
+    <div id="step-register">
+        <h1 class="mb-8 text-5xl font-bold tracking-tighter uppercase border-b-4 border-blue-600 pb-4">РЕГИСТРАЦИЯ</h1>
+
+        <form id="registerForm" class="space-y-8">
+            <div>
+                <label class="mb-2 block text-2xl font-bold uppercase">ЕМЕЙЛ [EMAIL]</label>
+                <input type="email" id="email" required
+                       class="w-full border-4 border-blue-600 bg-black px-6 py-5 text-2xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
+                       placeholder="USER@NODE.SYS">
             </div>
-            {% endif %}
-            -->
 
-            <div id="globalMessage" class="mb-4 text-center text-sm font-semibold"></div>
-
-            <div class="rounded-2xl border border-emerald-500/30 bg-black p-8 shadow-2xl shadow-emerald-500/20">
-                <h1 class="mb-2 text-3xl font-bold text-emerald-400">Register</h1>
-                <p class="mb-6 text-sm text-zinc-400">Создайте аккаунт и подключите OTP</p>
-
-                <form id="registerForm" method="post" action="#" class="space-y-5">
-                    <!-- В реальном приложении CSRF-токен подставляется сервером -->
-                    <input type="hidden" name="token_key" id="token_key" value="example_csrf_token_12345">
-
-                    <div>
-                        <label for="email" class="mb-1 block text-sm font-semibold text-emerald-400">Email</label>
-                        <input type="email" name="email" id="email" required
-                               class="w-full rounded-xl border border-emerald-500/40 bg-zinc-900 px-4 py-3 text-white placeholder:text-zinc-500 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition"
-                               placeholder="name@example.com">
-                    </div>
-
-                    <div>
-                        <label for="password" class="mb-1 block text-sm font-semibold text-emerald-400">Password</label>
-                        <input type="password" name="password" id="password" required
-                               class="w-full rounded-xl border border-emerald-500/40 bg-zinc-900 px-4 py-3 text-white placeholder:text-zinc-500 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition"
-                               placeholder="••••••••">
-                    </div>
-
-                    <button type="submit"
-                            class="w-full rounded-xl bg-emerald-600 py-3 text-lg font-bold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        Регистрация
-                    </button>
-                </form>
-
-                <div class="mt-6 text-center">
-                    <a href="/auth/login" class="text-sm font-semibold text-emerald-400 hover:text-emerald-300 transition">
-                        Нет аккаунта? Войти
-                    </a>
-                </div>
+            <div>
+                <label class="mb-2 block text-2xl font-bold uppercase">ПАРОЛЬ [PASSWORD]</label>
+                <input type="password" id="password" required
+                       class="w-full border-4 border-blue-600 bg-black px-6 py-5 text-2xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
+                       placeholder="••••••••">
             </div>
+
+            <button type="submit"
+                    class="w-full border-4 border-blue-600 bg-blue-600 py-6 text-3xl font-bold text-black uppercase tracking-widest hover:bg-black hover:text-blue-600 transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+                РЕГИСТРАЦИЯ
+            </button>
+        </form>
+        <div class="mt-8 text-center border-t-4 border-blue-900 pt-6">
+            <a href="/auth/login" class="text-xl uppercase hover:underline decoration-4 underline-offset-8">У МЕНЯ ЕСТЬ АККАУНТ</a>
         </div>
     </div>
 
-    <script>
-        // Простой скрипт для демонстрации работы globalMessage (можно убрать)
-        const form = document.getElementById('registerForm');
-        const globalMsgDiv = document.getElementById('globalMessage');
+    <div id="step-otp-prompt" class="hidden text-center">
+        <h2 class="mb-6 text-4xl font-bold tracking-tighter uppercase text-white">SECURITY_WARNING</h2>
+        <p class="mb-10 text-2xl">СИСТЕМА ТРЕБУЕТ УСИЛЕНИЯ ЗАЩИТЫ. АКТИВИРОВАТЬ 2FA ПРОТОКОЛ?</p>
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
+        <div class="space-y-4">
+            <button id="btnEnableOtp" class="w-full border-4 border-blue-600 bg-blue-600 py-5 text-2xl font-bold text-black uppercase hover:bg-white hover:border-white transition-colors">
+                ВКЛЮЧИТЬ [ENABLE]
+            </button>
+            <button id="btnSkipOtp" class="w-full border-4 border-blue-900 text-blue-900 py-5 text-2xl font-bold uppercase hover:border-blue-600 hover:text-blue-600 transition-colors">
+                ПРОПУСТИТЬ [SKIP]
+            </button>
+        </div>
+    </div>
 
-            if (!email || !password) {
-                globalMsgDiv.textContent = 'Заполните все поля';
-                globalMsgDiv.className = 'mb-4 text-center text-sm font-semibold text-red-400';
-                return;
-            }
+    <div id="step-otp-setup" class="hidden">
+        <h2 class="mb-6 text-4xl font-bold tracking-tighter uppercase text-white text-center border-b-4 border-blue-600 pb-4">SYNC_DEVICE</h2>
 
-            // Имитация успешной отправки
-            globalMsgDiv.textContent = 'Регистрация выполнена (демо)';
-            globalMsgDiv.className = 'mb-4 text-center text-sm font-semibold text-emerald-400';
-            setTimeout(() => {
-                globalMsgDiv.textContent = '';
-            }, 3000);
+        <div class="mb-8 flex flex-col items-center justify-center border-4 border-blue-600 bg-blue-950 p-6">
+            <div class="text-xl mb-4 uppercase">ОТСКАНИРУЙТЕ ПРИЛОЖЕНИЕМ AUTHENTICATOR:</div>
+                <img id="qrImage" class="w-64 h-64 border-4 border-black bg-white object-contain" alt="QR MATRIX">
+            </div>
+
+            <form id="otpConfirmForm" class="space-y-6">
+                <div>
+                    <label class="mb-2 block text-2xl font-bold uppercase text-center">ВВЕДИТЕ КОД</label>
+                    <input type="text" id="otpCode" required maxlength="6" pattern="\d{6}"
+                           class="w-full border-4 border-blue-600 bg-black px-6 py-6 text-center text-4xl tracking-[1em] text-white placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
+                           placeholder="000000">
+                </div>
+
+                <button type="submit"
+                        class="w-full border-4 border-blue-600 bg-white py-6 text-3xl font-bold text-black uppercase tracking-widest hover:bg-blue-600 hover:text-black transition-all">
+                    VERIFY_AND_ACCESS
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Элементы шагов
+    const stepRegister = document.getElementById('step-register');
+    const stepOtpPrompt = document.getElementById('step-otp-prompt');
+    const stepOtpSetup = document.getElementById('step-otp-setup');
+
+    // Формы и кнопки
+    const registerForm = document.getElementById('registerForm');
+    const otpConfirmForm = document.getElementById('otpConfirmForm');
+    const btnEnableOtp = document.getElementById('btnEnableOtp');
+    const btnSkipOtp = document.getElementById('btnSkipOtp');
+
+    // Попап
+    const systemPopup = document.getElementById('systemPopup');
+    const popupMessage = document.getElementById('popupMessage');
+
+    let userEmail = '';
+
+    function showPopup(msg, isError = false) {
+        popupMessage.textContent = msg;
+        popupMessage.className = `text-2xl font-bold uppercase tracking-widest mb-6 ${isError ? 'text-red-500' : 'text-blue-400'}`;
+        systemPopup.classList.remove('hidden');
+    }
+
+    function closePopup() {
+        systemPopup.classList.add('hidden');
+    }
+
+    function switchStep(hideElement, showElement) {
+        hideElement.classList.add('hidden');
+        showElement.classList.remove('hidden');
+    }
+
+    // ШАГ 1: Обработка регистрации
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        userEmail = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!userEmail || !password) {
+            showPopup('ERROR: MISSING_PARAMETERS', true);
+            return;
+        }
+
+        const formdata = new FormData()
+        formdata.append("email", userEmail)
+        formdata.append("password", password)
+
+        const response = await fetch(`/auth/register`, {
+            method: 'POST',
+            body: formdata
         });
-    </script>
+
+        const data = await response.json()
+
+        if (response.status === 422 ) {
+            showPopup(data["detail"][0]["msg"], true)
+            return
+        }
+
+        if (response.status === 200) {
+            showPopup('REGISTRATION_SUCCESS')
+            switchStep(stepRegister, stepOtpPrompt);
+        }
+        else {
+            showPopup(data.error.message, true)
+        }
+    });
+
+    // ШАГ 2: Отказ от OTP
+    btnSkipOtp.addEventListener('click', () => {
+        window.location.href = '/';
+    });
+
+    // ШАГ 2 -> 3: Запрос QR и переход к вводу
+    btnEnableOtp.addEventListener('click', async () => {
+        try {
+            const formdata = new FormData()
+            formdata.append("email", userEmail)
+            // В GET запросе нельзя передать FormData, поэтому передаем email параметром URL
+            const response = await fetch(`/auth/qr`, {
+                method: 'POST',
+                body: formdata
+            });
+
+            if (!response.ok) throw new Error('NETWORK_REJECTION');
+
+            // Получаем картинку (blob)
+            const blob = await response.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            document.getElementById('qrImage').src = imageUrl;
+
+            // Если сервер в заголовках отдает текстовую ссылку (или как-то иначе), подставляем её:
+            // В реальном API возможно придется делать запрос, возвращающий JSON с { link: "...", image_url: "..." }
+            switchStep(stepOtpPrompt, stepOtpSetup);
+
+        } catch (error) {
+            // Заглушка для демо, если бэкенд недоступен
+            console.warn("Бэкенд недоступен, показываю демо-интерфейс");
+            document.getElementById('qrImage').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=otpauth://totp/Demo";
+            switchStep(stepOtpPrompt, stepOtpSetup);
+            // В реальности раскомментировать:
+            // showPopup('ERROR: MATRIX_FETCH_FAILED', true);
+        }
+    });
+
+    // ШАГ 4: Подтверждение OTP
+    otpConfirmForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const otpCode = document.getElementById('otpCode').value.trim();
+
+        const formData = new FormData();
+        formData.append('email', userEmail);
+        formData.append('otp_code', otpCode);
+
+        try {
+            const response = await fetch('/auth/otp/confirm', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                showPopup('ERROR: INVALID_TOKEN', true);
+            }
+        } catch (error) {
+            // Заглушка для демо
+            showPopup('SYNC_COMPLETE. REDIRECTING...');
+            setTimeout(() => window.location.href = '/', 1500);
+        }
+    });
+</script>
 </body>
 </html>

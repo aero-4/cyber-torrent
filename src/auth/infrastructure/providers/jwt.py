@@ -6,10 +6,10 @@ from jose.jwt import encode, decode
 from jose.exceptions import JWTError
 from src.core.config import config
 from src.auth.domain.entities import TokenData
-from src.auth.domain.interfaces.token_provider import ITokenProvider
+from src.auth.domain.interfaces.token_auth import ITokenProvider
 
 
-class JWTProvider(ITokenProvider):
+class JwtProvider(ITokenProvider):
 
     def create_access_token(self, data: dict) -> str:
         return self._encode_jwt(data, config.auth.ACCESS_TOKEN_EXPIRE_SECONDS)

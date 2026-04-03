@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
 from src.auth.domain.entities import UserUpdate
-from src.auth.domain.exceptions import NotValidEmailPassword, OTPInvalid
+from src.auth.domain.exceptions import OTPInvalid, NotValidCredentials
 from src.auth.infrastructure.providers.qr import QrCodeProvider
 from src.users.infrastructure.db.uow import UsersUnitOfWork
 
@@ -22,6 +22,9 @@ async def authenticate_opt_code(code: str, email: str):
 
     async with uow:
         user = await uow.users.get_by_email(email=email)
+
+        if not user:
+            raise NotValidCredentials()
 
         if not qr_provider.check_otp_code(code=code):
             raise OTPInvalid()

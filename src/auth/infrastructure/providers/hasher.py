@@ -1,7 +1,9 @@
 import bcrypt
 
+from src.auth.domain.interfaces.hasher import IHasherProvider
 
-class HasherProvider:
+
+class HasherProvider(IHasherProvider):
 
     def hash_password(self, password: str) -> str:
         salt = bcrypt.gensalt()

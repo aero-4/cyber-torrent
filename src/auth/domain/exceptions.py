@@ -8,7 +8,7 @@ class AuthRequired(AppException):
     error_code = ERROR_CODES.get(status_code)
 
 
-class NotValidEmailPassword(BadRequest):
+class NotValidCredentials(BadRequest):
     message = "Not valid password or email"
 
 

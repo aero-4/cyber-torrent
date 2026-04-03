@@ -5,16 +5,52 @@ from src.users.domain.entities import User
 from src.users.infrastructure.db.orm import UsersOrm
 
 
+import abc
+
+from src.auth.domain.entities import TokenData, TokenType
+from src.users.domain.entities import User
+
+
+class ITokenProvider(abc.ABC):
+
+    @abc.abstractmethod
+    def token_read(self, token: str) -> TokenData | None:
+        pass
+
+    @abc.abstractmethod
+    def create_access_token(self, data: dict) -> str:
+        pass
+
+    @abc.abstractmethod
+    def create_refresh_token(self, data: dict) -> str:
+        pass
+
+
+class ITokenStorage(abc.ABC):
+
+    @abc.abstractmethod
+    async def is_active_token(self, jti: str) -> bool:
+        pass
+
+    @abc.abstractmethod
+    async def add_store_token(self, token_data: TokenData) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def remove_tokens_user(self, token_data: TokenData) -> None:
+        pass
+
+
 class ITokenAuth(abc.ABC):
 
     @abc.abstractmethod
-    async def read_token(self, token_type: TokenType):
+    async def read_token(self, token_type: TokenType) -> TokenData | None:
         pass
 
     @abc.abstractmethod
-    async def set_tokens(self, user: User):
+    async def set_tokens(self, user: User) -> None:
         pass
 
     @abc.abstractmethod
-    async def refresh_access_token(self):
+    async def refresh_access_token(self) -> None:
         pass

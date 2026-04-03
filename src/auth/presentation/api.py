@@ -7,7 +7,7 @@ from starlette.responses import Response, FileResponse
 from starlette.staticfiles import StaticFiles
 from two_fast_auth import TwoFactorMiddleware, TwoFactorAuth
 
-from src.auth.presentation.dependencies import TokenAuthDep
+from src.auth.presentation.dependencies import TokenAuthDep, HasherProvideDep, QrProvideDep
 from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO, UserOtpVerifyDTO
 from src.auth.usecase.authentication import authenticate
 from src.auth.usecase.auth_qr import *
@@ -33,15 +33,15 @@ async def view_register_user(request: Request):
     return resp
 
 
-@router.post("/register")
+@router.post("/register", response_model=None)
 async def register_user(request: Request,
                         auth: TokenAuthDep,
                         auth_form: UserRegisterDTO = Form()):
-    try:
-        if request.cookies.get("fastapi-csrf-token"):
-            await csrf_protect.validate_csrf(request)
-    except Exception as e:
-        pass
+    # try:
+    #     if request.cookies.get("fastapi-csrf-token"):
+    #         await csrf_protect.validate_csrf(request)
+    # except Exception as e:
+    #     pass
     await registration(auth_form.email, auth_form.password, auth)
     return {"message": "User registered!"}
 
@@ -71,9 +71,14 @@ async def login_user(request: Request):
 
 
 @router.post("/login")
-async def login_user(auth: TokenAuthDep,
-                     login_data: UserLoginDTO = Form(...)):
-    await authenticate(login_data, auth)
+async def login_user(
+        auth: TokenAuthDep,
+        hasher_provider: HasherProvideDep,
+        qr_code_provider: QrProvideDep,
+        login_data: UserLoginDTO = Form(...),
+
+):
+    await authenticate(login_data, auth, hasher_provider, qr_code_provider)
     return {"message": "User sign up"}
 
 

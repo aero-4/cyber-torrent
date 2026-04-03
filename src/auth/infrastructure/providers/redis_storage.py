@@ -1,9 +1,10 @@
 from src.auth.domain.entities import TokenData
+from src.auth.domain.interfaces.token_auth import ITokenStorage
 from src.core.infrastructure.redis import get_redis_client
 from src.utils.datetimes import get_timezone_now
 
 
-class RedisTokenStorage:
+class RedisTokenStorage(ITokenStorage):
 
     def __init__(self):
         self.redis = get_redis_client()

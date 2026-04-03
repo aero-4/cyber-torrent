@@ -33,7 +33,7 @@ class AuthConfig(BaseSettings):
 
 class OTPAuthConfig(BaseSettings):
     OTP_SECRET: str = "234567abcdefghij"
-    OTP_ISSUER: str = "qr-test"
+    OTP_ISSUER: str = "FastapiApp"
 
 
 

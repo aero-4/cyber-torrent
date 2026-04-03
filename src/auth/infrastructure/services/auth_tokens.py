@@ -5,14 +5,14 @@ from starlette.responses import Response
 
 from src.auth.domain.entities import TokenType, TokenData
 from src.auth.domain.exceptions import RefreshInvalid
-from src.auth.domain.interfaces.token_auth import ITokenAuth
-from src.auth.domain.interfaces.token_provider import ITokenProvider
+from src.auth.domain.interfaces.token_auth import ITokenAuth, ITokenStorage
+from src.auth.domain.interfaces.token_auth import ITokenProvider
 from src.auth.domain.interfaces.transport import IAuthTransport
 from src.auth.infrastructure.providers.redis_storage import RedisTokenStorage
 from src.users.domain.entities import User
 
 
-class TokenAuth(ITokenAuth, ABC):
+class TokenAuth(ITokenAuth):
     """
     Creating token for authorization
     """
@@ -20,7 +20,7 @@ class TokenAuth(ITokenAuth, ABC):
     def __init__(self,
                  request: Request,
                  provider: ITokenProvider,
-                 token_storage: RedisTokenStorage,
+                 token_storage: ITokenStorage,
                  transports: dict[TokenType, list[IAuthTransport]],
                  response: Response = None):
         self.response = response
