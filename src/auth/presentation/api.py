@@ -55,6 +55,7 @@ async def qr_code_auth(otp_form: UserOtpVerifyDTO = Form()):
 @router.post("/qr")
 async def qr_code(email: str = Form(..., description="Email required for qr auth")):
     # qr_data = TwoFactorAuth.generate_qr_code(email)
+
     qr_path = generate_qr_code(email)
     return FileResponse(qr_path)
 
@@ -70,8 +71,8 @@ async def login_user(request: Request):
 
 
 @router.post("/login")
-async def login_user(login_data: UserLoginDTO,
-                     auth: TokenAuthDep):
+async def login_user(auth: TokenAuthDep,
+                     login_data: UserLoginDTO = Form(...)):
     await authenticate(login_data, auth)
     return {"message": "User sign up"}
 

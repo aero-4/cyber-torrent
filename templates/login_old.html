@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Login - CSRF Vulnerable App{% endblock %}
+{% block header %}Login{% endblock %}
+
+{% block content %}
+<div style="max-width: 420px; margin: 0 auto;">
+    {% if message %}
+    <div class="message {{ message_class }}">{{ message }}</div>
+    {% endif %}
+
+    <div style="margin-bottom: 20px; text-align: center;">
+        <img
+                id="qrImage"
+                alt="QR code"
+                style="display:none; width: 220px; height: 220px; object-fit: contain; border: 1px solid #ddd; border-radius: 10px; background: #fff;"
+        >
+    </div>
+
+    <!-- Форма логина -->
+    <form id="loginForm" method="post" action="/auth/login"
+          style="background-color: #f0f0f0; padding: 30px; border-radius: 10px; margin-bottom: 16px;">
+        <input type="hidden" name="token_key" value="{{ csrf_token }}">
+
+        <label for="email">Email:</label>
+        <input type="text" name="email" id="email" required>
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required>
+
+        <div style="margin: 16px 0;">
+            <label style="display: block; margin-bottom: 8px;">OTP:</label>
+
+            <label style="display: block; margin-bottom: 8px;">
+                <input type="radio" name="otp_mode" value="skip" checked>
+                Пропустить
+            </label>
+
+            <label style="display: block;">
+                <input type="radio" name="otp_mode" value="add">
+                Добавить OTP код
+            </label>
+        </div>
+
+        <input type="submit" value="Login">
+    </form>
+
+    <!-- Форма OTP -->
+    <form id="otpForm" style="display:none; background-color: #f0f0f0; padding: 30px; border-radius: 10px;">
+        <input type="hidden" name="token_key" value="{{ csrf_token }}">
+        <input type="hidden" name="email" id="otp_email">
+
+        <label for="otp_code">OTP code:</label>
+        <input type="text" name="otp_code" id="otp_code" inputmode="numeric" autocomplete="one-time-code">
+
+        <div style="margin-top: 12px;">
+            <button type="button" id="confirmOtpBtn">Проверить код</button>
+        </div>
+
+        <div id="otpMessage" style="margin-top: 12px;"></div>
+    </form>
+</div>
+
+<script>
+    const EMAIL_STORAGE_KEY = 'login_email';
+
+    const emailInput = document.getElementById('email');
+    const otpEmailInput = document.getElementById('otp_email');
+    const qrImage = document.getElementById('qrImage');
+    const otpForm = document.getElementById('otpForm');
+    const otpCodeInput = document.getElementById('otp_code');
+
+    function getStoredEmail() {
+        return localStorage.getItem(EMAIL_STORAGE_KEY) || '';
+    }
+
+    function setStoredEmail(value) {
+        localStorage.setItem(EMAIL_STORAGE_KEY, value || '');
+        otpEmailInput.value = value || '';
+    }
+
+    function setOtpMessage(text, ok) {
+        const box = document.getElementById('otpMessage');
+        box.textContent = text;
+        box.style.color = ok ? 'green' : 'crimson';
+    }
+
+    async function loadQr() {
+        const email = emailInput.value.trim();
+
+        if (!email) {
+            qrImage.removeAttribute('src');
+            qrImage.style.display = 'none';
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('email', email);
+
+            const response = await fetch('/auth/qr', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const blob = await response.blob()
+            const objectUrl = URL.createObjectURL(blob);
+
+            console.log(objectUrl)
+            qrImage.src = objectUrl;
+            qrImage.style.display = 'block';
+        } catch (error) {
+            console.error('Не удалось загрузить QR:', error);
+            qrImage.removeAttribute('src');
+            qrImage.style.display = 'none';
+        }
+    }
+
+    function toggleOtpBlock() {
+        const selected = document.querySelector('input[name="otp_mode"]:checked')?.value;
+        const show = selected === 'add';
+
+        otpForm.style.display = show ? 'block' : 'none';
+        otpCodeInput.required = show;
+
+        if (show) {
+            loadQr();
+        } else {
+            otpCodeInput.value = '';
+            setOtpMessage('', true);
+            qrImage.removeAttribute('src');
+            qrImage.style.display = 'none';
+        }
+    }
+
+    async function confirmOtp() {
+        const otpCode = otpCodeInput.value.trim();
+        const email = emailInput.value.trim();
+
+        if (!email) {
+            setOtpMessage('Сначала укажите email.', false);
+            return;
+        }
+
+        if (!otpCode) {
+            setOtpMessage('Введите OTP код.', false);
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('otp_code', otpCode);
+
+            const response = await fetch('/auth/otp/confirm', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                setOtpMessage(text || `HTTP ${response.status}`, false);
+                return;
+            }
+
+            const data = await response.json();
+            setOtpMessage(data.message || 'Код подтверждён.', true);
+        } catch (error) {
+            console.error('Не удалось проверить OTP:', error);
+            setOtpMessage('Не удалось проверить OTP.', false);
+        }
+    }
+
+    emailInput.value = getStoredEmail();
+    otpEmailInput.value = emailInput.value;
+
+    emailInput.addEventListener('input', () => {
+        setStoredEmail(emailInput.value);
+    });
+
+    emailInput.addEventListener('blur', () => {
+        setStoredEmail(emailInput.value);
+        if (document.querySelector('input[name="otp_mode"]:checked')?.value === 'add') {
+            loadQr();
+        }
+    });
+
+    document.querySelectorAll('input[name="otp_mode"]').forEach(el => {
+        el.addEventListener('change', toggleOtpBlock);
+    });
+
+    document.getElementById('confirmOtpBtn').addEventListener('click', confirmOtp);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleOtpBlock();
+    });
+</script>
+{% endblock %}

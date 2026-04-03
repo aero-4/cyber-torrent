@@ -17,4 +17,12 @@ class RefreshInvalid(AuthRequired):
 
 
 class OTPRequired(AuthRequired):
+    message = "OTP code required"
+
+
+class OTPInputRequired(AuthRequired):
     message = "Not input OTP code"
+
+
+class OTPInvalid(AuthRequired):
+    message = "OTP code is invalid"

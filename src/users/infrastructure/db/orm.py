@@ -20,5 +20,6 @@ class UsersOrm(Base):
             id=self.id,
             email=self.email,
             password=self.password,
-            role=self.role
+            role=self.role,
+            is_verify_otp=self.is_verify_otp
         )
