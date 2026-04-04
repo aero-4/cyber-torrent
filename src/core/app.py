@@ -1,4 +1,3 @@
-import base64
 import datetime
 import logging
 import secrets
@@ -7,14 +6,17 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from time import perf_counter
 
-from starlette.responses import JSONResponse, Response
+from sqladmin import Admin
+from starlette.responses import Response
 from starlette.middleware.cors import CORSMiddleware
-from starlette.templating import Jinja2Templates
+from starlette.staticfiles import StaticFiles
 from starlette_csrf import CSRFMiddleware
 
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
 from src.auth.presentation.api import router as auth_api_router
 from src.core.infrastructure.setup_logging import setup_logging
+from src.db.engine import engine
+from src.users.infrastructure.db.orm import UsersAdmin
 from src.users.presentation.api import router as users_api_router
 from typing import Dict, Any
 
@@ -22,7 +24,6 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from src.core.domain.exceptions import AppException
-from two_fast_auth import TwoFactorMiddleware
 
 
 @asynccontextmanager
@@ -33,6 +34,9 @@ async def lifespan(app: FastAPI):
 
 logger = logging.getLogger(__name__)
 app = FastAPI(lifespan=lifespan)
+admin = Admin(app, engine=engine)
+
+admin.add_view(UsersAdmin)
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,6 +45,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 async def get_secret(user_id: str = None):
@@ -51,7 +57,7 @@ async def get_secret(user_id: str = None):
 #                    get_user_secret_callback=get_secret,
 #                    excluded_paths=["/docs", "/auth/qr"],
 #                    header_name="X-2FA-Code",)
-                   # encryption_key=base64.b64encode(secrets.token_bytes(32))  # Optional)
+# encryption_key=base64.b64encode(secrets.token_bytes(32))  # Optional)
 app.add_middleware(RefreshMiddleware)
 app.add_middleware(AuthorizationMiddleware)
 

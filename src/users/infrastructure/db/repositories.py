@@ -47,7 +47,7 @@ class PGUsersRepository:
         return obj.to_entity()
 
     async def update(self, user: UserUpdate) -> User:
-        stmt = select(UsersOrm).where(UsersOrm.email == user.email)
+        stmt = select(UsersOrm).where(UsersOrm.id == user.id)
         result = await self.session.execute(stmt)
         obj = result.scalar_one_or_none()
 

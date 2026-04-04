@@ -6,6 +6,7 @@ class User(BaseModel):
     email: str = None
     password: str = None
     role: int = None
+    avatar_image: str = None
     is_verify_otp: bool = False
 
 

@@ -30,5 +30,7 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    email: str
-    is_verify_otp: bool
+    id: int | None = None
+    email: str | None = None
+    is_verify_otp: bool | None = None
+    avatar_image: str | None = None

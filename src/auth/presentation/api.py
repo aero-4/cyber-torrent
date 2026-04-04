@@ -1,11 +1,7 @@
-from pathlib import Path
-
-from fastapi import APIRouter, Form, Body
+from fastapi import APIRouter, Form
 from fastapi_csrf_protect import CsrfProtect
 from starlette.requests import Request
-from starlette.responses import Response, FileResponse
-from starlette.staticfiles import StaticFiles
-from two_fast_auth import TwoFactorMiddleware, TwoFactorAuth
+from starlette.responses import FileResponse
 
 from src.auth.presentation.dependencies import TokenAuthDep, HasherProvideDep, QrProvideDep
 from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO, UserOtpVerifyDTO
@@ -41,18 +37,6 @@ async def register_user(request: Request,
     return {"message": "User registered!"}
 
 
-@router.post("/otp/confirm")
-async def qr_code_auth(otp_form: UserOtpVerifyDTO = Form()):
-    await authenticate_opt_code(otp_form.otp_code, otp_form.email)
-    return {"message": "Otp verify confirm"}
-
-
-@router.post("/otp/qr")
-async def qr_code(email: str = Form(..., description="Email required for qr auth")):
-    qr_path = generate_qr_code(email)
-    return FileResponse(qr_path)
-
-
 @router.get("/login")
 async def login_user(request: Request):
     csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
@@ -85,3 +69,15 @@ async def logout_user(auth: TokenAuthDep):
 async def refresh_token(auth: TokenAuthDep):
     await auth.refresh_access_token()
     return {"message": "Token refreshed"}
+
+
+@router.post("/otp/confirm")
+async def qr_code_auth(otp_form: UserOtpVerifyDTO = Form()):
+    await authenticate_opt_code(otp_form.otp_code, otp_form.email)
+    return {"message": "Otp verify confirm"}
+
+
+@router.post("/otp/qr")
+async def qr_code(email: str = Form(..., description="Email required for qr auth")):
+    qr_path = generate_qr_code(email)
+    return FileResponse(qr_path)
