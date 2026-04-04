@@ -53,12 +53,15 @@
     </div>
 </div>
 
-<div class="w-full max-w-2xl border-4 border-blue-600 bg-black p-10 shadow-[8px_8px_0px_#2563eb]">
+<div class="w-full max-w-2xl border-4 border-blue-600 bg-black p-6 sm:p-10 shadow-[8px_8px_0px_#2563eb]">
 
     <div id="step-register">
-        <h1 class="mb-8 text-5xl font-bold tracking-tighter uppercase border-b-4 border-blue-600 pb-4">РЕГИСТРАЦИЯ</h1>
 
-        <form id="registerForm" class="space-y-8">
+        <div class="mb-8 border-b-4 border-blue-600 pb-4">
+            <h1 class="text-4xl sm:text-5xl font-bold tracking-tighter uppercase text-white">РЕГИСТРАЦИЯ</h1>
+        </div>
+
+        <form id="registerForm" class="space-y-6">
             <div>
                 <label class="mb-2 block text-2xl font-bold uppercase">ЕМЕЙЛ [EMAIL]</label>
                 <input type="email" id="email" required
@@ -73,18 +76,20 @@
                        placeholder="••••••••">
             </div>
 
+            <div class="mt-8 text-center border-t-4 border-blue-900 pt-6">
+                <a href="/auth/login" class="text-xl uppercase hover:underline decoration-4 underline-offset-8">У МЕНЯ ЕСТЬ АККАУНТ</a>
+            </div>
+
             <button type="submit"
                     class="w-full border-4 border-blue-600 bg-blue-600 py-6 text-3xl font-bold text-black uppercase tracking-widest hover:bg-black hover:text-blue-600 transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)]">
                 РЕГИСТРАЦИЯ
             </button>
         </form>
-        <div class="mt-8 text-center border-t-4 border-blue-900 pt-6">
-            <a href="/auth/login" class="text-xl uppercase hover:underline decoration-4 underline-offset-8">У МЕНЯ ЕСТЬ АККАУНТ</a>
-        </div>
+
     </div>
 
     <div id="step-otp-prompt" class="hidden text-center">
-        <h2 class="mb-6 text-4xl font-bold tracking-tighter uppercase text-white">SECURITY_WARNING</h2>
+        <h2 class="mb-6 text-4xl font-bold tracking-tighter uppercase text-white">ЗАЩИТИТЕ АККАУНТ</h2>
         <p class="mb-10 text-2xl">СИСТЕМА ТРЕБУЕТ УСИЛЕНИЯ ЗАЩИТЫ. АКТИВИРОВАТЬ 2FA ПРОТОКОЛ?</p>
 
         <div class="space-y-4">
@@ -98,7 +103,7 @@
     </div>
 
     <div id="step-otp-setup" class="hidden">
-        <h2 class="mb-6 text-4xl font-bold tracking-tighter uppercase text-white text-center border-b-4 border-blue-600 pb-4">SYNC_DEVICE</h2>
+        <h2 class="mb-6 text-4xl font-bold tracking-tighter uppercase text-white text-center border-b-4 border-blue-600 pb-4">СИНХРОНИЗАЦИЯ С УСТРОЙСТВОМ</h2>
 
         <div class="mb-8 flex flex-col items-center justify-center border-4 border-blue-600 bg-blue-950 p-6">
             <div class="text-xl mb-4 uppercase">ОТСКАНИРУЙТЕ ПРИЛОЖЕНИЕМ AUTHENTICATOR:</div>
@@ -115,7 +120,7 @@
 
                 <button type="submit"
                         class="w-full border-4 border-blue-600 bg-white py-6 text-3xl font-bold text-black uppercase tracking-widest hover:bg-blue-600 hover:text-black transition-all">
-                    VERIFY_AND_ACCESS
+                    ПРОВЕРИТЬ
                 </button>
             </form>
         </div>
@@ -203,7 +208,7 @@
             const formdata = new FormData()
             formdata.append("email", userEmail)
             // В GET запросе нельзя передать FormData, поэтому передаем email параметром URL
-            const response = await fetch(`/auth/qr`, {
+            const response = await fetch(`/auth/otp/qr`, {
                 method: 'POST',
                 body: formdata
             });
@@ -221,7 +226,7 @@
 
         } catch (error) {
             // Заглушка для демо, если бэкенд недоступен
-            console.warn("Бэкенд недоступен, показываю демо-интерфейс");
+            console.warn("Бэкенд недоступен, показываю демо-интерфейс", error);
             document.getElementById('qrImage').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=otpauth://totp/Demo";
             switchStep(stepOtpPrompt, stepOtpSetup);
             // В реальности раскомментировать:

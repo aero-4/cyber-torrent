@@ -18,11 +18,6 @@ router = APIRouter()
 csrf_protect = CsrfProtect()
 
 
-# router.mount("/static", StaticFiles(directory="static"), name="static")
-# QR_DIR = Path("static/qr")
-# QR_DIR.mkdir(parents=True, exist_ok=True)
-
-
 @router.get("/register")
 async def view_register_user(request: Request):
     csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
@@ -52,10 +47,8 @@ async def qr_code_auth(otp_form: UserOtpVerifyDTO = Form()):
     return {"message": "Otp verify confirm"}
 
 
-@router.post("/qr")
+@router.post("/otp/qr")
 async def qr_code(email: str = Form(..., description="Email required for qr auth")):
-    # qr_data = TwoFactorAuth.generate_qr_code(email)
-
     qr_path = generate_qr_code(email)
     return FileResponse(qr_path)
 

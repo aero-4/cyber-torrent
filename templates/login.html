@@ -38,15 +38,14 @@
     <div class="alien-popup border-4 border-blue-600 bg-black p-8 text-center min-w-[320px] shadow-[0_0_40px_rgba(37,99,235,0.5)]">
         <div id="popupMessage" class="text-2xl font-bold uppercase tracking-widest mb-6">TEXT</div>
         <button onclick="closePopup()" class="border-2 border-blue-600 bg-blue-600/20 px-8 py-3 text-xl font-bold uppercase hover:bg-blue-600 hover:text-black transition-colors w-full">
-            ACKNOWLEDGE
+            ОК
         </button>
     </div>
 </div>
 
 <div class="w-full max-w-2xl border-4 border-blue-600 bg-black p-6 sm:p-10 shadow-[8px_8px_0px_#2563eb]">
     <div class="mb-8 border-b-4 border-blue-600 pb-4">
-        <h1 class="text-4xl sm:text-5xl font-bold tracking-tighter uppercase text-white">SYS.LOGIN</h1>
-        <p class="mt-2 text-lg sm:text-xl text-blue-800 uppercase font-bold tracking-widest">AUTH & 2FA_BINDING</p>
+        <h1 class="text-4xl sm:text-5xl font-bold tracking-tighter uppercase text-white">ВОЙТИ</h1>
     </div>
 
     <div id="globalMessage" class="mb-6 text-center text-xl font-bold uppercase tracking-widest"></div>
@@ -56,18 +55,18 @@
             <input type="hidden" id="token_key" value="885fed06dbfd6cd115cb18f3a7f30ccc1c218602"/>
 
             <div>
-                <label for="email" class="mb-2 block text-xl sm:text-2xl font-bold uppercase">IDENTIFIER [EMAIL]</label>
+                <label for="email" class="mb-2 block text-xl sm:text-2xl font-bold uppercase">ЕМЕЙЛ [EMAIL]</label>
                 <input
                         type="email"
                         id="email"
                         required
                         class="w-full border-4 border-blue-600 bg-black px-6 py-5 text-xl sm:text-2xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
-                        placeholder="USER@NODE.SYS"
+                        placeholder="USER@SYS.NODE"
                 />
             </div>
 
             <div>
-                <label for="password" class="mb-2 block text-xl sm:text-2xl font-bold uppercase">SECRET [PASSWORD]</label>
+                <label for="password" class="mb-2 block text-xl sm:text-2xl font-bold uppercase">ПАРОЛЬ [PASSWORD]</label>
                 <input
                         type="password"
                         id="password"
@@ -76,11 +75,14 @@
                         placeholder="••••••••"
                 />
             </div>
+            <div class="mt-8 text-center border-t-4 border-blue-900 pt-6">
+                <a href="/auth/register" class="text-xl uppercase hover:underline decoration-4 underline-offset-8">У МЕНЯ НЕТ АККАУНТА</a>
+            </div>
 
             <button
                     type="submit"
                     class="mt-8 w-full border-4 border-blue-600 bg-blue-600 py-6 text-2xl sm:text-3xl font-bold text-black uppercase tracking-widest hover:bg-black hover:text-blue-600 transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-                EXECUTE.LOGIN
+                ВОЙТИ
             </button>
         </form>
     </div>
@@ -321,6 +323,7 @@
 
     async function postForm(url, data) {
         const formData = new FormData();
+
         Object.entries(data).forEach(([key, value]) => {
             if (value !== null && value !== undefined) formData.append(key, value);
         });
@@ -342,7 +345,7 @@
         const formData = new FormData();
         formData.append('email', email);
 
-        const response = await fetch('/auth/qr', {
+        const response = await fetch('/auth/otp/qr', {
             method: 'POST',
             body: formData,
         });
@@ -374,12 +377,12 @@
 
         const {data} = await postForm('/auth/login', payload);
 
-        if (data.message === 'OTP Code required') {
-            pendingEmail = email;
-            pendingPassword = password;
-            createOtpInputs(otpInputGroup);
-            showOtpForm();
-            return;
+        if (data.status === 422) {
+            setGlobalMessage(data.detail[0].message || data.detail, true);
+        }
+
+        if (data.error.message || data.detail) {
+            setGlobalMessage(data.error?.message || data.detail, true);
         }
 
         if (data.error?.message === 'OTP code required') {
