@@ -1,7 +1,7 @@
 from typing import Type
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
@@ -47,7 +47,8 @@ class PGUsersRepository:
         return obj.to_entity()
 
     async def update(self, user: UserUpdate) -> User:
-        stmt = select(UsersOrm).where(UsersOrm.id == user.id)
+        stmt = select(UsersOrm).where(or_(UsersOrm.id == user.id,
+                                          UsersOrm.email == user.email))
         result = await self.session.execute(stmt)
         obj = result.scalar_one_or_none()
 

@@ -36,9 +36,34 @@ class OTPAuthConfig(BaseSettings):
     OTP_ISSUER: str = "FastapiApp"
 
 
-
 class DatabaseConfig(BaseSettings):
     DATABASE_URI: str = "sqlite+aiosqlite:///test.db"
+
+
+class EmailConfig(BaseSettings):
+    HOST: str = "smtp.gmail.com"
+    PORT: int = 465
+    EMAIL_USERNAME: str = "dimongames6@gmail.com"
+    PASSWORD: str = "jtvz npox gxuc sasx"
+    TWO_FACTOR_EMAIL_MESSAGE_SUBJECT: str = "2fa confirm email"
+    TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE: str = """
+Welcome to out service!    
+
+Your confirm link email: {link}
+"""
+    TWO_FACTOR_TOKEN_EXPIRE_SECONDS: int = 60 * 30
+    USE_TLS: bool = True
+
+
+
+class AppConfig(BaseSettings):
+    HOST: str = "127.0.0.1"
+    PORT: int = 8000
+    USE_SSL: bool = False
+
+    @property
+    def APP_URI(self):
+        return f"http{'s' if self.USE_SSL else ''}://{self.HOST}:{self.PORT}"
 
 
 class Config(BaseSettings):
@@ -46,6 +71,8 @@ class Config(BaseSettings):
     database: DatabaseConfig = DatabaseConfig()
     csrf: CsrfConfig = CsrfConfig()
     otp: OTPAuthConfig = OTPAuthConfig()
+    email: EmailConfig = EmailConfig()
+    app: AppConfig = AppConfig()
 
 
 @CsrfProtect.load_config

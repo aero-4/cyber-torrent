@@ -26,3 +26,11 @@ class OTPInputRequired(AuthRequired):
 
 class OTPInvalid(AuthRequired):
     message = "OTP code is invalid"
+
+
+class InvalidTokenEmail(BadRequest):
+    message = "Invalid token confirm email"
+
+
+class InvalidSentTokenEmail(BadRequest):
+    message = "Not sent email message"

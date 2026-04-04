@@ -22,7 +22,8 @@ class UsersOrm(Base):
     email: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(), nullable=False)
     role: Mapped[UserRoles] = mapped_column(Integer(), default=UserRoles.USER, nullable=True)
-    is_verify_otp: Mapped[bool] = mapped_column(Boolean(), default=False)
+    is_verify_otp: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=True)
+    is_verify_email: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=True)
     avatar_image: Mapped[str] = mapped_column(String(), nullable=True)
 
     def to_entity(self):
@@ -32,7 +33,8 @@ class UsersOrm(Base):
             password=self.password,
             role=self.role,
             avatar_image=self.avatar_image,
-            is_verify_otp=self.is_verify_otp
+            is_verify_otp=self.is_verify_otp,
+            is_verify_email=self.is_verify_email
         )
 
 
@@ -83,7 +85,6 @@ class UsersAdmin(ModelView, model=UsersOrm):
             with open(full_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
 
-            # Заменяем объект UploadFile в словаре data на строку пути.
             data["avatar_image"] = f"static/uploads/{filename}"
 
         elif not file or not hasattr(file, "filename"):

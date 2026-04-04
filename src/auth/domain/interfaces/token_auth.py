@@ -4,7 +4,6 @@ from src.auth.domain.entities import TokenType
 from src.users.domain.entities import User
 from src.users.infrastructure.db.orm import UsersOrm
 
-
 import abc
 
 from src.auth.domain.entities import TokenData, TokenType
@@ -33,7 +32,15 @@ class ITokenStorage(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def is_valid_token_email(self, token: str) -> str:
+        pass
+
+    @abc.abstractmethod
     async def add_store_token(self, token_data: TokenData) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def add_email_token(self, email: str, token: str) -> None:
         pass
 
     @abc.abstractmethod

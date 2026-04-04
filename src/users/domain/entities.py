@@ -6,8 +6,9 @@ class User(BaseModel):
     email: str = None
     password: str = None
     role: int = None
-    avatar_image: str = None
+    avatar_image: str | None = None
     is_verify_otp: bool = False
+    is_verify_email: bool = False
 
 
 class AnonymousUser(User):
