@@ -32,8 +32,8 @@ class AuthConfig(BaseSettings):
 
 
 class OTPAuthConfig(BaseSettings):
-    OTP_SECRET: str = "234567abcdefghij"
-    OTP_ISSUER: str = "FastapiApp"
+    OTP_SECRET: str = secrets.token_urlsafe(32)
+    OTP_ISSUER: str = "JwtAuthAPP"
 
 
 class DatabaseConfig(BaseSettings):
@@ -53,7 +53,6 @@ Your confirm link email: {link}
 """
     TWO_FACTOR_TOKEN_EXPIRE_SECONDS: int = 60 * 30
     USE_TLS: bool = True
-
 
 
 class AppConfig(BaseSettings):

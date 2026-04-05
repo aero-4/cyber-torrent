@@ -7,7 +7,7 @@ from src.auth.presentation.dependencies import TokenAuthDep, HasherProvideDep, Q
 from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO, UserOtpVerifyDTO
 from src.auth.usecase.authentication import authenticate
 from src.auth.usecase.auth_qr import *
-from src.auth.usecase.confirm_email import email_send_token, confirm_email_user
+from src.auth.usecase.confirm_email import email_send_token, confirm_email
 from src.auth.usecase.registration import registration
 from templates.templates import templates
 
@@ -86,10 +86,11 @@ async def qr_code(email: str = Form(..., description="Email required for qr auth
 
 @router.post("/email/sent")
 async def email_sent_email_token(email_provider: EmailProvideDep, email: str = Form(..., description="Email for confirm")):
-    return await email_send_token(email, email_provider)
+    await email_send_token(email, email_provider)
+    return {"message": f"Sent on email {email}"}
 
 
 @router.get("/email/confirm/{token}")
 async def email_confirm_token_user(token: str, email_provider: EmailProvideDep):
-    await confirm_email_user(token, email_provider)
+    await confirm_email(token, email_provider)
     return {"message": "Email confirmed"}

@@ -4,6 +4,9 @@ from email.message import Message
 
 class IEmailProvider(abc.ABC):
 
+    async def send_confirm_message(self, email: str) -> None:
+        pass
+
     async def send_to_mail(self, mail_message: Message) -> None:
         pass
 
@@ -14,5 +17,5 @@ class IEmailProvider(abc.ABC):
                      from_mail: str = None) -> Message:
         pass
 
-    async def validate_token(self, token: str) -> None:
+    async def validate_token(self, token: str):
         pass

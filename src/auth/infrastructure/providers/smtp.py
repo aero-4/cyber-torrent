@@ -17,6 +17,22 @@ class SmtpProvider(IEmailProvider):
                  storage: ITokenStorage):
         self.storage = storage
 
+    async def send_confirm_message(self, email: str) -> None:
+        token = secrets.token_urlsafe(32)
+        content_mail = config.email.TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE.format(
+            link=f"{config.app.APP_URI}/auth/email/confirm/{token}"
+        )
+        msg = self.mail_message(email, content=content_mail)
+
+        await self.send_to_mail(msg)
+        await self.storage.add_email_token(email, token)
+
+    async def validate_token(self, token: str) -> str:
+        email = await self.storage.is_valid_token_email(token)
+        if not email:
+            raise InvalidTokenEmail()
+        return email
+
     async def send_to_mail(self, mail_message: Message, timeout: int = 60) -> None:
         try:
             await aiosmtplib.send(
@@ -47,13 +63,4 @@ class SmtpProvider(IEmailProvider):
 
         message.set_content(content)
 
-
         return message
-
-    async def validate_token(self, token: str) -> str:
-        email = await self.storage.is_valid_token_email(token)
-        if not email:
-            raise InvalidTokenEmail()
-        return email
-
-
