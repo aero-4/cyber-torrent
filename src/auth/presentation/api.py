@@ -1,15 +1,17 @@
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, Body
+from fastapi.responses import RedirectResponse
 from fastapi_csrf_protect import CsrfProtect
 from starlette.requests import Request
 from starlette.responses import FileResponse
 
+from src.auth.infrastructure.providers.oauth2_google import Oauth2Google
 from src.auth.presentation.dependencies import TokenAuthDep, HasherProvideDep, QrProvideDep, EmailProvideDep
 from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO, UserOtpVerifyDTO
 from src.auth.usecase.authentication import authenticate
 from src.auth.usecase.auth_qr import *
 from src.auth.usecase.confirm_email import email_send_token, confirm_email
 from src.auth.usecase.registration import registration
-from templates.templates import templates
+from templates import templates
 
 router = APIRouter()
 csrf_protect = CsrfProtect()
@@ -19,7 +21,7 @@ csrf_protect = CsrfProtect()
 async def view_register_user(request: Request):
     csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
     resp = templates.TemplateResponse(
-        "register.html", {"request": request, "csrf_token": csrf_token}
+        name="register.html", request=request
     )
     csrf_protect.set_csrf_cookie(signed_token, resp)
     return resp
@@ -42,7 +44,7 @@ async def register_user(request: Request,
 async def login_user(request: Request):
     csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
     resp = templates.TemplateResponse(
-        "login.html", {"request": request, "csrf_token": csrf_token}
+        name="login.html", request=request
     )
     csrf_protect.set_csrf_cookie(signed_token, resp)
     return resp
@@ -94,3 +96,18 @@ async def email_sent_email_token(email_provider: EmailProvideDep, email: str = F
 async def email_confirm_token_user(token: str, email_provider: EmailProvideDep):
     await confirm_email(token, email_provider)
     return {"message": "Email confirmed"}
+
+
+@router.get("/oauth2/google")
+async def get_redirect_uri():
+    url = Oauth2Google().generate_redirect_uri()
+    return RedirectResponse(url=url)
+
+
+@router.post("/oauth2/google/callback")
+async def check_callback_google(code: str = Body(..., embed=True)):
+
+
+
+
+@router.post("")

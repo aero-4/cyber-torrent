@@ -1,11 +1,12 @@
 import secrets
 from typing import Literal
 
-from dotenv import find_dotenv
+from dotenv import find_dotenv, load_dotenv
 from fastapi_csrf_protect import CsrfProtect
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = find_dotenv()
+load_dotenv(ENV_FILE)
 
 
 class CsrfConfig(BaseSettings):
@@ -65,6 +66,11 @@ class AppConfig(BaseSettings):
         return f"http{'s' if self.USE_SSL else ''}://{self.HOST}:{self.PORT}"
 
 
+class OAuth2Config(BaseSettings):
+    GOOGLE_CLIENT_ID: str = "709712525914-mfe7lpjdk1ktvlhv2jb3nt3qu6t456j5.apps.googleusercontent.com"
+    GOOGLE_CLIENT_SECRET: str = "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"
+
+
 class Config(BaseSettings):
     auth: AuthConfig = AuthConfig()
     database: DatabaseConfig = DatabaseConfig()
@@ -72,6 +78,7 @@ class Config(BaseSettings):
     otp: OTPAuthConfig = OTPAuthConfig()
     email: EmailConfig = EmailConfig()
     app: AppConfig = AppConfig()
+    oauth2: OAuth2Config = OAuth2Config()
 
 
 @CsrfProtect.load_config
