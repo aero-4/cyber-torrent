@@ -24,6 +24,10 @@ class ITokenProvider(abc.ABC):
     def create_refresh_token(self, data: dict) -> str:
         pass
 
+    @abc.abstractmethod
+    async def decode_jwt_without_secret(self, token: str) -> dict:
+        pass
+
 
 class ITokenStorage(abc.ABC):
 

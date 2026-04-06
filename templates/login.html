@@ -80,8 +80,8 @@
             </div>
 
             <a
-                    href="http://localhost:8000/auth/oauth2/google"
-                    class="mt-4 border-4 border-blue-600 bg-blue-600 py-6 text-xl sm:text-3xl font-bold text-black uppercase tracking-widest hover:bg-black hover:text-blue-600 transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+                    href="http://localhost:8000/auth/oauth2/google/url"
+                    class=" border-4 border-blue-600 bg-blue-600 py-6 text-xl sm:text-3xl font-bold text-black uppercase tracking-widest hover:bg-black hover:text-blue-600 transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)]">
                 ВОЙТИ ЧЕРЕЗ GOOGLE
             </a>
 
@@ -371,6 +371,20 @@
         qrBlock.classList.remove('hidden');
     }
 
+    async function fetchData() {
+        // 1. Get params from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get('query');
+        const limit = urlParams.get('limit') || 5;
+
+        if (!query) return;
+
+        // 2. Make the async request to your backend
+        const response = await fetch(`/api/search?query=${query}&limit=${limit}`);
+        const data = await response.json();
+
+    }
+
     async function performLogin(email, password, otpCode = null) {
         const payload = {
             token_key: tokenKey,
@@ -575,6 +589,8 @@
             setAddOtpMessage('MATRIX_LOAD_FAILED', true);
         }
     });
+
+
 
     createOtpInputs(otpInputGroup);
     createOtpInputs(setupOtpInputGroup);
