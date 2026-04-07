@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SYS.REGISTRATION</title>
+    <title>Регистрация</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
@@ -63,21 +63,21 @@
 
         <form id="registerForm" class="space-y-6">
             <div>
-                <label class="mb-2 block text-2xl font-bold uppercase">ЕМЕЙЛ [EMAIL]</label>
+                <label class="mb-2 block text-2xl font-bold uppercase">ЕМЕЙЛ</label>
                 <input type="email" id="email" required
                        class="w-full border-4 border-blue-600 bg-black px-6 py-5 text-2xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
                        placeholder="USER@NODE.SYS">
             </div>
 
             <div>
-                <label class="mb-2 block text-2xl font-bold uppercase">ПАРОЛЬ [PASSWORD]</label>
+                <label class="mb-2 block text-2xl font-bold uppercase">ПАРОЛЬ</label>
                 <input type="password" id="password" required
                        class="w-full border-4 border-blue-600 bg-black px-6 py-5 text-2xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
                        placeholder="••••••••">
             </div>
 
             <div class="mt-8 text-center border-t-4 border-blue-900 pt-6">
-                <a href="/auth/login" class="text-xl uppercase hover:underline decoration-4 underline-offset-8">У МЕНЯ ЕСТЬ АККАУНТ</a>
+                <a href="/login" class="text-xl uppercase hover:underline decoration-4 underline-offset-8">У МЕНЯ ЕСТЬ АККАУНТ</a>
             </div>
 
             <button type="submit"
@@ -94,10 +94,10 @@
 
         <div class="space-y-4">
             <button id="btnEnableOtp" class="w-full border-4 border-blue-600 bg-blue-600 py-5 text-2xl font-bold text-black uppercase hover:bg-white hover:border-white transition-colors">
-                ВКЛЮЧИТЬ [ENABLE]
+                ВКЛЮЧИТЬ
             </button>
             <button id="btnSkipOtp" class="w-full border-4 border-blue-900 text-blue-900 py-5 text-2xl font-bold uppercase hover:border-blue-600 hover:text-blue-600 transition-colors">
-                ПРОПУСТИТЬ [SKIP]
+                ПРОПУСТИТЬ
             </button>
         </div>
     </div>
@@ -178,7 +178,8 @@
 
         const response = await fetch(`/auth/register`, {
             method: 'POST',
-            body: formdata
+            body: formdata,
+            credentials: "include" // ОБЯЗАТЕЛЬНО ДОБАВЬ
         });
 
         const data = await response.json()
@@ -207,7 +208,6 @@
         try {
             const formdata = new FormData()
             formdata.append("email", userEmail)
-            // В GET запросе нельзя передать FormData, поэтому передаем email параметром URL
             const response = await fetch(`/auth/otp/qr`, {
                 method: 'POST',
                 body: formdata
@@ -215,13 +215,10 @@
 
             if (!response.ok) throw new Error('NETWORK_REJECTION');
 
-            // Получаем картинку (blob)
             const blob = await response.blob();
             const imageUrl = URL.createObjectURL(blob);
             document.getElementById('qrImage').src = imageUrl;
 
-            // Если сервер в заголовках отдает текстовую ссылку (или как-то иначе), подставляем её:
-            // В реальном API возможно придется делать запрос, возвращающий JSON с { link: "...", image_url: "..." }
             switchStep(stepOtpPrompt, stepOtpSetup);
 
         } catch (error) {
@@ -230,7 +227,7 @@
             document.getElementById('qrImage').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=otpauth://totp/Demo";
             switchStep(stepOtpPrompt, stepOtpSetup);
             // В реальности раскомментировать:
-            // showPopup('ERROR: MATRIX_FETCH_FAILED', true);
+            showPopup('ERROR: MATRIX_FETCH_FAILED', true);
         }
     });
 

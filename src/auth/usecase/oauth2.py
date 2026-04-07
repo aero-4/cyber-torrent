@@ -14,8 +14,9 @@ from src.users.infrastructure.db.uow import UsersUnitOfWork
 async def oauth2_google_case(request: Request, oauth2_google: IOauth2Provider, hasher: IHasherProvider, auth: ITokenAuth):
     uow = UsersUnitOfWork()
     code = request.query_params.get("code")
+
     if not code:
-        raise BadRequest("No code")
+        raise BadRequest("No code in query params")
 
     data = await oauth2_google.callback(code)
 
@@ -26,7 +27,7 @@ async def oauth2_google_case(request: Request, oauth2_google: IOauth2Provider, h
     user_data = UserCreate(email=email,
                            password=hashed_password,
                            avatar_image=data["picture"],
-                           is_verify_email=True)
+                           is_verify_email=data["email_verified"])
 
     async with uow:
         user = await uow.users.get_by_email(email=email)

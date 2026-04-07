@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-    <title>SYS.LOGIN</title>
+    <title>Войти</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
@@ -55,7 +55,7 @@
             <input type="hidden" id="token_key" value="885fed06dbfd6cd115cb18f3a7f30ccc1c218602"/>
 
             <div>
-                <label for="email" class="mb-2 block text-xl sm:text-2xl font-bold uppercase">ЕМЕЙЛ [EMAIL]</label>
+                <label for="email" class="mb-2 block text-xl sm:text-2xl font-bold uppercase">ЕМЕЙЛ</label>
                 <input
                         type="email"
                         id="email"
@@ -66,7 +66,7 @@
             </div>
 
             <div>
-                <label for="password" class="mb-2 block text-xl sm:text-2xl font-bold uppercase">ПАРОЛЬ [PASSWORD]</label>
+                <label for="password" class="mb-2 block text-xl sm:text-2xl font-bold uppercase">ПАРОЛЬ</label>
                 <input
                         type="password"
                         id="password"
@@ -78,15 +78,12 @@
 
             <div class="flex flex-col mt-8 text-center border-t-4 border-blue-900 pt-6">
                 <a
-                    href="http://localhost:8000/auth/oauth2/google/url"
-                    class="mt-8 w-full border-4 border-blue-600 bg-blue-600 py-6 text-2xl sm:text-3xl font-bold text-black uppercase tracking-widest hover:bg-black hover:text-blue-600 transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-                    <img src="/static/icons/google.png" alt="google">
-                        ВОЙТИ ЧЕРЕЗ GOOGLE
+                    href="/auth/oauth2/google/url"
+                    class="w-100">
+                    <img src="/static/icons/google.png" width="48" alt="google">
                 </a>
-                <a href="/auth/register" class="text-xl uppercase hover:underline decoration-4 underline-offset-8">У МЕНЯ НЕТ АККАУНТА</a>
+                <a href="/register" class="text-xl uppercase hover:underline decoration-4 underline-offset-8">У МЕНЯ НЕТ АККАУНТА</a>
             </div>
-
-
 
 
             <button
@@ -99,7 +96,7 @@
 
     <div id="otpView" class="hidden">
         <div class="space-y-6">
-            <div class="mb-6 text-2xl font-bold uppercase text-white text-center">INPUT_OTP_TOKEN</div>
+            <div class="mb-6 text-2xl font-bold uppercase text-white text-center">ВВЕДИТЕ КОД ПОДТВЕРЖДЕНИЯ</div>
 
             <div id="otpInputGroup" class="mb-8 flex gap-2 sm:gap-4 justify-center"></div>
 
@@ -107,14 +104,14 @@
                     id="submitOtpBtn"
                     type="button"
                     class="w-full border-4 border-blue-600 bg-white py-6 text-2xl sm:text-3xl font-bold text-black uppercase tracking-widest hover:bg-blue-600 transition-all">
-                CONFIRM.OTP
+                ПОДТВЕРДИТЬ
             </button>
 
             <button
                     id="backBtn"
                     type="button"
                     class="w-full border-4 border-blue-900 bg-black py-4 text-xl font-bold text-blue-900 uppercase tracking-widest hover:border-blue-600 hover:text-blue-600 transition-all">
-                NEGATIVE [BACK]
+                ОТКЛОНИТЬ
             </button>
 
             <div id="otpMessage" class="mt-6 text-center text-xl font-bold uppercase tracking-widest"></div>
@@ -123,10 +120,10 @@
 
     <div id="otpSetupView" class="hidden">
         <div class="space-y-6">
-            <div class="mb-6 text-2xl font-bold uppercase text-white border-b-4 border-blue-900 pb-4">SYNC_DEVICE</div>
+            <div class="mb-6 text-2xl font-bold uppercase text-white border-b-4 border-blue-900 pb-4">СИНХРОНИЗУЙТЕ ДЕВАЙСЫ</div>
 
             <div>
-                <label for="setupEmail" class="mb-2 block text-xl font-bold uppercase">TARGET_EMAIL</label>
+                <label for="setupEmail" class="mb-2 block text-xl font-bold uppercase">ВАШ ЕМЕЙЛ</label>
                 <input
                         type="email"
                         id="setupEmail"
@@ -139,7 +136,7 @@
                     id="loadQrBtn"
                     type="button"
                     class="w-full border-4 border-blue-600 bg-blue-600 py-4 text-xl font-bold text-black uppercase tracking-widest hover:bg-black hover:text-blue-600 transition-all">
-                LOAD_MATRIX [QR]
+                QR - КОД
             </button>
 
             <div id="qrBlock" class="mt-8 hidden">
@@ -148,21 +145,21 @@
                 </div>
             </div>
 
-            <div class="mt-10 mb-4 text-xl font-bold uppercase text-white text-center">INPUT_SYNC_CODE</div>
+            <div class="mt-10 mb-4 text-xl font-bold uppercase text-white text-center">ВВЕДИТЕ КОД</div>
             <div id="setupOtpInputGroup" class="mb-8 flex gap-2 sm:gap-4 justify-center"></div>
 
             <button
                     id="confirmAddOtpBtn"
                     type="button"
                     class="w-full border-4 border-blue-600 bg-white py-6 text-2xl sm:text-3xl font-bold text-black uppercase tracking-widest hover:bg-blue-600 transition-all">
-                VERIFY_SYNC
+                ПОДТВЕРДИТЬ
             </button>
 
             <button
                     id="setupBackBtn"
                     type="button"
                     class="w-full border-4 border-blue-900 bg-black py-4 text-xl font-bold text-blue-900 uppercase tracking-widest hover:border-blue-600 hover:text-blue-600 transition-all">
-                NEGATIVE [BACK]
+                НАЗАД
             </button>
 
             <div id="addOtpMessage" class="mt-6 text-center text-xl font-bold uppercase tracking-widest"></div>
@@ -205,7 +202,6 @@
     let currentQrObjectUrl = null;
     let pendingOtpSetup = false;
 
-    // ОБНОВЛЕНЫ КЛАССЫ СООБЩЕНИЙ ДЛЯ БРУТАЛИСТИЧНОГО ДИЗАЙНА
     function setGlobalMessage(text = '', isError = false) {
         globalMessage.textContent = text;
         globalMessage.className = `mb-6 text-center text-xl font-bold uppercase tracking-widest ${isError ? 'text-red-500' : 'text-blue-400'}`;
@@ -221,7 +217,6 @@
         addOtpMessage.className = `mt-6 text-center text-xl font-bold uppercase tracking-widest ${isError ? 'text-red-500' : 'text-blue-400'}`;
     }
 
-    // ОБНОВЛЕНЫ КЛАССЫ ИНПУТОВ OTP ДЛЯ БРУТАЛИСТИЧНОГО ДИЗАЙНА
     function createOtpInputs(container) {
         container.innerHTML = '';
         for (let i = 0; i < 6; i++) {
@@ -259,7 +254,6 @@
         systemPopup.classList.remove('hidden');
     }
 
-    // НИЖЕ ИДЕТ ВАШ НЕИЗМЕННЫЙ ОРИГИНАЛЬНЫЙ КОД ЛОГИКИ
 
     function clearInputs(container) {
         for (let i = 0; i < 6; i++) {
@@ -375,14 +369,12 @@
     }
 
     async function fetchData() {
-        // 1. Get params from the URL
         const urlParams = new URLSearchParams(window.location.search);
         const query = urlParams.get('query');
         const limit = urlParams.get('limit') || 5;
 
         if (!query) return;
 
-        // 2. Make the async request to your backend
         const response = await fetch(`/api/search?query=${query}&limit=${limit}`);
         const data = await response.json();
 

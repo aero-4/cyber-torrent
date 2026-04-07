@@ -9,18 +9,13 @@ from templates import templates
 router = APIRouter()
 
 
-@router.get("/profile")
-@check_roles(roles=[UserRoles.USER])
-async def get_user_profile(request: Request):
-    return templates.TemplateResponse(name="user.html", request=request)
-
-
 @router.get("/me")
 @check_roles(roles=[UserRoles.USER])
 async def get_me(request: Request):
     return request.state.user.model_dump(
         exclude={
-            "password"
+            "password",
+            "id"
         }
     )
 

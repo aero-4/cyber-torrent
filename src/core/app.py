@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from time import perf_counter
 
+from fastapi_csrf_protect import CsrfProtect
 from sqladmin import Admin
 from starlette.responses import Response
 from starlette.middleware.cors import CORSMiddleware
@@ -14,6 +15,13 @@ from starlette_csrf import CSRFMiddleware
 
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
 from src.auth.presentation.api import router as auth_api_router
+
+from views.home.home import router as home_view
+from views.login.login import router as login_view
+from views.register.register import router as register_view
+from views.profile.profile import router as profile_view
+from views.faq.faq import router as faq_view
+
 from src.core.infrastructure.setup_logging import setup_logging
 from src.db.engine import engine
 from src.users.infrastructure.db.orm import UsersAdmin
@@ -35,6 +43,7 @@ async def lifespan(app: FastAPI):
 logger = logging.getLogger(__name__)
 app = FastAPI(lifespan=lifespan)
 admin = Admin(app, engine=engine)
+# csrf_protect = CsrfProtect()
 
 admin.add_view(UsersAdmin)
 
@@ -63,6 +72,14 @@ app.add_middleware(AuthorizationMiddleware)
 
 # app.add_middleware(CSRFMiddleware, secret=config.csrf.secret_key)
 
+# views
+app.include_router(router=home_view)
+app.include_router(router=register_view)
+app.include_router(router=login_view)
+app.include_router(router=profile_view)
+app.include_router(router=faq_view)
+
+# api
 app.include_router(router=auth_api_router, prefix="/auth", tags=["Auth"])
 app.include_router(router=users_api_router, prefix="/users", tags=["Users"])
 
@@ -118,7 +135,7 @@ async def logging_requests(request: Request, call_next):
     response = await call_next(request)
     duration_ms = (perf_counter() - start) * 1000
 
-    logger.debug(
+    logger.info(
         "HTTP request completed",
         extra={
             "path": request.url.path,

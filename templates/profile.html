@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+    <div class="w-full max-w-2xl border-4 border-blue-600 bg-black p-6 sm:p-10 shadow-[8px_8px_0px_#2563eb]">
+        <div class="mb-8 border-b-4 border-blue-600 pb-4">
+            <h1 class="text-4xl sm:text-5xl font-bold tracking-tighter uppercase text-white">ПРОФИЛЬ</h1>
+        </div>
+
+        <div id="user" class="w-full mb-6 text-center text-xl font-bold uppercase tracking-widest">
+
+        </div>
+
+    </div>
+
+    <script>
+        const user = document.getElementById('user');
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch(`/users/me`,
+                    {method: "GET"}
+                );
+                const data = await response.json();
+
+                if (!data.email) {
+                    user.innerHTML = "<p>Error loading content.</p>";
+                    return
+                }
+
+                user.innerHTML = `
+                    <img class="rounded-full mx-auto justify-center items-center w-24 h-24" src="${data.avatar_image}"/>
+
+                    <h3>EMAIL: ${data.email}</h3>
+
+                `;
+            } catch (error) {
+                user.innerHTML = "<p>Error loading content.</p>";
+            }
+        });
+
+    </script>
+</body>
+{% endblock %}
+
+
+
+

@@ -15,17 +15,7 @@ from src.core.config import config
 from templates import templates
 
 router = APIRouter()
-csrf_protect = CsrfProtect()
 
-
-@router.get("/register")
-async def view_register_user(request: Request):
-    csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
-    resp = templates.TemplateResponse(
-        name="register.html", request=request
-    )
-    csrf_protect.set_csrf_cookie(signed_token, resp)
-    return resp
 
 
 @router.post("/register", response_model=None)
@@ -40,15 +30,6 @@ async def register_user(request: Request,
     await registration(auth_form.email, auth_form.password, auth)
     return {"message": "User registered!"}
 
-
-@router.get("/login")
-async def login_user(request: Request):
-    csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
-    resp = templates.TemplateResponse(
-        name="login.html", request=request
-    )
-    csrf_protect.set_csrf_cookie(signed_token, resp)
-    return resp
 
 
 @router.post("/login")
