@@ -1,5 +1,8 @@
 import abc
 
+from starlette.requests import Request
+from starlette.responses import Response
+
 from src.auth.domain.entities import TokenType
 from src.users.domain.entities import User
 from src.users.infrastructure.db.orm import UsersOrm
@@ -53,6 +56,11 @@ class ITokenStorage(abc.ABC):
 
 
 class ITokenAuth(abc.ABC):
+
+
+    def __init__(self, response: Response, request: Request):
+        self.response = response
+        self.request = request
 
     @abc.abstractmethod
     async def read_token(self, token_type: TokenType) -> TokenData | None:

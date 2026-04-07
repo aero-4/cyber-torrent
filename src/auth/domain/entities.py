@@ -27,6 +27,8 @@ class TokenData(BaseModel):
 class UserCreate(BaseModel):
     email: str
     password: str
+    is_verify_email: bool = False
+    avatar_image: str | None = None
 
 
 class UserUpdate(BaseModel):

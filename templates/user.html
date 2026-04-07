@@ -34,21 +34,12 @@
 <body class="antialiased min-h-screen flex items-center justify-center p-4">
 
 
-<div id="systemPopup" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-    <div class="alien-popup border-4 border-blue-600 bg-black p-8 text-center min-w-[320px] shadow-[0_0_40px_rgba(37,99,235,0.5)]">
-        <div id="popupMessage" class="text-2xl font-bold uppercase tracking-widest mb-6">TEXT</div>
-        <button onclick="closePopup()" class="border-2 border-blue-600 bg-blue-600/20 px-8 py-3 text-xl font-bold uppercase hover:bg-blue-600 hover:text-black transition-colors w-full">
-            ОК
-        </button>
-    </div>
-</div>
-
 <div class="w-full max-w-2xl border-4 border-blue-600 bg-black p-6 sm:p-10 shadow-[8px_8px_0px_#2563eb]">
     <div class="mb-8 border-b-4 border-blue-600 pb-4">
         <h1 class="text-4xl sm:text-5xl font-bold tracking-tighter uppercase text-white">ПРОФИЛЬ</h1>
     </div>
 
-    <div id="user" class="mb-6 text-center text-xl font-bold uppercase tracking-widest">
+    <div id="user" class="w-full mb-6 text-center text-xl font-bold uppercase tracking-widest">
 
     </div>
 
@@ -58,22 +49,18 @@
     const user = document.getElementById('user');
 
     document.addEventListener("DOMContentLoaded", async () => {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get("code")
-
-        if (!code)
-            alert("No code with params")
-            return;
-
         try {
-            const response = await fetch(`/auth/oauth2/callback`,
-                {method: "POST", body: JSON.stringify({code}), headers: {"Content-Type": "application/json"}}
+            const response = await fetch(`/users/me`,
+                {method: "GET"}
             );
             const data = await response.json();
 
             user.innerHTML = `
-                    <h3>Welcome back, ${data.user.email}!</h3>
-                `;
+                <img class="rounded-full mx-auto justify-center items-center" src="${data.avatar_image}"/>
+
+                <h3>EMAIL: ${data.email}</h3>
+
+            `;
         } catch (error) {
             user.innerHTML = "<p>Error loading content.</p>";
         }

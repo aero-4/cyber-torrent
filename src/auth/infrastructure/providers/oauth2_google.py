@@ -32,8 +32,6 @@ class Oauth2Google(IOauth2Provider):
         }
         query = parse.urlencode(params, quote_via=parse.quote)
 
-        print(f'{base_url}?{query}')
-
         return f'{base_url}?{query}'
 
     async def callback(self, code: str):
@@ -49,7 +47,6 @@ class Oauth2Google(IOauth2Provider):
             async with session.post(url=google_token_url, data=data) as response:
                 response.raise_for_status()
                 data = await response.json()
-                print(data)
 
         return self._parse_data_id_token(data)
 
@@ -61,6 +58,7 @@ class Oauth2Google(IOauth2Provider):
         try:
             id_data = self.token_provider.decode_jwt_without_secret(id_token)
         except Exception as e:
+            print(e)
             raise BadRequest(message="Unreadable google-user data")
-
+        print(id_data)
         return id_data

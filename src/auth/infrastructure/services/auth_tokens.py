@@ -23,8 +23,7 @@ class TokenAuth(ITokenAuth):
                  token_storage: ITokenStorage,
                  transports: dict[TokenType, list[IAuthTransport]],
                  response: Response = None):
-        self.response = response
-        self.request = request
+        super().__init__(response, request)
         self.token_provider = provider
         self.token_storage = token_storage
         self.transports = transports

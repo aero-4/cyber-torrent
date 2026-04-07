@@ -54,9 +54,9 @@ class JwtProvider(ITokenProvider):
 
     def decode_jwt_without_secret(self, token: str) -> dict:
         payload = decode(token, key=None, options={
-            "verify_signature": False,  # ОБЯЗАТЕЛЬНО TRUE
-            "verify_at_hash": False,  # Можно False, если не проверяешь соответствие access токену
-            "verify_aud": False,  # Не проверять поле audience (исправляет твою ошибку)
+            "verify_signature": False,
+            "verify_at_hash": False,
+            "verify_aud": False,
             "verify_exp": False
         }, algorithms=["RS256"], audience=config.oauth2.GOOGLE_CLIENT_ID)
         return payload

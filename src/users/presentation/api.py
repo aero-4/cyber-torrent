@@ -4,8 +4,15 @@ from starlette.responses import FileResponse
 
 from src.auth.presentation.roles import check_roles, UserRoles
 from src.users.usecase.edit_avatar import edit_new_avatar
+from templates import templates
 
 router = APIRouter()
+
+
+@router.get("/profile")
+@check_roles(roles=[UserRoles.USER])
+async def get_user_profile(request: Request):
+    return templates.TemplateResponse(name="user.html", request=request)
 
 
 @router.get("/me")

@@ -12,7 +12,7 @@ from wtforms import FileField
 from src.auth.domain.entities import UserRoles
 from src.db.base import Base
 from src.users.domain.entities import User
-from src.utils.admin import format_image_url
+from src.utils.admin import format_photo, on_model_change_photo
 
 
 class UsersOrm(Base):
@@ -48,44 +48,15 @@ class UsersAdmin(ModelView, model=UsersOrm):
         UsersOrm.avatar_image
     ]
 
-    def format_photo(model, attribute):
-        path = getattr(model, attribute)
-        if not path:
-            return "Нет фото"
-
-        url = f"/{path}" if not path.startswith("/") else path
-
-        return Markup(
-            f'<a href="{url}" target="_blank">'
-            f'<img src="{url}" width="200" style="border-top: 1px solid #eee;" />'
-            f'</a>'
-        )
-
     column_formatters = {
         UsersOrm.avatar_image: format_photo
     }
 
     column_formatters_detail = {
-        UsersOrm.avatar_image: format_photo
+        UsersOrm.avatar_image: lambda m, a: format_photo(m, a, width=250)
     }
 
     form_overrides = dict(avatar_image=FileField)
 
     async def on_model_change(self, data: FormData, model, is_created, request):
-        file = data.get("avatar_image")
-
-        if file and hasattr(file, "filename") and file.filename:
-            upload_dir = Path("static/uploads")
-            upload_dir.mkdir(parents=True, exist_ok=True)
-
-            suffix = Path(file.filename).suffix
-            filename = f"{uuid.uuid4()}{suffix}"
-            full_path = upload_dir / filename
-
-            with open(full_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-
-            data["avatar_image"] = f"static/uploads/{filename}"
-
-        elif not file or not hasattr(file, "filename"):
-            data.pop("avatar_image", None)
+        await on_model_change_photo(data)

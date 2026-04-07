@@ -4,13 +4,14 @@ from fastapi_csrf_protect import CsrfProtect
 from starlette.requests import Request
 from starlette.responses import FileResponse
 
-from src.auth.infrastructure.providers.oauth2_google import Oauth2Google
 from src.auth.presentation.dependencies import TokenAuthDep, HasherProvideDep, QrProvideDep, EmailProvideDep, Oauth2ProvideDep
 from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO, UserOtpVerifyDTO
 from src.auth.usecase.authentication import authenticate
 from src.auth.usecase.auth_qr import *
 from src.auth.usecase.confirm_email import email_send_token, confirm_email
+from src.auth.usecase.oauth2 import oauth2_google_case
 from src.auth.usecase.registration import registration
+from src.core.config import config
 from templates import templates
 
 router = APIRouter()
@@ -99,18 +100,18 @@ async def email_confirm_token_user(token: str, email_provider: EmailProvideDep):
 
 
 @router.get("/oauth2/google")
-async def get_redirect_uri(request: Request, oauth2_google: Oauth2ProvideDep):
-    print(request.query_params)
-    await oauth2_google.callback(request.query_params.get("code"))
-    return templates.TemplateResponse(name="user.html", request=request)
+async def get_redirect_uri(request: Request, oauth2_google: Oauth2ProvideDep, hasher: HasherProvideDep, auth: TokenAuthDep):
+    response = RedirectResponse(url=config.app.APP_URI + "/users/profile")
+    auth.response = response
+
+    await oauth2_google_case(request,
+                             oauth2_google,
+                             hasher,
+                             auth)
+    return response
 
 
 @router.get("/oauth2/google/url")
 async def get_redirect_uri(oauth2_google: Oauth2ProvideDep):
     url = oauth2_google.generate_redirect_uri()
     return RedirectResponse(url=url)
-
-
-@router.post("/oauth2/google/callback")
-async def check_callback_google(oauth2_google: Oauth2ProvideDep, code: str = Body(..., embed=True)):
-    return
