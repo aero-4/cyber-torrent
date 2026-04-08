@@ -18,7 +18,6 @@ from src.utils.admin import format_photo, on_model_change_photo
 class UsersOrm(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(Integer(), autoincrement=True, primary_key=True)
     email: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(), nullable=False)
     role: Mapped[UserRoles] = mapped_column(Integer(), default=UserRoles.USER, nullable=True)

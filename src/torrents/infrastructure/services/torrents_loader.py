@@ -1,10 +1,16 @@
 import asyncio
 import re
+from urllib.parse import quote
+
+import aiohttp
+import requests
 import unicodedata
 import difflib
 import logging
 
 from scrapers.x1337 import Scraper1337, Params1337, Category1337, Order1337
+
+from src.torrents.domain.entities import TorrentCreate
 
 
 def improved_clean_title(raw_name: str) -> str:
@@ -49,46 +55,29 @@ def fuzzy_match(a: str, b: str, threshold: float = 0.88):
     return (ratio >= threshold), ratio
 
 
-async def sync_search_and_save(name: str, fuzzy_threshold: float = 0.88):
-    scraper = Scraper1337()
-    params = Params1337(
-        name=name,
-        category=Category1337.GAMES,
-        order_column=Order1337.TIME,
-        order_ascending=False
-    )
+class TorrentSearchProvider:
 
-    results = scraper.find_torrents(params, (1, 2, 3, 4, 5))
+    async def search(self, query: str, timeout: int = 10) -> list[TorrentCreate]:
+        base_url = f"https://apibay.org/q.php?q={query}"
 
-    matches = []
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            response = await session.get(base_url)
+            response.raise_for_status()
 
-    for t in results:
-        cleaned = improved_clean_title(t.name)
-        if not cleaned:
-            continue
-        if cleaned.casefold() == game.title.casefold():
-            matches.append((t, cleaned))
-            continue
-        if normalize_for_match(cleaned) == normalize_for_match(game.title):
-            matches.append((t, cleaned))
-            continue
-        matched, ratio = fuzzy_match(cleaned, game.title, threshold=fuzzy_threshold)
-        if matched:
-            matches.append((t, cleaned))
+            results = await response.json()
 
-    if not matches:
-        logging.debug(f"No matches found for {game.title}")
-        return
+            if not results or results[0].get('id') == '0':
+                return []
 
-    for t, cleaned in matches:
-        print(t, cleaned)
-        try:
-            print(scraper.get_torrent_info(t))
-        except Exception:
-            logging.exception(f"Failed to get torrent info for {t.name}")
+            torrents = []
+            for item in results[:5]:
+                name = item.get('name')
+                info_hash = item.get('info_hash')
+                seeders = item.get('seeders')
+                magnet = f"magnet:?xt=urn:btih:{info_hash}&dn={quote(name)}"
 
-        if getattr(t, 'seeders', 0) <= 0:
-            logging.debug(f"Skipping {t.name} (no seeders)")
-            continue
+                torrents.append(
+                    TorrentCreate(name=name, seeders=seeders, magnet=magnet)
+                )
 
-asyncio.run(sync_search_and_save("god of war"))
+        return torrents

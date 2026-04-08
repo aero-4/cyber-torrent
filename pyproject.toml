@@ -19,7 +19,11 @@ dependencies = [
     "aiosmtplib (>=5.1.0,<6.0.0)",
     "multipart (>=1.3.1,<2.0.0)",
     "aiohttp (>=3.13.5,<4.0.0)",
-    "torrent-scrapers (>=0.0.2,<0.0.3)"
+    "torrent-scrapers (>=0.0.2,<0.0.3)",
+    "piratebayapi (>=1.0.1,<2.0.0)",
+    "requests (>=2.33.1,<3.0.0)",
+    "libtorrent (>=2.0.11,<3.0.0)",
+    "slugify (>=0.0.1,<0.0.2)"
 ]
 
 

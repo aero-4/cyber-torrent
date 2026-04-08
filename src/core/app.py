@@ -26,6 +26,7 @@ from src.core.infrastructure.setup_logging import setup_logging
 from src.db.engine import engine
 from src.users.infrastructure.db.orm import UsersAdmin
 from src.users.presentation.api import router as users_api_router
+from src.torrents.presentation.api import router as torrents_api_router
 from typing import Dict, Any
 
 from starlette.requests import Request
@@ -82,7 +83,7 @@ app.include_router(router=faq_view)
 # api
 app.include_router(router=auth_api_router, prefix="/auth", tags=["Auth"])
 app.include_router(router=users_api_router, prefix="/users", tags=["Users"])
-
+app.include_router(router=torrents_api_router, prefix="/torrents", tags=["Torrents"])
 
 def create_error_response(
         message: str,
