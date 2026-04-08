@@ -8,6 +8,7 @@ import unicodedata
 import difflib
 import logging
 
+from aiohttp import ClientTimeout
 from scrapers.x1337 import Scraper1337, Params1337, Category1337, Order1337
 
 from src.torrents.domain.entities import TorrentCreate
@@ -57,10 +58,10 @@ def fuzzy_match(a: str, b: str, threshold: float = 0.88):
 
 class TorrentSearchProvider:
 
-    async def search(self, query: str, timeout: int = 10) -> list[TorrentCreate]:
+    async def search(self, query: str, timeout: float = 10.0) -> list[TorrentCreate]:
         base_url = f"https://apibay.org/q.php?q={query}"
 
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with aiohttp.ClientSession(timeout=ClientTimeout(timeout)) as session:
             response = await session.get(base_url)
             response.raise_for_status()
 

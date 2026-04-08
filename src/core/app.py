@@ -85,6 +85,7 @@ app.include_router(router=auth_api_router, prefix="/auth", tags=["Auth"])
 app.include_router(router=users_api_router, prefix="/users", tags=["Users"])
 app.include_router(router=torrents_api_router, prefix="/torrents", tags=["Torrents"])
 
+
 def create_error_response(
         message: str,
         error_code: str,

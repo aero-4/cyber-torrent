@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from src.torrents.infrastructure.services.torrents_loader import TorrentSearchProvider
 from src.torrents.presentation.dtos import TorrentCreateDTO
@@ -19,11 +19,11 @@ async def get_all_torrents():
     return await collect_torrents()
 
 
-@router.get("/{slug}")
-async def get_torrent(slug: str):
-    return await collect_torrent(slug)
+# @router.get("/{slug}")
+# async def get_torrent(slug: str):
+#     return await collect_torrent(slug)
 
 
-@router.get("/search")
-async def search(query: str):
+@router.get("/search/")
+async def search(query: str = Query(...)):
     return await search_torrents(query)

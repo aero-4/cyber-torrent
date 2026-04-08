@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
+from src.db.base import Base
+from src.torrents.infrastructure.db.orm import *
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 
@@ -27,7 +29,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-target_metadata = UsersOrm.metadata
+target_metadata = TorrentsOrm.metadata
 
 config.set_main_option("sqlalchemy.url", app_config.database.DATABASE_URI)
 

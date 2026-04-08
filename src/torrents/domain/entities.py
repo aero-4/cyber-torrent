@@ -13,7 +13,7 @@ class Torrent(BaseModel):
 
 
 class TorrentCreate(BaseModel):
-    slug: str
+    slug: str | None = None
     name: str
     seeders: int
     magnet: str
