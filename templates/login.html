@@ -77,11 +77,16 @@
             </div>
 
             <div class="flex flex-col mt-8 text-center border-t-4 border-blue-900 pt-6">
-                <a
-                    href="/auth/oauth2/google/url"
-                    class="w-100">
-                    <img src="/static/icons/google.png" width="48" alt="google">
-                </a>
+                <div class="flex flex-row gap-3">
+                    <a href="/auth/oauth2/google/url">
+                        <img src="/static/icons/google.png" width="48" alt="google">
+                    </a>
+
+                    <a href="/auth/oauth2/yandex/url">
+                        <img src="/static/icons/yandex.png" width="48" alt="yandex" class="rounded-full">
+                    </a>
+                </div>
+
                 <a href="/register" class="text-xl uppercase hover:underline decoration-4 underline-offset-8">У МЕНЯ НЕТ АККАУНТА</a>
             </div>
 
@@ -584,7 +589,6 @@
             setAddOtpMessage('MATRIX_LOAD_FAILED', true);
         }
     });
-
 
 
     createOtpInputs(otpInputGroup);

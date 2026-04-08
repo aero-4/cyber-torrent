@@ -10,7 +10,9 @@ from src.core.domain.exceptions import BadRequest
 
 class Oauth2Google(IOauth2Provider):
 
-    def __init__(self, token_provider: ITokenProvider, client_id: str = config.oauth2.GOOGLE_CLIENT_ID, client_secret: str = config.oauth2.GOOGLE_CLIENT_SECRET):
+    def __init__(self, token_provider, client_id: str = config.oauth2.GOOGLE_CLIENT_ID, client_secret: str = config.oauth2.GOOGLE_CLIENT_SECRET):
+        super().__init__(token_provider)
+
         self.client_id = client_id
         self.client_secret = client_secret
         self.token_provider = token_provider
@@ -48,17 +50,6 @@ class Oauth2Google(IOauth2Provider):
                 response.raise_for_status()
                 data = await response.json()
 
-        return self._parse_data_id_token(data)
+        return self.parse_data(data, "id_token")
 
-    def _parse_data_id_token(self, data: dict):
-        id_token = data.get("id_token")
-        if not id_token:
-            raise BadRequest(message="No id_token in response")
 
-        try:
-            id_data = self.token_provider.decode_jwt_without_secret(id_token)
-        except Exception as e:
-            print(e)
-            raise BadRequest(message="Unreadable google-user data")
-        print(id_data)
-        return id_data

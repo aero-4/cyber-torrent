@@ -37,3 +37,27 @@ async def oauth2_google_case(request: Request, oauth2_google: IOauth2Provider, h
             await uow.commit()
 
         await auth.set_tokens(user)
+
+
+async def oauth2_yandex_case(access_token: str, oauth2_yandex: IOauth2Provider, hasher: IHasherProvider, auth: ITokenAuth):
+    uow = UsersUnitOfWork()
+    if not access_token:
+        raise BadRequest("No find 'access_token' in query params")
+
+    data = await oauth2_yandex.callback(access_token)
+
+    password = secrets.token_urlsafe(16)
+    hashed_password = hasher.hash_password(password)
+    email = data['default_email']
+
+    user_data = UserCreate(email=email,
+                           password=hashed_password)
+
+    async with uow:
+        user = await uow.users.get_by_email(email=email)
+
+        if not user:
+            user = await uow.users.add(user_data)
+            await uow.commit()
+
+        await auth.set_tokens(user)

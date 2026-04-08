@@ -70,6 +70,10 @@ class OAuth2Config(BaseSettings):
     GOOGLE_CLIENT_ID: str = "709712525914-mfe7lpjdk1ktvlhv2jb3nt3qu6t456j5.apps.googleusercontent.com"
     GOOGLE_CLIENT_SECRET: str = "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"
 
+    YANDEX_CLIENT_ID: str = "976f805b6b754757be5037190007cf7b"
+    YANDEX_CLIENT_SECRET: str = "eca68350e3d74790bdba8f64c26fc206"
+
+
 
 class Config(BaseSettings):
     auth: AuthConfig = AuthConfig()
