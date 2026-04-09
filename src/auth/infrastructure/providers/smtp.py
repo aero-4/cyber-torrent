@@ -37,11 +37,11 @@ class SmtpProvider(IEmailProvider):
         try:
             await aiosmtplib.send(
                 mail_message,
-                hostname=config.email.HOST,
-                port=config.email.PORT,
+                hostname=config.email.EMAIL_HOST,
+                port=config.email.EMAIL_PORT,
                 sender=config.email.EMAIL_USERNAME,
                 username=config.email.EMAIL_USERNAME,
-                password=config.email.PASSWORD,
+                password=config.email.EMAIL_PASSWORD,
                 use_tls=config.email.USE_TLS,
                 timeout=timeout,
                 tls_context=None,

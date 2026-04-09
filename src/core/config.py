@@ -9,7 +9,17 @@ ENV_FILE = find_dotenv()
 load_dotenv(ENV_FILE)
 
 
-class CsrfConfig(BaseSettings):
+# 1. Create a Base Configuration Class
+class BaseAppConfig(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=ENV_FILE,
+        env_file_encoding="utf-8",
+        extra="ignore", # This prevents the extra_forbidden errors
+    )
+
+
+# 2. Inherit from BaseAppConfig instead of BaseSettings
+class CsrfConfig(BaseAppConfig):
     secret_key: str = secrets.token_urlsafe(128)
     cookie_secure: bool = True
     cookie_samesite: str = "lax"
@@ -17,11 +27,7 @@ class CsrfConfig(BaseSettings):
     token_key: str = "token_key"
 
 
-class AuthConfig(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=ENV_FILE
-    )
-
+class AuthConfig(BaseAppConfig):
     JWT_SECRET_KEY: str = "SECRET-KEY"
     JWT_SERVICE_ISSUER: str = "auth-service"
     JWT_ALGORITHM: str = "HS256"
@@ -32,20 +38,20 @@ class AuthConfig(BaseSettings):
     TOKENS_HEADER_TYPE: str = "Bearer"
 
 
-class OTPAuthConfig(BaseSettings):
+class OTPAuthConfig(BaseAppConfig):
     OTP_SECRET: str = secrets.token_urlsafe(32)
     OTP_ISSUER: str = "JwtAuthAPP"
 
 
-class DatabaseConfig(BaseSettings):
+class DatabaseConfig(BaseAppConfig):
     DATABASE_URI: str = "sqlite+aiosqlite:///test.db"
 
 
-class EmailConfig(BaseSettings):
-    HOST: str = "smtp.gmail.com"
-    PORT: int = 465
+class EmailConfig(BaseAppConfig):
+    EMAIL_HOST: str = "smtp.gmail.com"
+    EMAIL_PORT: int = 465
     EMAIL_USERNAME: str = "dimongames6@gmail.com"
-    PASSWORD: str = "jtvz npox gxuc sasx"
+    EMAIL_PASSWORD: str = "jtvz npox gxuc sasx"
     TWO_FACTOR_EMAIL_MESSAGE_SUBJECT: str = "2fa confirm email"
     TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE: str = """
 Welcome to out service!    
@@ -56,7 +62,7 @@ Your confirm link email: {link}
     USE_TLS: bool = True
 
 
-class AppConfig(BaseSettings):
+class AppConfig(BaseAppConfig):
     HOST: str = "127.0.0.1"
     PORT: int = 8000
     USE_SSL: bool = False
@@ -66,16 +72,19 @@ class AppConfig(BaseSettings):
         return f"http{'s' if self.USE_SSL else ''}://{self.HOST}:{self.PORT}"
 
 
-class OAuth2Config(BaseSettings):
-    GOOGLE_CLIENT_ID: str = "709712525914-mfe7lpjdk1ktvlhv2jb3nt3qu6t456j5.apps.googleusercontent.com"
-    GOOGLE_CLIENT_SECRET: str = "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"
+class OAuth2Config(BaseAppConfig):
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
 
-    YANDEX_CLIENT_ID: str = "976f805b6b754757be5037190007cf7b"
-    YANDEX_CLIENT_SECRET: str = "eca68350e3d74790bdba8f64c26fc206"
+    YANDEX_CLIENT_ID: str
+    YANDEX_CLIENT_SECRET: str
 
 
+class MetadataConfig(BaseAppConfig):
+    RAWGIO_API_TOKEN: str = ""
 
-class Config(BaseSettings):
+
+class Config(BaseAppConfig):
     auth: AuthConfig = AuthConfig()
     database: DatabaseConfig = DatabaseConfig()
     csrf: CsrfConfig = CsrfConfig()

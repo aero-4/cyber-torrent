@@ -10,6 +10,7 @@ import logging
 
 from aiohttp import ClientTimeout
 from scrapers.x1337 import Scraper1337, Params1337, Category1337, Order1337
+from slugify import slugify
 
 from src.torrents.domain.entities import TorrentCreate
 
@@ -71,14 +72,17 @@ class TorrentSearchProvider:
                 return []
 
             torrents = []
-            for item in results[:5]:
+            for item in results:
                 name = item.get('name')
                 info_hash = item.get('info_hash')
                 seeders = item.get('seeders')
                 magnet = f"magnet:?xt=urn:btih:{info_hash}&dn={quote(name)}"
 
                 torrents.append(
-                    TorrentCreate(name=name, seeders=seeders, magnet=magnet)
+                    TorrentCreate(name=name,
+                                  seeders=seeders,
+                                  magnet=magnet,
+                                  slug=slugify(name))
                 )
 
         return torrents

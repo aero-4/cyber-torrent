@@ -2,20 +2,8 @@ import datetime
 
 from pydantic import BaseModel
 
-
-class Torrent(BaseModel):
-    id: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
-    name: str
-    seeders: int
-    magnet: str
-
-
-class TorrentCreate(BaseModel):
-    name: str
-    seeders: int
-    magnet: str
+from src.games.infrastructure.db.orm import GamesImages
+from src.torrents.domain.entities import Torrent
 
 
 class Game(BaseModel):
@@ -29,6 +17,8 @@ class Game(BaseModel):
     metacritic: int
     release_date: datetime.datetime
     background_image: str
+    torrents: list[Torrent] | None = None
+    game_images: list[GamesImages] | None = None
 
 
 class GameCreate(BaseModel):
@@ -39,14 +29,3 @@ class GameCreate(BaseModel):
     metacritic: int
     release_date: datetime.datetime
     background_image: str
-
-
-class GameImage(BaseModel):
-    id: int
-    game_id: int
-    image: str
-
-
-class GameImageCreate(BaseModel):
-    game_id: int
-    image: str

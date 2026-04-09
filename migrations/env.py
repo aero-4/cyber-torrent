@@ -8,11 +8,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from src.db.base import Base
-from src.torrents.infrastructure.db.orm import *
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
 
 from src.users.infrastructure.db.orm import UsersOrm
+from src.torrents.infrastructure.db.orm import TorrentsOrm
+from src.games.infrastructure.db.orm import GamesOrm
 from src.core.config import config as app_config
 
 # this is the Alembic Config object, which provides
@@ -29,7 +28,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-target_metadata = TorrentsOrm.metadata
+target_metadata = Base.metadata
 
 config.set_main_option("sqlalchemy.url", app_config.database.DATABASE_URI)
 
@@ -59,7 +58,7 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(connection=connection, target_metadata=target_metadata, include_schemas=True, )
 
     with context.begin_transaction():
         context.run_migrations()
