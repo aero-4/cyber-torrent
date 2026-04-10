@@ -6,14 +6,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.base import Base
 from src.torrents.domain.entities import Game, GameImage
-from src.torrents.infrastructure.db.orm import TorrentsOrm
+from src.torrents.infrastructure.db.orm import *
 from src.utils.datetimes import get_timezone_now
 
 
 class GamesImages(Base):
     __tablename__ = "game_images"
 
-    game: Mapped["TorrentsOrm"] = relationship(back_populates="game_images")
+    game: Mapped["GamesOrm"] = relationship(back_populates="game_images")
     game_id: Mapped[int] = mapped_column(ForeignKey("games.id", ondelete="CASCADE"))
     image: Mapped[str] = mapped_column(String(), nullable=False)
 

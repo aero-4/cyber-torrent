@@ -3,6 +3,7 @@ import logging
 import secrets
 from contextlib import asynccontextmanager
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from time import perf_counter
 
@@ -15,6 +16,7 @@ from starlette_csrf import CSRFMiddleware
 
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
 from src.auth.presentation.api import router as auth_api_router
+from src.torrents.infrastructure.tasks.torrent import setup_tasks
 
 from views.home.home import router as home_view
 from views.login.login import router as login_view
@@ -34,15 +36,19 @@ from starlette.responses import JSONResponse
 
 from src.core.domain.exceptions import AppException
 
+scheduler = AsyncIOScheduler()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
+    setup_tasks(scheduler)
     yield
 
 
 logger = logging.getLogger(__name__)
 app = FastAPI(lifespan=lifespan)
+
 admin = Admin(app, engine=engine)
 # csrf_protect = CsrfProtect()
 

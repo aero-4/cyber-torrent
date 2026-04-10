@@ -14,7 +14,7 @@ class BaseAppConfig(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         env_file_encoding="utf-8",
-        extra="ignore", # This prevents the extra_forbidden errors
+        extra="ignore",  # This prevents the extra_forbidden errors
     )
 
 
@@ -84,6 +84,11 @@ class MetadataConfig(BaseAppConfig):
     RAWGIO_API_TOKEN: str = ""
 
 
+class CeleryConfig(BaseAppConfig):
+    CELERY_BROKER_URL: str
+    CELERY_RESULT_BACKEND: str
+
+
 class Config(BaseAppConfig):
     auth: AuthConfig = AuthConfig()
     database: DatabaseConfig = DatabaseConfig()
@@ -92,6 +97,7 @@ class Config(BaseAppConfig):
     email: EmailConfig = EmailConfig()
     app: AppConfig = AppConfig()
     oauth2: OAuth2Config = OAuth2Config()
+    celery: CeleryConfig = CeleryConfig()
 
 
 @CsrfProtect.load_config

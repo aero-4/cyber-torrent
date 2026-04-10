@@ -1,0 +1,82 @@
+services:
+  app:
+    env_file: .env
+
+    working_dir: /usr/src/app
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/usr/src/app/src:delegated
+    depends_on:
+      - rabbitmq
+      - celery_beat
+      - celery_worker
+    command: [ "sh", "-c", "uvicorn src.core.app:app --reload --host 0.0.0.0 --port 8000" ]
+
+  rabbitmq:
+    env_file: .env
+    build:
+      context: .
+    image: rabbitmq:3.11-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+  flower:
+    env_file: .env
+
+    working_dir: /usr/src/app
+    build:
+      context: .
+    container_name: flower
+    volumes:
+      - ./src:/usr/src/app/src:delegated
+    depends_on:
+      - rabbitmq
+      - celery_beat
+      - celery_worker
+    environment:
+      FLOWER_USER: ${FLOWER_USER}
+      FLOWER_PASSWORD: ${FLOWER_PASS}
+    ports:
+      - "5555:5555"
+    command: [ "sh", "-c", "celery -A src.core.celery_app flower --port=5555 --basic_auth=admin:admin" ]
+    restart: unless-stopped
+
+  celery_worker:
+    env_file: .env
+
+    working_dir: /usr/src/app
+    build:
+      context: .
+    container_name: celery_worker
+    volumes:
+      - ./src:/usr/src/app/src:delegated
+    depends_on:
+      - rabbitmq
+    command: [ "sh", "-c", "celery -A src.core.celery_app worker --loglevel=info --concurrency=4" ]
+    restart: always
+
+  celery_beat:
+    env_file: .env
+
+    working_dir: /usr/src/app
+    build:
+      context: .
+    volumes:
+      - ./src:/usr/src/app/src:delegated
+    depends_on:
+      - rabbitmq
+      - celery_worker
+    command: [ "sh", "-c", "celery -A src.core.celery_app beat --loglevel=info --pidfile=/tmp/celerybeat.pid" ]
+    restart: always
+
+volumes:
+  rabbitmq_data:

@@ -9,12 +9,13 @@ logging.basicConfig(level=logging.INFO)
 
 
 class MetadataParser:
-    def __init__(self, api_key: str = config.metadata.RAWGIO_API_KEY):
+    def __init__(self, api_key: str):
         self.base_url = "https://api.rawg.io/api/games"
         self.api_key = api_key
 
-    async def parser(self):
+    async def search(self):
         page = 1
+        result = []
 
         while True:
             try:
@@ -22,36 +23,18 @@ class MetadataParser:
 
                 if len(results_data) == 0:
                     logging.info(f"Page: {page} FINISH!")
-                    return
+                    return result
 
-                for game_res in results_data:
-                    _game = await Game.get_or_none(
-                        title=game_res["name"],
-                        slug=game_res["slug"],
-                    )
-                    if not _game and len(game_res["platform"]) > 0 and game_res["platforms"][0]["platform"]["name"].lower() == "pc":
-                        _game = await Game.create(
-                            title=game_res["name"],
-                            slug=game_res["slug"],
-                            genre=game_res["genres"][0]["name"] if len(game_res["genres"]) > 0 else "-",
-                            platform=game_res["platforms"][0]["platform"]["name"],
-                            metacritic=game_res.get("metacritic", 0),
-                            release_date=game_res["released"],
-                            background_image=game_res["background_image"],
-                        )
-                        logging.info(f"Added game - {game_res["name"]}")
-
-                        if len(game_res["short_screenshots"]) > 0:
-                            for shr_screen in game_res["short_screenshots"]:
-                                await GameScreens.create(game_id=_game.id, short_screenshot=shr_screen["image"])
+                result.append(results_data)
             except Exception as e:
                 logging.error(f"Error load metadata: {e}")
             await asyncio.sleep(1)
             page += 1
 
-    async def update_desc(self):
+
+
+    async def update_desc(self, games):
         try:
-            games = await Game.filter(description__isnull=True).all()
             logging.info(f"Length: {len(games)}")
             for game in games:
                 try:
