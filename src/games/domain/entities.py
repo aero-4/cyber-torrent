@@ -26,6 +26,11 @@ class Game(BaseModel):
     game_images: list[GameImage] | None = None
 
 
+class GameImageCreate(BaseModel):
+    game_id: int
+    image: str
+
+
 class GameCreate(BaseModel):
     name: str
     slug: str
@@ -35,8 +40,4 @@ class GameCreate(BaseModel):
     release_date: datetime.datetime | None = None
     background_image: str | None = None
     description_raw: str | None = None
-
-
-class GameImageCreate(BaseModel):
-    game_id: int
-    image: str
+    images: list[GameImageCreate] | None = None

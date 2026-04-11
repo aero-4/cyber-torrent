@@ -80,7 +80,7 @@ async def email_confirm_token_user(token: str, email_provider: EmailProvideDep):
 
 @router.get("/oauth2/google")
 async def login_user_google(request: Request, oauth2_google: GoogleOauth2ProvideDep, hasher: HasherProvideDep, auth: TokenAuthDep):
-    response = RedirectResponse(url=config.app.APP_URI + "/users/profile")
+    response = RedirectResponse(url=config.app.APP_URI + "/profile")
     auth.response = response
 
     await oauth2_google_case(request, oauth2_google, hasher, auth)

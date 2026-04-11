@@ -17,7 +17,7 @@ async def searcher_torrents(game: Game) -> None:
 
     search_results = await torrent.search(query)
 
-    logging.info(f"Query: {query} | Found torrents: {len(search_results)}")
+    logging.info(f"Search query: {query} | Found torrents: {len(search_results)}")
 
     async with uow:
         for torrent_data in search_results:

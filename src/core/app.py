@@ -17,7 +17,7 @@ from starlette_csrf import CSRFMiddleware
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
 from src.auth.presentation.api import router as auth_api_router
 from src.games.infrastructure.tasks.metadata import searcher_games
-from src.torrents.infrastructure.tasks.torrent import searcher_torrents
+from src.games.presentation.api import router as games_api_router
 
 from views.home.home import router as home_view
 from views.login.login import router as login_view
@@ -51,7 +51,7 @@ def setup_tasks(scheduler: AsyncIOScheduler):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
-    setup_tasks(scheduler)
+    # setup_tasks(scheduler)
     yield
 
 
@@ -99,6 +99,7 @@ app.include_router(router=faq_view)
 app.include_router(router=auth_api_router, prefix="/auth", tags=["Auth"])
 app.include_router(router=users_api_router, prefix="/users", tags=["Users"])
 app.include_router(router=torrents_api_router, prefix="/torrents", tags=["Torrents"])
+app.include_router(router=games_api_router, prefix="/games", tags=["Games"])
 
 
 def create_error_response(

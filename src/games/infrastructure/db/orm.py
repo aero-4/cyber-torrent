@@ -5,12 +5,12 @@ from src.torrents.infrastructure.db.orm import *
 from src.utils.datetimes import get_timezone_now
 
 
-class GamesImages(Base):
+class GamesImagesOrm(Base):
     __tablename__ = "game_images"
 
     game: Mapped["GamesOrm"] = relationship(back_populates="game_images")
     game_id: Mapped[int] = mapped_column(ForeignKey("games.id", ondelete="CASCADE"))
-    image: Mapped[str] = mapped_column(String(), nullable=False)
+    image: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
 
     def to_entity(self):
         return GameImage(
@@ -31,8 +31,8 @@ class GamesOrm(Base):
     release_date: Mapped[datetime.datetime] = mapped_column(DateTime(), default=get_timezone_now, nullable=True)
     background_image: Mapped[str] = mapped_column(String(), nullable=True)
     description_raw: Mapped[str] = mapped_column(Text(), nullable=True)
-    torrents: Mapped[List["TorrentsOrm"]] = relationship(back_populates="game_torrent", uselist=True)
-    game_images: Mapped[List["GamesImages"]] = relationship(back_populates="game")
+    torrents: Mapped[List["TorrentsOrm"]] = relationship(back_populates="game_torrent", uselist=True, lazy="joined")
+    game_images: Mapped[List["GamesImagesOrm"]] = relationship(back_populates="game", uselist=True, lazy="joined")
 
     def to_entity(self):
         return Game(
@@ -45,5 +45,7 @@ class GamesOrm(Base):
             platform=self.platform,
             metacritic=self.metacritic,
             release_date=self.release_date,
-            background_image=self.background_image
+            background_image=self.background_image,
+            game_images=[i.to_entity() for i in self.game_images],
+            torrents=[i.to_entity() for i in self.torrents],
         )
