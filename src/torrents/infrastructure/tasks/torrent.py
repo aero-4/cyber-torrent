@@ -1,43 +1,34 @@
-import asyncio
-import datetime
-import random
+import logging
 
-import celery
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
-# from src.core.celery_app import celery_app
+from src.core.domain.exceptions import AlreadyExists
+from src.torrents.domain.entities import TorrentCreate, Game
 from src.torrents.infrastructure.db.uow import TorrentsUnitOfWork
-from src.torrents.infrastructure.services.metadata_loader import MetadataParser
 from src.torrents.infrastructure.services.torrents_loader import TorrentSearchProvider
 
 
-# Выносим всю асинхронную логику в отдельную корутину
-async def _run_search_and_save():
+async def searcher_torrents(game: Game) -> None:
+    logging.info("Loading torrents...")
+
+    query = f"{game.name} - [DODI Repack]"
     torrent = TorrentSearchProvider()
     uow = TorrentsUnitOfWork()
 
-    # Просто ждем завершения поиска с помощью await
-    search_results = await torrent.search("god of war")
-    print(f"Найдено торрентов: {len(search_results)}")
+    success = 0
+
+    search_results = await torrent.search(query)
+
+    logging.info(f"Query: {query} | Found torrents: {len(search_results)}")
 
     async with uow:
         for torrent_data in search_results:
-            torr = await uow.torrents.add(torrent_data)
-            print(torr)
-        await uow.commit()
+            t_data = TorrentCreate(game_id=game.id, **torrent_data)
+            try:
+                torr = await uow.torrents.add(t_data)
+                success += 1
 
-    return "Успешно сохранено"
+                logging.info(f"Added torrent: {torr.name}")
+                await uow.commit()
+            except AlreadyExists as e:
+                logging.error(e)
 
-
-# # Сама таска Celery остается СИНХРОННОЙ (def, а не async def)
-# @celery_app.task(bind=True)
-# def search_games_task(self):
-#     # Запускаем асинхронный цикл событий
-#     result = asyncio.run(_run_search_and_save())
-#     return result
-
-
-def setup_tasks(scheduler: AsyncIOScheduler):
-    scheduler.add_job(_run_search_and_save, "interval", minutes=10, next_run_time=datetime.datetime.now())
-
-    scheduler.start()
+    logging.info(f"Success torrents added: {success}")

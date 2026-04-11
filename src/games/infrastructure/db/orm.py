@@ -1,11 +1,6 @@
-import datetime
-from typing import List
+from sqlalchemy import Text
 
-from sqlalchemy import String, Integer, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from src.db.base import Base
-from src.torrents.domain.entities import Game, GameImage
+from src.games.domain.entities import GameImage, Game
 from src.torrents.infrastructure.db.orm import *
 from src.utils.datetimes import get_timezone_now
 
@@ -29,12 +24,13 @@ class GamesOrm(Base):
     __tablename__ = "games"
 
     name: Mapped[str] = mapped_column(String(), nullable=False)
-    slug: Mapped[str] = mapped_column(String(), nullable=False)
-    genre: Mapped[str] = mapped_column(String(), nullable=False)
-    platform: Mapped[str] = mapped_column(String(), nullable=False)
-    metacritic: Mapped[int] = mapped_column(Integer(), nullable=False)
-    release_date: Mapped[datetime.datetime] = mapped_column(DateTime(), default=get_timezone_now)
+    slug: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
+    genre: Mapped[str] = mapped_column(String(), nullable=True)
+    platform: Mapped[str] = mapped_column(String(), nullable=True)
+    metacritic: Mapped[int] = mapped_column(Integer(), nullable=True)
+    release_date: Mapped[datetime.datetime] = mapped_column(DateTime(), default=get_timezone_now, nullable=True)
     background_image: Mapped[str] = mapped_column(String(), nullable=True)
+    description_raw: Mapped[str] = mapped_column(Text(), nullable=True)
     torrents: Mapped[List["TorrentsOrm"]] = relationship(back_populates="game_torrent", uselist=True)
     game_images: Mapped[List["GamesImages"]] = relationship(back_populates="game")
 

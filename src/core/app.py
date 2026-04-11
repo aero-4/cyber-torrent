@@ -16,7 +16,8 @@ from starlette_csrf import CSRFMiddleware
 
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
 from src.auth.presentation.api import router as auth_api_router
-from src.torrents.infrastructure.tasks.torrent import setup_tasks
+from src.games.infrastructure.tasks.metadata import searcher_games
+from src.torrents.infrastructure.tasks.torrent import searcher_torrents
 
 from views.home.home import router as home_view
 from views.login.login import router as login_view
@@ -37,6 +38,14 @@ from starlette.responses import JSONResponse
 from src.core.domain.exceptions import AppException
 
 scheduler = AsyncIOScheduler()
+
+
+def setup_tasks(scheduler: AsyncIOScheduler):
+    scheduler.add_job(searcher_games,
+                      trigger="interval",
+                      minutes=30,
+                      next_run_time=datetime.datetime.now())
+    scheduler.start()
 
 
 @asynccontextmanager

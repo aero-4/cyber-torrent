@@ -20,7 +20,8 @@ class SmtpProvider(IEmailProvider):
     async def send_confirm_message(self, email: str) -> None:
         token = secrets.token_urlsafe(32)
         content_mail = config.email.TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE.format(
-            link=f"{config.app.APP_URI}/auth/email/confirm/{token}"
+            link=f"{config.app.APP_URI}/auth/email/confirm/{token}",
+            expire_minutes=config.email.TWO_FACTOR_TOKEN_EXPIRE_SECONDS / 60
         )
         msg = self.mail_message(email, content=content_mail)
 

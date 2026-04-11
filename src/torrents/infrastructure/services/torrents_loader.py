@@ -59,7 +59,7 @@ def fuzzy_match(a: str, b: str, threshold: float = 0.88):
 
 class TorrentSearchProvider:
 
-    async def search(self, query: str, timeout: float = 10.0) -> list[TorrentCreate]:
+    async def search(self, query: str, timeout: float = 10.0) -> list[dict]:
         base_url = f"https://apibay.org/q.php?q={query}"
 
         async with aiohttp.ClientSession(timeout=ClientTimeout(timeout)) as session:
@@ -76,13 +76,17 @@ class TorrentSearchProvider:
                 name = item.get('name')
                 info_hash = item.get('info_hash')
                 seeders = item.get('seeders')
+                size = item.get('size')
                 magnet = f"magnet:?xt=urn:btih:{info_hash}&dn={quote(name)}"
 
                 torrents.append(
-                    TorrentCreate(name=name,
-                                  seeders=seeders,
-                                  magnet=magnet,
-                                  slug=slugify(name))
+                    {
+                        "name": name,
+                        "seeders": seeders,
+                        "magnet": magnet,
+                        "size": size,
+                    }
                 )
 
         return torrents
+

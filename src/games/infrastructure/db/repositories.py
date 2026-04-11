@@ -43,7 +43,6 @@ class PGGamesRepository:
 
             await self.session.flush()
         except IntegrityError as e:
-            print(e)
             raise HTTPException(status_code=409,
                                 detail="Game already exists")
         return obj.to_entity()

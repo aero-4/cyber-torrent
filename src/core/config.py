@@ -9,16 +9,14 @@ ENV_FILE = find_dotenv()
 load_dotenv(ENV_FILE)
 
 
-# 1. Create a Base Configuration Class
 class BaseAppConfig(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         env_file_encoding="utf-8",
-        extra="ignore",  # This prevents the extra_forbidden errors
+        extra="ignore",
     )
 
 
-# 2. Inherit from BaseAppConfig instead of BaseSettings
 class CsrfConfig(BaseAppConfig):
     secret_key: str = secrets.token_urlsafe(128)
     cookie_secure: bool = True
@@ -40,7 +38,7 @@ class AuthConfig(BaseAppConfig):
 
 class OTPAuthConfig(BaseAppConfig):
     OTP_SECRET: str = secrets.token_urlsafe(32)
-    OTP_ISSUER: str = "JwtAuthAPP"
+    OTP_ISSUER: str = "CyberTorrents"
 
 
 class DatabaseConfig(BaseAppConfig):
@@ -48,18 +46,21 @@ class DatabaseConfig(BaseAppConfig):
 
 
 class EmailConfig(BaseAppConfig):
-    EMAIL_HOST: str = "smtp.gmail.com"
-    EMAIL_PORT: int = 465
-    EMAIL_USERNAME: str = "dimongames6@gmail.com"
-    EMAIL_PASSWORD: str = "jtvz npox gxuc sasx"
-    TWO_FACTOR_EMAIL_MESSAGE_SUBJECT: str = "2fa confirm email"
-    TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE: str = """
-Welcome to out service!    
-
-Your confirm link email: {link}
-"""
+    EMAIL_HOST: str
+    EMAIL_PORT: int
+    EMAIL_USERNAME: str
+    EMAIL_PASSWORD: str
+    TWO_FACTOR_EMAIL_MESSAGE_SUBJECT: str
     TWO_FACTOR_TOKEN_EXPIRE_SECONDS: int = 60 * 30
     USE_TLS: bool = True
+
+    @property
+    def TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE(self):
+        return """
+Welcome to out service! Your confirm link email: {link}
+
+Mail expired after {expire_minutes} minutes.
+"""
 
 
 class AppConfig(BaseAppConfig):
@@ -98,6 +99,7 @@ class Config(BaseAppConfig):
     app: AppConfig = AppConfig()
     oauth2: OAuth2Config = OAuth2Config()
     celery: CeleryConfig = CeleryConfig()
+    metadata: MetadataConfig = MetadataConfig()
 
 
 @CsrfProtect.load_config

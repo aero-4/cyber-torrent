@@ -6,16 +6,14 @@ from sqlalchemy import Integer, String, Enum, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from src.games.infrastructure.db.orm import *
-from src.torrents.domain.entities import TorrentCreate, Torrent, Game, GameImage
-from src.utils.datetimes import get_timezone_now
-
-
+from src.torrents.domain.entities import Torrent
 
 
 class TorrentsOrm(Base):
     __tablename__ = "torrents"
 
     name: Mapped[str] = mapped_column(String(), nullable=False)
+    size: Mapped[int] = mapped_column(Integer(), default=0)
     seeders: Mapped[int] = mapped_column(Integer(), default=0)
     magnet: Mapped[str] = mapped_column(String(length=300), nullable=False)
     game_id: Mapped[int] = mapped_column(ForeignKey("games.id", ondelete="CASCADE"), nullable=False)
@@ -30,6 +28,3 @@ class TorrentsOrm(Base):
             seeders=self.seeders,
             magnet=self.magnet
         )
-
-
-

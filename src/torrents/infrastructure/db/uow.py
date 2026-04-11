@@ -12,8 +12,8 @@ class TorrentsUnitOfWork:
         self.session = async_session_maker()
         self.torrents = PGTorrentsRepository(self.session)
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.rollback()
+    async def __aexit__(self, *args):
+        await self.session.rollback()
 
     async def commit(self):
         await self.session.commit()

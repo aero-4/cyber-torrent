@@ -10,12 +10,15 @@ class Torrent(BaseModel):
     name: str
     seeders: int
     magnet: str
+    size: int | None = None
 
 
 class TorrentCreate(BaseModel):
     name: str
     seeders: int
     magnet: str
+    size: int
+    game_id: int
 
 
 class Game(BaseModel):
@@ -41,12 +44,3 @@ class GameCreate(BaseModel):
     background_image: str
 
 
-class GameImage(BaseModel):
-    id: int
-    game_id: int
-    image: str
-
-
-class GameImageCreate(BaseModel):
-    game_id: int
-    image: str
