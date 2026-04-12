@@ -9,3 +9,5 @@ router = APIRouter(tags=["Home views"])
 @router.get("/", include_in_schema=True)
 async def home_view(request: Request):
     return templates.TemplateResponse(name="home.html", request=request)
+
+

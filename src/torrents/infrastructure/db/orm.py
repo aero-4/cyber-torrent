@@ -26,5 +26,6 @@ class TorrentsOrm(Base):
             updated_at=self.updated_at,
             name=self.name,
             seeders=self.seeders,
-            magnet=self.magnet
+            magnet=self.magnet,
+            size=round(self.size / 1_000_000_000, 2),
         )

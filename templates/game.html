@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="game-content" class="min-h-screen text-gray-200">
+    <div class="flex items-center justify-center py-20">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const content = document.getElementById("game-content");
+
+        const pathParts = window.location.pathname.split('/');
+        const slug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
+
+        const cacheKey = `game_detail_${slug}`;
+        // let game = JSON.parse(sessionStorage.getItem(cacheKey));
+
+        try {
+            const response = await fetch(`/games/${slug}`, {method: "GET"}); // Предполагаем такой эндпоинт
+            game = await response.json();
+        } catch (e) {
+            content.innerHTML = "<h1 class='text-center py-10'>Игра не найдена</h1>";
+            return;
+        }
+
+        content.innerHTML = `
+            <div class="relative h-[400px] w-full">
+                <img src="${game.background_image}" class="w-full h-full object-cover opacity-30 absolute inset-0">
+                <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
+
+                <div class="relative max-w-5xl mx-auto px-4 h-full flex flex-col justify-end pb-10">
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">${game.platform || 'PC'}</span>
+                        <span class="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">${game.genre || ""}</span>
+                        ${game.metacritic ? `<span class="border border-green-500 text-green-500 text-xs font-bold px-3 py-1 rounded-full">Рейтинг: ${game.metacritic}</span>` : ''}
+                    </div>
+                    <h1 class="text-4xl md:text-6xl font-black text-white mb-2">${game.name}</h1>
+                    <p class="text-gray-400">Релиз: ${game.release_date ? new Date(game.release_date).toLocaleDateString() : 'Неизвестно'}</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert max-w-none">
+                <h2 class="text-xl font-bold mb-4 border-l-4 border-gray-500 pl-3">О игре</h2>
+                <p class="text-gray-400 leading-relaxed">
+                    ${game.description_raw || 'Описание временно отсутствует.'}
+                </p>
+            </div>
+
+            <div class="max-w-5xl mx-auto px-4 py-10">
+                ${game.game_images && game.game_images.length > 0 ? `
+                    <div class="mb-12">
+                        <h2 class="text-xl font-bold mb-4 border-l-4 border-blue-500 pl-3">Скриншоты</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            ${game.game_images.map(img => `
+                                <img src="${img.image}" class="rounded-lg hover:opacity-80 transition cursor-pointer shadow-xl">
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div class="mb-12">
+                    <h2 class="text-xl font-bold mb-6 border-l-4 border-green-500 pl-3">Скачать Торрент</h2>
+                    <div class="flex flex-col gap-4">
+                        ${game.torrents && game.torrents.length > 0 ? game.torrents.map(torrent => `
+                            <a href="${torrent.magnet}" class="group flex items-center justify-between bg-zinc-900 border border-zinc-800 p-5 rounded-xl hover:bg-zinc-800 hover:border-green-500/50 transition-all duration-300 shadow-lg">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-green-500/10 p-3 rounded-lg group-hover:bg-green-500/20">
+                                        <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-semibold text-white group-hover:text-green-400">Скачать Torrent - ${torrent.name}</div>
+                                        <div class="text-sm text-gray-500">${torrent.size} GB.</div>
+                                    </div>
+                                </div>
+                                <span class="hidden md:block text-xs font-mono text-gray-600 bg-black/30 px-3 py-1 rounded">MAGNET LINK</span>
+                            </a>
+                        `).join('') : '<p class="text-gray-500 italic">Ссылок на скачивание пока нет.</p>'}
+                    </div>
+                    <h4>Все игры проверены на вирусы! У нас только безопасные торренты</h4>
+                </div>
+
+
+            </div>
+        `;
+    });
+</script>
+{% endblock %}

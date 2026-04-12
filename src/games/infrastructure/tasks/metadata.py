@@ -36,7 +36,7 @@ async def searcher_games() -> None:
                 game_obj = await uow.games.add(game_data)
 
                 success += 1
-                logging.info(f"Game added: {game}")
+                logging.info(f"Game added: {game_obj.name}")
                 await uow.commit()
 
             except Exception as e:

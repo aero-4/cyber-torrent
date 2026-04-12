@@ -24,7 +24,7 @@ from views.login.login import router as login_view
 from views.register.register import router as register_view
 from views.profile.profile import router as profile_view
 from views.faq.faq import router as faq_view
-
+from views.game.game import router as game_view
 from src.core.infrastructure.setup_logging import setup_logging
 from src.db.engine import engine
 from src.users.infrastructure.db.orm import UsersAdmin
@@ -43,7 +43,7 @@ scheduler = AsyncIOScheduler()
 def setup_tasks(scheduler: AsyncIOScheduler):
     scheduler.add_job(searcher_games,
                       trigger="interval",
-                      minutes=30,
+                      minutes=60,
                       next_run_time=datetime.datetime.now())
     scheduler.start()
 
@@ -51,7 +51,7 @@ def setup_tasks(scheduler: AsyncIOScheduler):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
-    # setup_tasks(scheduler)
+    setup_tasks(scheduler)
     yield
 
 
@@ -94,6 +94,7 @@ app.include_router(router=register_view)
 app.include_router(router=login_view)
 app.include_router(router=profile_view)
 app.include_router(router=faq_view)
+app.include_router(router=game_view)
 
 # api
 app.include_router(router=auth_api_router, prefix="/auth", tags=["Auth"])

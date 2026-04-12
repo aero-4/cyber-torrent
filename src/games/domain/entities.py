@@ -17,6 +17,7 @@ class Game(BaseModel):
     updated_at: datetime.datetime
     name: str
     slug: str
+    description_raw: str | None = None
     genre: str | None
     platform: str | None
     metacritic: int | None

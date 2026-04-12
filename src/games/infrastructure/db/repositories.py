@@ -1,7 +1,7 @@
 from typing import Type
 
 from fastapi import HTTPException
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -31,10 +31,25 @@ class PGGamesRepository:
 
         return obj.to_entity()
 
+    async def get_by_slug(self, slug: str) -> Game:
+        stmt = select(GamesOrm).where(GamesOrm.slug == slug)
+        result = await self.session.execute(stmt)
+        obj = result.unique().scalar_one_or_none()
+        if not obj:
+            raise NotFound(message=f"Game '{slug}' not found")
+
+        return obj.to_entity()
+
     async def get_all(self) -> list[Game]:
-        stmt = select(GamesOrm).options(
-            joinedload(GamesOrm.game_images),
-            joinedload(GamesOrm.torrents)
+        stmt = (
+            select(GamesOrm)
+            .options(
+                joinedload(GamesOrm.game_images),
+                joinedload(GamesOrm.torrents)
+            )
+            .order_by(
+                GamesOrm.updated_at
+            )
         )
         result = await self.session.execute(stmt)
         result = result.unique().scalars().all()
@@ -49,7 +64,6 @@ class PGGamesRepository:
             await self.session.refresh(obj)
         except IntegrityError as e:
             raise AlreadyExists(f"Game already exists: {game.name}")
-
 
         self.session.add_all([
             GamesImagesOrm(game_id=obj.id, image=i.image) for i in game.images

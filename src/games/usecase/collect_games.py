@@ -6,5 +6,13 @@ async def collect_games():
     async with uow:
         games = await uow.games.get_all()
 
-    print(games)
     return games
+
+
+async def get_game(slug: str):
+    uow = GamesUnitOfWork()
+
+    async with uow:
+        game = await uow.games.get_by_slug(slug)
+
+    return game

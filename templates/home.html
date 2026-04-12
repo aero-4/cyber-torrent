@@ -2,30 +2,72 @@
 
 {% block content %}
 
-<h1>
-    Последние игры
-</h1>
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-white">Последние загруженные игры</h1>
 
+    <div id="home" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    </div>
+</div>
 
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
+        const home = document.getElementById("home");
+        const CACHE_KEY = "games_data_cache";
+
+        const renderGames = (games) => {
+            home.innerHTML = games.map(game => `
+                <a href="/game/${game.slug}"
+                   class="group bg-zinc-900 rounded-lg overflow-hidden shadow-lg hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col">
+                    <div class="relative aspect-video overflow-hidden">
+                        <img
+                            src="${game.background_image || 'https://via.placeholder.com/400x225?text=No+Image'}"
+                            alt="${game.name}"
+                            loading="lazy"
+                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        >
+                        ${game.metacritic ? `
+                            <span class="absolute top-2 right-2 bg-black/70 text-green-400 font-bold px-1.5 py-0.5 rounded text-xs border border-green-400/50">
+                                ${game.metacritic}
+                            </span>
+                        ` : ''}
+                    </div>
+
+                    <div class="p-3 flex flex-col flex-grow">
+                        <h3 class="text-sm md:text-base font-semibold text-gray-100 line-clamp-1 mb-1 group-hover:text-blue-400 transition-colors">
+                            ${game.name}
+                        </h3>
+
+                        <div class="mt-auto flex items-center justify-between">
+                            <span class="text-[10px] uppercase tracking-wider text-gray-500 font-medium">
+                                ${game.platform || 'PC'}
+                            </span>
+                            <span class="text-[10px] text-gray-400">
+                                ${game.release_date ? new Date(game.release_date).getFullYear() : 'N/A'}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+        };
+
+        const cachedData = sessionStorage.getItem(CACHE_KEY);
+
+        // if (cachedData) {
+        //     renderGames(JSON.parse(cachedData));
+        //     console.log("Loaded from cache");
+        // } else {
         try {
-            const response = await fetch(`/users/me`,
-                {method: "GET"}
-            );
+            const response = await fetch('/games/', {method: "GET"});
             const data = await response.json();
-
-            home.innerHTML = `
-                <img class="rounded-full mx-auto justify-center items-center w-24 h-24" src="/${data.avatar_image}"/>
-
-                <h3>EMAIL: ${data.email}</h3>
-
-            `;
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            data.forEach(game => {
+                sessionStorage.setItem(`game_detail_${game.slug}`, JSON.stringify(game));
+            });
+            renderGames(data);
         } catch (error) {
-            home.innerHTML = "<p>Error loading content.</p>";
+            home.innerHTML = "<p class='text-red-500 col-span-full text-center'>Ошибка загрузки контента.</p>";
         }
     });
-
 </script>
 
 {% endblock %}

@@ -58,35 +58,77 @@ def fuzzy_match(a: str, b: str, threshold: float = 0.88):
 
 
 class TorrentSearchProvider:
+    TRACKERS = """
+udp://tracker.opentrackr.org:1337/announce
+udp://open.stealth.si:80/announce
+udp://utracker.ghostchu-services.top:6969/announce
+udp://tracker.wepzone.net:6969/announce
+udp://tracker.torrent.eu.org:451/announce
+udp://tracker.theoks.net:6969/announce
+udp://tracker.srv00.com:6969/announce
+udp://tracker.qu.ax:6969/announce
+udp://tracker.darkness.services:6969/announce
+udp://tracker.bittor.pw:1337/announce
+udp://tracker.004430.xyz:1337/announce
+udp://tracker-udp.gbitt.info:80/announce
+udp://t.overflow.biz:6969/announce
+udp://leet-tracker.moe:1337/announce
+udp://explodie.org:6969/announce
+udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce
+udp://bandito.byterunner.io:6969/announce
+udp://wepzone.net:6969/announce
+udp://udp.tracker.projectk.org:23333/announce
+udp://tracker.yume-hatsuyuki.moe:6969/announce
+udp://tracker.tvunderground.org.ru:3218/announce
+udp://tracker.tryhackx.org:6969/announce
+udp://tracker.torrust-demo.com:6969/announce
+udp://tracker.therarbg.to:6969/announce
+udp://tracker.t-1.org:6969/announce
+udp://tracker.plx.im:6969/announce
+udp://tracker.playground.ru:6969/announce
+udp://tracker.opentorrent.top:6969/announce
+udp://tracker.ixuexi.click:6969/announce
+udp://tracker.gmi.gd:6969/announce
+udp://tracker.fnix.net:6969/announce
+udp://tracker.flatuslifir.is:6969/announce
+udp://tracker.filemail.com:6969/announce
+udp://tracker.ducks.party:1984/announce
+udp://tracker.dler.org:6969/announce
+udp://tracker.ddunlimited.net:6969/announce
+udp://tracker.corpscorp.online:80/announce
+udp://tracker.bluefrog.pw:2710/announce
+udp://tracker.1h.is:1337/announce
+udp://tr4ck3r.duckdns.org:6969/announce
+udp://torrentclub.online:54123/announce
+udp://seedpeer.net:6969/announce
+udp://rekcart.duckdns.org:15480/announce
+udp://ns575949.ip-51-222-82.net:6969/announce
+udp://martin-gebhardt.eu:25/announce
+udp://ipv4announce.sktorrent.eu:6969/announce
+udp://evan.im:6969/announce
+udp://6ahddutb1ucc3cp.ru:6969/announce
+"""
 
-    async def search(self, query: str, timeout: float = 10.0) -> list[dict]:
-        base_url = f"https://apibay.org/q.php?q={query}"
+    async def search(self, query: str) -> list[dict]:
+        url = f"https://torrents-csv.com/service/search?q={query}&size=30"
 
-        async with aiohttp.ClientSession(timeout=ClientTimeout(timeout)) as session:
-            response = await session.get(base_url)
-            response.raise_for_status()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
 
-            results = await response.json()
+                    torrents = []
+                    for item in data.get('torrents', []):
+                        info_hash = item['infohash']
+                        name = item['name']
+                        size_bytes = item['size_bytes']
 
-            if not results or results[0].get('id') == '0':
-                return []
-
-            torrents = []
-            for item in results:
-                name = item.get('name')
-                info_hash = item.get('info_hash')
-                seeders = item.get('seeders')
-                size = item.get('size')
-                magnet = f"magnet:?xt=urn:btih:{info_hash}&dn={quote(name)}"
-
-                torrents.append(
-                    {
-                        "name": name,
-                        "seeders": seeders,
-                        "magnet": magnet,
-                        "size": size,
-                    }
-                )
-
-        return torrents
-
+                        magnet = f"magnet:?xt=urn:btih:{info_hash}&dn={name}"
+                        torrents.append({
+                            "name": name,
+                            "magnet": magnet,
+                            "size": size_bytes,
+                            "seeders": item.get('seeders', 'N/A')
+                        })
+                    return torrents
+        return []

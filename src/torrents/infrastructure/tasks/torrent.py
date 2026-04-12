@@ -9,7 +9,7 @@ from src.torrents.infrastructure.services.torrents_loader import TorrentSearchPr
 async def searcher_torrents(game: Game) -> None:
     logging.info("Loading torrents...")
 
-    query = f"{game.name} - [DODI Repack]"
+    query = f"{game.name} repack"
     torrent = TorrentSearchProvider()
     uow = TorrentsUnitOfWork()
 

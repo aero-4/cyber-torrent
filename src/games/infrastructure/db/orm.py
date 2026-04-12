@@ -46,6 +46,7 @@ class GamesOrm(Base):
             metacritic=self.metacritic,
             release_date=self.release_date,
             background_image=self.background_image,
+            description_raw=self.description_raw,
             game_images=[i.to_entity() for i in self.game_images],
             torrents=[i.to_entity() for i in self.torrents],
         )
