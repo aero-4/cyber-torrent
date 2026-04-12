@@ -52,7 +52,7 @@ def setup_tasks(scheduler: AsyncIOScheduler):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
-    setup_tasks(scheduler)
+    # setup_tasks(scheduler)
     yield
 
 

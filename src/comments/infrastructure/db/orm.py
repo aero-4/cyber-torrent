@@ -18,5 +18,6 @@ class CommentsOrm(Base):
             game_id=self.game_id,
             user_id=self.user_id,
             user=self.user.email,
-            content=self.content
+            content=self.content,
+            created_at=self.created_at
         )

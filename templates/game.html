@@ -10,82 +10,213 @@
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
         const content = document.getElementById("game-content");
-
         const pathParts = window.location.pathname.split('/');
         const slug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
 
-        const cacheKey = `game_detail_${slug}`;
-        // let game = JSON.parse(sessionStorage.getItem(cacheKey));
+        let game = null;
+        let currentPage = 1;
+        const LIMIT = 20;
 
         try {
-            const response = await fetch(`/games/${slug}`, {method: "GET"}); // Предполагаем такой эндпоинт
+            const response = await fetch(`/games/${slug}`);
+            if (!response.ok) throw new Error("Игра не найдена");
             game = await response.json();
         } catch (e) {
-            content.innerHTML = "<h1 class='text-center py-10'>Игра не найдена</h1>";
+            content.innerHTML = "<h1 class='text-center py-10 text-xl font-bold'>Игра не найдена</h1>";
             return;
         }
 
+        const cacheKey = `comments_cache_${game.id}`;
+
+        const maskUser = (user) => {
+            if (user && user.includes('@')) {
+                const [name, domain] = user.split('@');
+                return name.slice(0, Math.floor(name.length / 2)) + '***@' + domain;
+            }
+            return user || 'Аноним';
+        };
+
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        };
+
+        // Рендерим основной каркас
         content.innerHTML = `
             <div class="relative h-[400px] w-full">
-                <img src="${game.background_image}" class="w-full h-full object-cover opacity-30 absolute inset-0">
+                <img src="${game.background_image || ''}" class="w-full h-full object-cover opacity-30 absolute inset-0" alt="Cover">
                 <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
-
                 <div class="relative max-w-5xl mx-auto px-4 h-full flex flex-col justify-end pb-10">
                     <div class="flex flex-wrap gap-2 mb-4">
                         <span class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">${game.platform || 'PC'}</span>
-                        <span class="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">${game.genre || ""}</span>
-                        ${game.metacritic ? `<span class="border border-green-500 text-green-500 text-xs font-bold px-3 py-1 rounded-full">Рейтинг: ${game.metacritic}</span>` : ''}
+                        <span class="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">${game.genre || "Без жанра"}</span>
                     </div>
                     <h1 class="text-4xl md:text-6xl font-black text-white mb-2">${game.name}</h1>
-                    <p class="text-gray-400">Релиз: ${game.release_date ? new Date(game.release_date).toLocaleDateString() : 'Неизвестно'}</p>
+                    <p class="text-gray-400">Релиз: ${formatDate(game.release_date) || 'Неизвестно'}</p>
                 </div>
-            </div>
-
-            <div class="prose prose-invert max-w-none">
-                <h2 class="text-xl font-bold mb-4 border-l-4 border-gray-500 pl-3">О игре</h2>
-                <p class="text-gray-400 leading-relaxed">
-                    ${game.description_raw || 'Описание временно отсутствует.'}
-                </p>
             </div>
 
             <div class="max-w-5xl mx-auto px-4 py-10">
-                ${game.game_images && game.game_images.length > 0 ? `
-                    <div class="mb-12">
-                        <h2 class="text-xl font-bold mb-4 border-l-4 border-blue-500 pl-3">Скриншоты</h2>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            ${game.game_images.map(img => `
-                                <img src="${img.image}" class="rounded-lg hover:opacity-80 transition cursor-pointer shadow-xl">
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                <div class="mb-12">
-                    <h2 class="text-xl font-bold mb-6 border-l-4 border-green-500 pl-3">Скачать Торрент</h2>
-                    <div class="flex flex-col gap-4">
-                        ${game.torrents && game.torrents.length > 0 ? game.torrents.map(torrent => `
-                            <a href="${torrent.magnet}" class="group flex items-center justify-between bg-zinc-900 border border-zinc-800 p-5 rounded-xl hover:bg-zinc-800 hover:border-green-500/50 transition-all duration-300 shadow-lg">
-                                <div class="flex items-center gap-4">
-                                    <div class="bg-green-500/10 p-3 rounded-lg group-hover:bg-green-500/20">
-                                        <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div class="text-lg font-semibold text-white group-hover:text-green-400">Скачать Torrent - ${torrent.name}</div>
-                                        <div class="text-sm text-gray-500">${torrent.size} GB.</div>
-                                    </div>
-                                </div>
-                                <span class="hidden md:block text-xs font-mono text-gray-600 bg-black/30 px-3 py-1 rounded">MAGNET LINK</span>
-                            </a>
-                        `).join('') : '<p class="text-gray-500 italic">Ссылок на скачивание пока нет.</p>'}
-                    </div>
-                    <h4>Все игры проверены на вирусы! У нас только безопасные торренты</h4>
+                <div class="prose prose-invert max-w-none mb-12">
+                    <h2 class="text-xl font-bold mb-4 border-l-4 border-gray-500 pl-3">Об игре</h2>
+                    <p class="text-gray-400 leading-relaxed whitespace-pre-wrap">${game.description_raw || 'Описание отсутствует.'}</p>
                 </div>
 
+                <div id="screenshots-section" class="mb-16"></div>
 
+                <div id="torrent-section" class="mb-16"></div>
+
+                <div class="border-t border-zinc-800 pt-10">
+                    <h2 class="text-xl font-bold mb-6 border-l-4 border-indigo-500 pl-3">Комментарии</h2>
+                    <form id="comment-form" class="mb-8 bg-zinc-900 p-4 rounded-xl border border-zinc-800">
+                        <textarea id="comment-text" required class="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none transition resize-none" rows="3" placeholder="Ваш отзыв..."></textarea>
+                        <div class="flex justify-end mt-3">
+                            <button type="submit" id="submit-btn" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-2 rounded-lg text-sm font-bold transition">Отправить</button>
+                        </div>
+                    </form>
+                    <div id="comments-list" class="space-y-4"></div>
+                    <div id="pagination" class="flex justify-center items-center gap-3 mt-8"></div>
+                </div>
             </div>
         `;
+
+        // --- РЕНДЕР СКРИНШОТОВ ---
+        const screenshotContainer = document.getElementById('screenshots-section');
+        if (game.game_images && game.game_images.length > 0) {
+            screenshotContainer.innerHTML = `
+                <h2 class="text-xl font-bold mb-6 border-l-4 border-blue-500 pl-3">Скриншоты</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    ${game.game_images.map(img => `
+                        <div class="overflow-hidden rounded-xl bg-zinc-900 aspect-video">
+                            <img src="${img.image}"
+                                 alt="Screenshot"
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-zoom-in shadow-lg"
+                                 onclick="window.open(this.src, '_blank')">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // --- РЕНДЕР ТОРРЕНТОВ ---
+        const torrentSection = document.getElementById('torrent-section');
+        if (game.torrents && game.torrents.length > 0) {
+            torrentSection.innerHTML = `
+                <h2 class="text-xl font-bold mb-6 border-l-4 border-green-500 pl-3">Скачать Торрент</h2>
+                <div class="flex flex-col gap-4">
+                    ${game.torrents.map(t => `
+                        <a href="${t.magnet}" class="group flex items-center justify-between bg-zinc-900 border border-zinc-800 p-5 rounded-xl hover:bg-zinc-800 hover:border-green-500/50 transition-all duration-300 shadow-lg">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-green-500/10 p-3 rounded-lg group-hover:bg-green-500/20">
+                                    <span class="text-green-500 font-bold text-xl">⬇</span>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-semibold text-white group-hover:text-green-400">${t.name}</div>
+                                    <div class="text-sm text-gray-500">${t.size} GB</div>
+                                </div>
+                            </div>
+                            <span class="hidden md:block text-xs font-mono text-gray-600 bg-black/30 px-3 py-1 rounded">MAGNET LINK</span>
+                        </a>
+                    `).join('')}
+                    <p class="text-xs text-zinc-500 mt-2">🛡️ Все файлы проверены. У нас только безопасные торренты.</p>
+                </div>
+            `;
+        }
+
+        const commentsList = document.getElementById('comments-list');
+        const pagination = document.getElementById('pagination');
+
+        // --- ЛОГИКА КОММЕНТАРИЕВ ---
+        const renderComments = (comments) => {
+            if (!comments || comments.length === 0) {
+                commentsList.innerHTML = '<p class="text-zinc-600 italic">Комментариев пока нет. Будьте первым!</p>';
+                return;
+            }
+            commentsList.innerHTML = comments.map(c => `
+                <div class="bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-indigo-400 font-bold text-sm">${maskUser(c.user)}</span>
+                        <span class="text-zinc-600 text-[11px]">${formatDate(c.created_at)}</span>
+                    </div>
+                    <p class="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">${c.content}</p>
+                </div>
+            `).join('');
+        };
+
+        const renderPagination = (page, hasNext) => {
+            pagination.innerHTML = '';
+            if (page > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.className = "bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg text-xs font-medium transition text-gray-300";
+                prevBtn.innerText = "Назад";
+                prevBtn.onclick = () => { currentPage--; loadComments(currentPage, false); };
+                pagination.appendChild(prevBtn);
+            }
+            const indicator = document.createElement('span');
+            indicator.className = "bg-indigo-600/20 text-indigo-400 px-4 py-2 rounded-lg text-xs font-bold border border-indigo-500/30";
+            indicator.innerText = page;
+            pagination.appendChild(indicator);
+            if (hasNext) {
+                const nextBtn = document.createElement('button');
+                nextBtn.className = "bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg text-xs font-medium transition text-gray-300";
+                nextBtn.innerText = "Вперед";
+                nextBtn.onclick = () => { currentPage++; loadComments(currentPage, false); };
+                pagination.appendChild(nextBtn);
+            }
+        };
+
+        const loadComments = async (page = 1, useCache = true) => {
+            const offset = (page - 1) * LIMIT;
+            if (page === 1 && useCache) {
+                const cached = sessionStorage.getItem(cacheKey);
+                if (cached) renderComments(JSON.parse(cached));
+            }
+            try {
+                const res = await fetch('/comments/all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ game_id: game.id, offset: offset, limit: LIMIT })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    renderComments(data);
+                    renderPagination(page, data.length === LIMIT);
+                    if (page === 1) sessionStorage.setItem(cacheKey, JSON.stringify(data));
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        document.getElementById('comment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const textarea = document.getElementById('comment-text');
+            const submitBtn = document.getElementById('submit-btn');
+            const content = textarea.value.trim();
+            if (!content) return;
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Отправка...';
+            try {
+                const response = await fetch('/comments/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ game_id: game.id, content: content })
+                });
+                if (response.ok) {
+                    const newComment = await response.json();
+                    textarea.value = '';
+                    const cached = JSON.parse(sessionStorage.getItem(cacheKey) || "[]");
+                    const updated = [newComment, ...cached].slice(0, LIMIT);
+                    sessionStorage.setItem(cacheKey, JSON.stringify(updated));
+                    renderComments(updated);
+                    renderPagination(1, updated.length === LIMIT);
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Отправить';
+            }
+        });
+
+        loadComments(1);
     });
 </script>
 {% endblock %}

@@ -40,7 +40,7 @@ class PGGamesRepository:
 
         return obj.to_entity()
 
-    async def get_all(self) -> list[Game]:
+    async def get_all(self, offset: int, limit: int) -> list[Game]:
         stmt = (
             select(GamesOrm)
             .options(
@@ -50,6 +50,8 @@ class PGGamesRepository:
             .order_by(
                 GamesOrm.updated_at
             )
+            .offset(offset)
+            .limit(limit)
         )
         result = await self.session.execute(stmt)
         result = result.unique().scalars().all()

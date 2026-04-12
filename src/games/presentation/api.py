@@ -1,15 +1,14 @@
 from fastapi import APIRouter
-from starlette.requests import Request
 
+from src.games.presentation.dtos import GamesCollectionDTO
 from src.games.usecase.collect_games import collect_games, get_game
-from templates import templates
 
 router = APIRouter()
 
 
-@router.get("/")
-async def all_games():
-    return await collect_games()
+@router.post("/")
+async def all_games(dto: GamesCollectionDTO):
+    return await collect_games(dto)
 
 
 @router.get("/{slug}")

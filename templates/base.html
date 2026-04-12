@@ -73,6 +73,16 @@
                 </div>
             </a>
 
+            <div class="relative group">
+                <button class="">
+                    Категории <span class="text-xs">▼</span>
+                </button>
+
+                <div id="categoriesDropdown" class="absolute top-full left-0 w-64 bg-black border-4 border-blue-600 hidden group-hover:grid grid-cols-1 z-[100] shadow-[10px_10px_0px_#000]">
+                    <div class="p-4 text-sm animate-pulse text-blue-900">Загрузка категорий...</div>
+                </div>
+            </div>
+
             <div class="flex items-center gap-6">
                 <nav class="hidden md:flex gap-8 text-xl font-bold uppercase">
                     <a href="/" class="hover:text-white border-b-2 border-transparent hover:border-blue-600">Главная</a>
@@ -246,6 +256,24 @@
                 }
             }
         };
+
+        async function loadCategories() {
+            const dropdown = document.getElementById('categoriesDropdown');
+            try {
+                const res = await fetch('/categories/');
+                const categories = await res.json();
+
+                dropdown.innerHTML = categories.map(cat => `
+                    <a href="/category/${cat.name}" class="flex items-center gap-3 p-3 hover:bg-blue-600 hover:text-black transition-all border-b border-blue-900 last:border-none">
+                        ${cat.image ? `<img src="${cat.image}" class="w-10 h-10 object-cover border border-blue-400">` : ''}
+                        <span class="truncate">${cat.name}</span>
+                    </a>
+                `).join('');
+            } catch (e) {
+                dropdown.innerHTML = '<div class="p-4 text-red-600 text-xs">ERR: CATEGORY_OFFLINE</div>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadCategories);
 
         document.addEventListener('DOMContentLoaded', () => {
             window.AuthContext.init();
