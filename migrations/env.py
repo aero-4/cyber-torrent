@@ -12,6 +12,7 @@ from src.db.base import Base
 from src.users.infrastructure.db.orm import UsersOrm
 from src.torrents.infrastructure.db.orm import TorrentsOrm
 from src.games.infrastructure.db.orm import GamesOrm
+from src.comments.infrastructure.db.orm import CommentsOrm
 from src.core.config import config as app_config
 
 # this is the Alembic Config object, which provides
