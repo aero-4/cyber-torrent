@@ -1,18 +1,19 @@
-from src.auth.domain.entities import UserUpdate
+from src.auth.domain.entities import UserUpdate, UserRoles
 from src.auth.domain.interfaces.email import IEmailProvider
+from src.auth.domain.interfaces.token_auth import ITokenAuth
 from src.users.infrastructure.db.uow import UsersUnitOfWork
 
 
-async def email_send_token(email: str, email_provider: IEmailProvider):
-    return await email_provider.send_confirm_message(email)
-
-
-async def confirm_email(token: str, email_provider: IEmailProvider):
+async def confirm_email(token: str | int, email_provider: IEmailProvider, auth: ITokenAuth):
     uow = UsersUnitOfWork()
 
     async with uow:
         email = await email_provider.validate_token(token)
-        user_data = UserUpdate(email=email, is_verify_email=True)
+        user_data = UserUpdate(email=email,
+                               is_verify_email=True,
+                               role=UserRoles.USER)
 
-        await uow.users.update(user_data)
+        user = await uow.users.update(user_data)
         await uow.commit()
+
+    await auth.set_tokens(user)

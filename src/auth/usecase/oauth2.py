@@ -61,3 +61,31 @@ async def oauth2_yandex_case(access_token: str, oauth2_yandex: IOauth2Provider, 
             await uow.commit()
 
         await auth.set_tokens(user)
+
+
+async def oauth2_github_case(request, oauth2_github, hasher, auth):
+    uow = UsersUnitOfWork()
+    code = request.query_params.get("code")
+
+    if not code:
+        raise BadRequest("No code in query params")
+
+    data = await oauth2_github.callback(code)
+
+    password = secrets.token_urlsafe(16)
+    hashed_password = hasher.hash_password(password)
+    email = data['email']
+
+    user_data = UserCreate(email=email,
+                           password=hashed_password,
+                           avatar_image=data["picture"],
+                           is_verify_email=data["email_verified"])
+
+    async with uow:
+        user = await uow.users.get_by_email(email=email)
+
+        if not user:
+            user = await uow.users.add(user_data)
+            await uow.commit()
+
+        await auth.set_tokens(user)

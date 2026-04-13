@@ -9,6 +9,7 @@ class UserRoles(enum.IntEnum):
     ADMIN = 3
     MANAGER = 2
     USER = 1
+    NOT_VERIFIED = 0
 
 
 class TokenType(enum.StrEnum):
@@ -29,6 +30,7 @@ class UserCreate(BaseModel):
     password: str
     is_verify_email: bool = False
     avatar_image: str | None = None
+    role: UserRoles | None = None
 
 
 class UserUpdate(BaseModel):
@@ -37,3 +39,9 @@ class UserUpdate(BaseModel):
     is_verify_otp: bool | None = None
     is_verify_email: bool | None = None
     avatar_image: str | None = None
+    role: UserRoles | None = None
+
+
+class UserVerifications(BaseModel):
+    FIRST_CONFIRM_EMAIL = "first-confirm-email"
+    TWO_AUTH_EMAIL = "2fa-email"

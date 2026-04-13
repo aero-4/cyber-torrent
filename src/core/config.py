@@ -52,12 +52,21 @@ class EmailConfig(BaseAppConfig):
     EMAIL_PASSWORD: str
     TWO_FACTOR_EMAIL_MESSAGE_SUBJECT: str
     TWO_FACTOR_TOKEN_EXPIRE_SECONDS: int = 60 * 30
+    CONFIRM_CODE_EMAIL_EXPIRE_SECONDS: int = 60 * 5
     USE_TLS: bool = True
 
     @property
     def TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE(self):
         return """
 Welcome to out service! Your confirm link email: {link}
+
+Mail expired after {expire_minutes} minutes.
+"""
+
+    @property
+    def CONFIRM_EMAIL_MESSAGE_TEMPLATE(self):
+        return """
+Welcome to out service! Your code: {code}
 
 Mail expired after {expire_minutes} minutes.
 """

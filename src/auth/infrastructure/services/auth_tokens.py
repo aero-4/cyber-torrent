@@ -9,6 +9,7 @@ from src.auth.domain.interfaces.token_auth import ITokenAuth, ITokenStorage
 from src.auth.domain.interfaces.token_auth import ITokenProvider
 from src.auth.domain.interfaces.transport import IAuthTransport
 from src.auth.infrastructure.providers.redis_storage import RedisTokenStorage
+from src.core.config import config
 from src.users.domain.entities import User
 
 
@@ -75,6 +76,12 @@ class TokenAuth(ITokenAuth):
 
         await self._set_token(access, TokenType.ACCESS)
         await self._set_token(refresh, TokenType.REFRESH)
+
+    async def set_fast_token(self, user: User, method: str, expire: int = config.email.TWO_FACTOR_TOKEN_EXPIRE_SECONDS):
+        token_data = {"sub": str(user.id)}
+
+        access = self.token_provider.create_access_token(token_data, expire=expire)
+        await self._set_token(access, TokenType.ACCESS)
 
     async def _set_token(self, token: str, token_type: TokenType):
         token_data = self.token_provider.token_read(token)

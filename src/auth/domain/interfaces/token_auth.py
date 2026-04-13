@@ -20,7 +20,7 @@ class ITokenProvider(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def create_access_token(self, data: dict) -> str:
+    def create_access_token(self, data: dict, expire: int) -> str:
         pass
 
     @abc.abstractmethod
@@ -57,7 +57,6 @@ class ITokenStorage(abc.ABC):
 
 class ITokenAuth(abc.ABC):
 
-
     def __init__(self, response: Response, request: Request):
         self.response = response
         self.request = request
@@ -68,6 +67,10 @@ class ITokenAuth(abc.ABC):
 
     @abc.abstractmethod
     async def set_tokens(self, user: User) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def set_fast_token(self, user: User, method: str) -> None:
         pass
 
     @abc.abstractmethod

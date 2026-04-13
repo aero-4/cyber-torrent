@@ -34,3 +34,7 @@ class InvalidTokenEmail(BadRequest):
 
 class InvalidSentTokenEmail(BadRequest):
     message = "Not sent email message"
+
+
+class EmailCodeRequired(BadRequest):
+    message = "Email code required"

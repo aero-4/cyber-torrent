@@ -4,11 +4,13 @@ from fastapi_csrf_protect import CsrfProtect
 from starlette.requests import Request
 from starlette.responses import FileResponse, HTMLResponse
 
+from src.auth.domain.entities import UserRoles
 from src.auth.presentation.dependencies import *
 from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO, UserOtpVerifyDTO
+from src.auth.presentation.roles import check_roles
 from src.auth.usecase.authentication import authenticate
 from src.auth.usecase.auth_qr import *
-from src.auth.usecase.confirm_email import email_send_token, confirm_email
+from src.auth.usecase.confirm_email import confirm_email
 from src.auth.usecase.oauth2 import oauth2_google_case, oauth2_yandex_case
 from src.auth.usecase.registration import registration
 from src.core.config import config
@@ -20,13 +22,9 @@ router = APIRouter()
 @router.post("/register", response_model=None)
 async def register_user(request: Request,
                         auth: TokenAuthDep,
+                        email_provider: IEmailProvider,
                         auth_form: UserRegisterDTO = Form()):
-    # try:
-    #     if request.cookies.get("fastapi-csrf-token"):
-    #         await csrf_protect.validate_csrf(request)
-    # except Exception as e:
-    #     pass
-    await registration(auth_form.email, auth_form.password, auth)
+    await registration(auth_form.email, auth_form.password, auth, email_provider)
     return {"message": "User registered!"}
 
 
@@ -66,16 +64,18 @@ async def qr_code(email: str = Form(..., description="Email required for qr auth
     return FileResponse(qr_path)
 
 
-@router.post("/email/sent")
-async def email_sent_email_token(email_provider: EmailProvideDep, email: str = Form(..., description="Email for confirm")):
-    await email_send_token(email, email_provider)
-    return {"message": f"Sent on email {email}"}
-
-
-@router.get("/email/confirm/{token}")
-async def email_confirm_token_user(token: str, email_provider: EmailProvideDep):
-    await confirm_email(token, email_provider)
+@router.get("/email/2fa-confirm/{token}")
+@check_roles([UserRoles.USER])
+async def email_confirm_token_user(token: str, email_provider: EmailProvideDep, auth: ITokenAuth):
+    await confirm_email(token, email_provider, auth)
     return {"message": "Email confirmed"}
+
+
+@router.get("/email/confirm/{code}")
+@check_roles([UserRoles.NOT_VERIFIED])
+async def email_first_confirm_code(code: int, email_provider: EmailProvideDep, auth: ITokenAuth):
+    await confirm_email(code, email_provider, auth)
+    return {"message": "Email verified"}
 
 
 @router.get("/oauth2/google")
@@ -124,3 +124,10 @@ async def login_user_yandex(access_token: str, oauth2_yandex: YandexOauth2Provid
 async def yandex_redirect_url(oauth_yandex: YandexOauth2ProvideDep):
     url = oauth_yandex.generate_redirect_uri()
     return RedirectResponse(url)
+
+# @router.get("/oauth2/github/callback")
+# async def login_user_github(oauth2_github: GitHubProviderDep, hasher: HasherProvideDep, auth: TokenAuthDep):
+#     response = RedirectResponse(url=config.app.APP_URI + "/profile")
+#     auth.response = response
+#     await oauth2_yandex_case(hasher, auth)
+#     return response

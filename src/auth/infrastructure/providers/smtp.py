@@ -1,4 +1,5 @@
 import logging
+import random
 import secrets
 
 import aiosmtplib
@@ -17,14 +18,24 @@ class SmtpProvider(IEmailProvider):
                  storage: ITokenStorage):
         self.storage = storage
 
-    async def send_confirm_message(self, email: str) -> None:
+    async def send_confirm_2fa_message(self, email: str):
         token = secrets.token_urlsafe(32)
         content_mail = config.email.TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE.format(
             link=f"{config.app.APP_URI}/auth/email/confirm/{token}",
             expire_minutes=config.email.TWO_FACTOR_TOKEN_EXPIRE_SECONDS / 60
         )
-        msg = self.mail_message(email, content=content_mail)
+        return await self.send_confirm_message(email, token, content_mail)
 
+    async def sent_confirm_first_email_message(self, email: str):
+        rand_number = random.randint(100000, 999999)
+        content_mail = config.email.CONFIRM_EMAIL_MESSAGE_TEMPLATE.format(
+            code=rand_number,
+            expire_minutes=config.email.CONFIRM_CODE_EMAIL_EXPIRE_SECONDS / 60
+        )
+        return await self.send_confirm_message(email, rand_number, content_mail)
+
+    async def send_confirm_message(self, email: str, token: str | int, content_mail: str) -> None:
+        msg = self.mail_message(email, content=content_mail)
         await self.send_to_mail(msg)
         await self.storage.add_email_token(email, token)
 

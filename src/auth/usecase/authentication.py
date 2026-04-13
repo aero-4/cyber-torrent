@@ -1,4 +1,4 @@
-from src.auth.domain.exceptions import NotValidCredentials, OTPRequired, OTPInvalid
+from src.auth.domain.exceptions import NotValidCredentials, OTPRequired, OTPInvalid, EmailCodeRequired
 from src.auth.domain.interfaces.hasher import IHasherProvider
 from src.auth.domain.interfaces.qrcode import IQrCodeProvider
 from src.auth.domain.interfaces.token_auth import ITokenAuth
@@ -24,6 +24,8 @@ async def authenticate(login_data: UserLoginDTO,
         if user.is_verify_otp and login_data.otp_code and not qr_code_provider.check_otp_code(code=login_data.otp_code):
             raise OTPInvalid(details=login_data.model_dump())
 
+        if user.is_verify_email:
+            raise EmailCodeRequired(details=login_data.model_dump())
 
 
-        await auth.set_tokens(user)
+    await auth.set_tokens(user)

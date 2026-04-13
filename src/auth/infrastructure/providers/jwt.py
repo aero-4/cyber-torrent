@@ -11,11 +11,11 @@ from src.auth.domain.interfaces.token_auth import ITokenProvider
 
 class JwtProvider(ITokenProvider):
 
-    def create_access_token(self, data: dict) -> str:
-        return self._encode_jwt(data, config.auth.ACCESS_TOKEN_EXPIRE_SECONDS)
+    def create_access_token(self, data: dict, expire: int = config.auth.ACCESS_TOKEN_EXPIRE_SECONDS) -> str:
+        return self._encode_jwt(data, expire)
 
-    def create_refresh_token(self, data: dict) -> str:
-        return self._encode_jwt(data, config.auth.REFRESH_TOKEN_EXPIRE_SECONDS)
+    def create_refresh_token(self, data: dict, expire: int = config.auth.REFRESH_TOKEN_EXPIRE_SECONDS) -> str:
+        return self._encode_jwt(data, expire)
 
     def token_read(self, token: str) -> None | TokenData:
         if not token:
