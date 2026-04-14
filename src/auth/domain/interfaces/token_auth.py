@@ -39,7 +39,7 @@ class ITokenStorage(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def is_valid_token_email(self, email: str, token: str) -> bool:
+    async def is_valid_token_email(self, email: str, token: str) -> None | str:
         pass
 
     @abc.abstractmethod
