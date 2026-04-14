@@ -39,7 +39,7 @@ class ITokenStorage(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def is_valid_token_email(self, token: str) -> str:
+    async def is_valid_token_email(self, email: str, token: str) -> bool:
         pass
 
     @abc.abstractmethod
@@ -70,7 +70,7 @@ class ITokenAuth(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def set_fast_token(self, user: User, method: str) -> None:
+    async def set_fast_token(self, user: User, method: str, expire: int) -> None:
         pass
 
     @abc.abstractmethod

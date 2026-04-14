@@ -17,6 +17,11 @@ class TokenType(enum.StrEnum):
     REFRESH = "refresh_token"
 
 
+class UserVerifications(enum.StrEnum):
+    FIRST_CONFIRM_EMAIL = "first-confirm-email"
+    TWO_AUTH_EMAIL = "2fa-email"
+
+
 class TokenData(BaseModel):
     iat: datetime.datetime | None = None
     exp: datetime.datetime | None = None
@@ -40,8 +45,3 @@ class UserUpdate(BaseModel):
     is_verify_email: bool | None = None
     avatar_image: str | None = None
     role: UserRoles | None = None
-
-
-class UserVerifications(BaseModel):
-    FIRST_CONFIRM_EMAIL = "first-confirm-email"
-    TWO_AUTH_EMAIL = "2fa-email"

@@ -4,10 +4,10 @@ from email.message import Message
 
 class IEmailProvider(abc.ABC):
 
-    async def send_confirm_2fa_message(self, email: str):
+    async def send_confirm_2fa_message(self, email: str) -> None:
         pass
 
-    async def sent_confirm_first_email_message(self, email: str):
+    async def sent_confirm_first_email_message(self, email: str) -> None:
         pass
 
     async def send_confirm_message(self, email: str, token: str | int, content_mail: str) -> None:
@@ -23,5 +23,5 @@ class IEmailProvider(abc.ABC):
                      from_mail: str = None) -> Message:
         pass
 
-    async def validate_token(self, token: str):
+    async def validate_token(self, email: str, token: str):
         pass

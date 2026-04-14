@@ -18,7 +18,7 @@ class SmtpProvider(IEmailProvider):
                  storage: ITokenStorage):
         self.storage = storage
 
-    async def send_confirm_2fa_message(self, email: str):
+    async def send_confirm_2fa_message(self, email: str) -> None:
         token = secrets.token_urlsafe(32)
         content_mail = config.email.TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE.format(
             link=f"{config.app.APP_URI}/auth/email/confirm/{token}",
@@ -26,7 +26,7 @@ class SmtpProvider(IEmailProvider):
         )
         return await self.send_confirm_message(email, token, content_mail)
 
-    async def sent_confirm_first_email_message(self, email: str):
+    async def sent_confirm_first_email_message(self, email: str) -> None:
         rand_number = random.randint(100000, 999999)
         content_mail = config.email.CONFIRM_EMAIL_MESSAGE_TEMPLATE.format(
             code=rand_number,
@@ -39,8 +39,8 @@ class SmtpProvider(IEmailProvider):
         await self.send_to_mail(msg)
         await self.storage.add_email_token(email, token)
 
-    async def validate_token(self, token: str) -> str:
-        email = await self.storage.is_valid_token_email(token)
+    async def validate_token(self, email: str, token: str) -> str:
+        email = await self.storage.is_valid_token_email(email, token)
         if not email:
             raise InvalidTokenEmail()
         return email

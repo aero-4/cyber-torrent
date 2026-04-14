@@ -29,7 +29,7 @@ class OTPInvalid(AuthRequired):
 
 
 class InvalidTokenEmail(BadRequest):
-    message = "Invalid token confirm email"
+    message = "Invalid token or code to confirm email"
 
 
 class InvalidSentTokenEmail(BadRequest):

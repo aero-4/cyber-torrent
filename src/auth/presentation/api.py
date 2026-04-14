@@ -22,9 +22,11 @@ router = APIRouter()
 @router.post("/register", response_model=None)
 async def register_user(request: Request,
                         auth: TokenAuthDep,
-                        email_provider: IEmailProvider,
+                        email_provider: EmailProvideDep,
                         auth_form: UserRegisterDTO = Form()):
-    await registration(auth_form.email, auth_form.password, auth, email_provider)
+    status = await registration(auth_form.email, auth_form.password, auth, email_provider)
+    if status == "confirm_email":
+        return {"message": f"Confirm email. Sent code on '{auth_form.email}'"}
     return {"message": "User registered!"}
 
 
@@ -64,17 +66,17 @@ async def qr_code(email: str = Form(..., description="Email required for qr auth
     return FileResponse(qr_path)
 
 
-@router.get("/email/2fa-confirm/{token}")
+@router.get("/email/2fa/confirm/{token}")
 @check_roles([UserRoles.USER])
-async def email_confirm_token_user(token: str, email_provider: EmailProvideDep, auth: ITokenAuth):
-    await confirm_email(token, email_provider, auth)
+async def email_confirm_token_user(request: Request, token: str, email_provider: EmailProvideDep, auth: TokenAuthDep):
+    await confirm_email(request.state.user, token, email_provider, auth)
     return {"message": "Email confirmed"}
 
 
-@router.get("/email/confirm/{code}")
-@check_roles([UserRoles.NOT_VERIFIED])
-async def email_first_confirm_code(code: int, email_provider: EmailProvideDep, auth: ITokenAuth):
-    await confirm_email(code, email_provider, auth)
+@router.get("/email/2fa/code/{code}")
+@check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
+async def email_first_confirm_code(request: Request, code: int, email_provider: EmailProvideDep, auth: TokenAuthDep):
+    await confirm_email(request.state.user, code, email_provider, auth)
     return {"message": "Email verified"}
 
 

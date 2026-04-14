@@ -99,6 +99,38 @@
         </form>
     </div>
 
+    <div id="emailConfirmView" class="hidden">
+        <div class="space-y-6">
+            <div class="mb-2 text-2xl font-bold uppercase text-white text-center">ПОДТВЕРДИТЕ ЕМЕЙЛ</div>
+            <div id="emailConfirmSubtitle" class="mb-6 text-center text-blue-400 font-bold uppercase tracking-widest"></div>
+
+            <div id="emailConfirmOtpGroup" class="mb-4 flex gap-2 sm:gap-4 justify-center"></div>
+
+            <div id="timerDisplay" class="mb-6 text-center text-3xl font-bold text-white tracking-widest">05:00</div>
+
+            <button
+                    id="confirmEmailBtn"
+                    type="button"
+                    class="w-full border-4 border-blue-600 bg-white py-6 text-2xl sm:text-3xl font-bold text-black uppercase tracking-widest hover:bg-blue-600 transition-all">
+                ПОДТВЕРДИТЬ
+            </button>
+
+            <button
+                    id="resendEmailCodeBtn"
+                    type="button"
+                    class="hidden w-full border-4 border-blue-600 bg-black py-4 text-xl font-bold text-blue-600 uppercase tracking-widest hover:bg-blue-900 transition-all">
+                ОТПРАВИТЬ НОВЫЙ КОД
+            </button>
+
+            <button
+                    id="backFromEmailConfirmBtn"
+                    type="button"
+                    class="w-full border-4 border-blue-900 bg-black py-4 text-xl font-bold text-blue-900 uppercase tracking-widest hover:border-blue-600 hover:text-blue-600 transition-all">
+                НАЗАД
+            </button>
+        </div>
+    </div>
+
     <div id="otpView" class="hidden">
         <div class="space-y-6">
             <div class="mb-6 text-2xl font-bold uppercase text-white text-center">ВВЕДИТЕ КОД ПОДТВЕРЖДЕНИЯ</div>
@@ -178,6 +210,7 @@
     const loginView = document.getElementById('loginView');
     const otpView = document.getElementById('otpView');
     const otpSetupView = document.getElementById('otpSetupView');
+    const emailConfirmView = document.getElementById('emailConfirmView');
 
     const loginForm = document.getElementById('loginForm');
     const emailInput = document.getElementById('email');
@@ -191,21 +224,31 @@
 
     const otpInputGroup = document.getElementById('otpInputGroup');
     const setupOtpInputGroup = document.getElementById('setupOtpInputGroup');
+    const emailConfirmOtpGroup = document.getElementById('emailConfirmOtpGroup');
 
     const submitOtpBtn = document.getElementById('submitOtpBtn');
     const backBtn = document.getElementById('backBtn');
+
+    // Кнопки и элементы подтверждения Email
+    const confirmEmailBtn = document.getElementById('confirmEmailBtn');
+    const resendEmailCodeBtn = document.getElementById('resendEmailCodeBtn');
+    const backFromEmailConfirmBtn = document.getElementById('backFromEmailConfirmBtn');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const emailConfirmSubtitle = document.getElementById('emailConfirmSubtitle');
 
     const loadQrBtn = document.getElementById('loadQrBtn');
     const qrBlock = document.getElementById('qrBlock');
     const qrImage = document.getElementById('qrImage');
     const confirmAddOtpBtn = document.getElementById('confirmAddOtpBtn');
     const setupBackBtn = document.getElementById('setupBackBtn');
+    const systemPopup = document.getElementById('systemPopup');
     const popupMessage = document.getElementById('popupMessage');
 
     let pendingEmail = '';
     let pendingPassword = '';
     let currentQrObjectUrl = null;
     let pendingOtpSetup = false;
+    let emailTimerInterval = null;
 
     function setGlobalMessage(text = '', isError = false) {
         globalMessage.textContent = text;
@@ -259,6 +302,9 @@
         systemPopup.classList.remove('hidden');
     }
 
+    function closePopup() {
+        systemPopup.classList.add('hidden');
+    }
 
     function clearInputs(container) {
         for (let i = 0; i < 6; i++) {
@@ -286,20 +332,24 @@
     }
 
     function showLoginForm() {
+        clearInterval(emailTimerInterval);
         otpView.classList.add('hidden');
         otpSetupView.classList.add('hidden');
+        emailConfirmView.classList.add('hidden');
         loginView.classList.remove('hidden');
         pendingOtpSetup = false;
         setOtpMessage('');
         setAddOtpMessage('');
         clearInputs(otpInputGroup);
         clearInputs(setupOtpInputGroup);
+        clearInputs(emailConfirmOtpGroup);
         hideQr();
     }
 
     function showOtpForm() {
         loginView.classList.add('hidden');
         otpSetupView.classList.add('hidden');
+        emailConfirmView.classList.add('hidden');
         otpView.classList.remove('hidden');
         setOtpMessage('');
         clearInputs(otpInputGroup);
@@ -309,6 +359,7 @@
     function showOtpSetupForm(emailForSetup) {
         loginView.classList.add('hidden');
         otpView.classList.add('hidden');
+        emailConfirmView.classList.add('hidden');
         otpSetupView.classList.remove('hidden');
         setAddOtpMessage('');
         clearInputs(setupOtpInputGroup);
@@ -319,6 +370,43 @@
             hideQr();
         }
         setupOtpInputGroup.children[0]?.focus();
+    }
+
+    function startEmailTimer() {
+        clearInterval(emailTimerInterval);
+        resendEmailCodeBtn.classList.add('hidden');
+        let timeLeft = 300; // 5 минут = 300 секунд
+
+        const updateTimerDisplay = () => {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${m}:${s}`;
+        };
+
+        updateTimerDisplay();
+
+        emailTimerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+
+            if (timeLeft <= 0) {
+                clearInterval(emailTimerInterval);
+                resendEmailCodeBtn.classList.remove('hidden');
+            }
+        }, 1000);
+    }
+
+    function showEmailConfirmForm(email) {
+        loginView.classList.add('hidden');
+        otpView.classList.add('hidden');
+        otpSetupView.classList.add('hidden');
+        emailConfirmView.classList.remove('hidden');
+
+        emailConfirmSubtitle.textContent = `КОД ОТПРАВЛЕН НА ${email}`;
+        clearInputs(emailConfirmOtpGroup);
+        emailConfirmOtpGroup.children[0]?.focus();
+
+        startEmailTimer();
     }
 
     async function safeJson(response) {
@@ -373,18 +461,6 @@
         qrBlock.classList.remove('hidden');
     }
 
-    async function fetchData() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const query = urlParams.get('query');
-        const limit = urlParams.get('limit') || 5;
-
-        if (!query) return;
-
-        const response = await fetch(`/api/search?query=${query}&limit=${limit}`);
-        const data = await response.json();
-
-    }
-
     async function performLogin(email, password, otpCode = null) {
         const payload = {
             token_key: tokenKey,
@@ -402,8 +478,18 @@
             setGlobalMessage(data.detail[0].message || data.detail, true);
         }
 
-        if (data.error.message || data.detail) {
-            setGlobalMessage(data.error?.message || data.detail, true);
+        // --- ЛОГИКА 1: Проверка на запрос подтверждения почты ---
+        const errorMsg = data.error.message;
+
+        if (errorMsg === "Email code required") {
+            pendingEmail = email;
+            pendingPassword = password;
+            showEmailConfirmForm(email);
+            return;
+        }
+
+        if (errorMsg) {
+            setGlobalMessage(errorMsg, true);
         }
 
         if (data.error?.message === 'OTP code required') {
@@ -445,6 +531,50 @@
         }
     });
 
+    // --- ЛОГИКА 2 и 3: Обработчики для подтверждения почты ---
+    confirmEmailBtn.addEventListener('click', async () => {
+        const code = getOtpCode(emailConfirmOtpGroup);
+        if (!code) {
+            showPopup('ВВЕДИТЕ 6 ЦИФР КОДА', true);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/email/2fa/code/${code}`, {
+                method: 'GET'
+            });
+            const data = await safeJson(response);
+
+            if (data.message === "Email verified") {
+                // Если все ок - логиним пользователя повторно или редиректим
+                clearInterval(emailTimerInterval);
+                setGlobalMessage('ПОЧТА ПОДТВЕРЖДЕНА. ВХОД...', false);
+                showLoginForm();
+                // Автоматически производим логин после успешного подтверждения:
+                await performLogin(pendingEmail, pendingPassword, null);
+            } else {
+                showPopup(data.error?.message || data.message || 'ОШИБКА ПОДТВЕРЖДЕНИЯ', true);
+            }
+        } catch (err) {
+            showPopup('NETWORK ERROR', true);
+        }
+    });
+
+    resendEmailCodeBtn.addEventListener('click', async () => {
+        if (pendingEmail && pendingPassword) {
+            // Повторный вызов performLogin стриггерит отправку кода еще раз
+            await performLogin(pendingEmail, pendingPassword, null);
+        }
+    });
+
+    backFromEmailConfirmBtn.addEventListener('click', () => {
+        pendingEmail = '';
+        pendingPassword = '';
+        showLoginForm();
+    });
+
+
+    // Обработчики OTP формы
     submitOtpBtn.addEventListener('click', async () => {
         const otpCode = getOtpCode(otpInputGroup);
 
@@ -593,6 +723,7 @@
 
     createOtpInputs(otpInputGroup);
     createOtpInputs(setupOtpInputGroup);
+    createOtpInputs(emailConfirmOtpGroup);
     showLoginForm();
 </script>
 </body>

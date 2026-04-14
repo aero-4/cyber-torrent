@@ -56,7 +56,6 @@
 <div class="w-full max-w-2xl border-4 border-blue-600 bg-black p-6 sm:p-10 shadow-[8px_8px_0px_#2563eb]">
 
     <div id="step-register">
-
         <div class="mb-8 border-b-4 border-blue-600 pb-4">
             <h1 class="text-4xl sm:text-5xl font-bold tracking-tighter uppercase text-white">РЕГИСТРАЦИЯ</h1>
         </div>
@@ -85,7 +84,27 @@
                 РЕГИСТРАЦИЯ
             </button>
         </form>
+    </div>
 
+    <div id="step-email-confirm" class="hidden">
+        <div class="space-y-6">
+            <div class="mb-2 text-2xl font-bold uppercase text-white text-center">ПОДТВЕРДИТЕ ЕМЕЙЛ</div>
+            <div id="emailConfirmSubtitle" class="mb-6 text-center text-blue-400 font-bold uppercase tracking-widest"></div>
+
+            <div id="emailConfirmOtpGroup" class="mb-4 flex gap-2 sm:gap-4 justify-center"></div>
+
+            <div id="timerDisplay" class="mb-6 text-center text-3xl font-bold text-white tracking-widest">05:00</div>
+
+            <button id="confirmEmailBtn" type="button"
+                    class="w-full border-4 border-blue-600 bg-white py-6 text-2xl sm:text-3xl font-bold text-black uppercase tracking-widest hover:bg-blue-600 transition-all">
+                ПОДТВЕРДИТЬ
+            </button>
+
+            <button id="resendEmailCodeBtn" type="button"
+                    class="hidden w-full border-4 border-blue-600 bg-black py-4 text-xl font-bold text-blue-600 uppercase tracking-widest hover:bg-blue-900 transition-all">
+                ОТПРАВИТЬ НОВЫЙ КОД
+            </button>
+        </div>
     </div>
 
     <div id="step-otp-prompt" class="hidden text-center">
@@ -106,24 +125,23 @@
         <h2 class="mb-6 text-4xl font-bold tracking-tighter uppercase text-white text-center border-b-4 border-blue-600 pb-4">СИНХРОНИЗАЦИЯ С УСТРОЙСТВОМ</h2>
 
         <div class="mb-8 flex flex-col items-center justify-center border-4 border-blue-600 bg-blue-950 p-6">
-            <div class="text-xl mb-4 uppercase">ОТСКАНИРУЙТЕ ПРИЛОЖЕНИЕМ AUTHENTICATOR:</div>
-                <img id="qrImage" class="w-64 h-64 border-4 border-black bg-white object-contain" alt="QR MATRIX">
+            <div class="text-xl mb-4 uppercase text-center">ОТСКАНИРУЙТЕ ПРИЛОЖЕНИЕМ AUTHENTICATOR:</div>
+            <img id="qrImage" class="w-64 h-64 border-4 border-black bg-white object-contain" alt="QR MATRIX">
+        </div>
+
+        <form id="otpConfirmForm" class="space-y-6">
+            <div>
+                <label class="mb-2 block text-2xl font-bold uppercase text-center">ВВЕДИТЕ КОД ИЗ ПРИЛОЖЕНИЯ</label>
+                <input type="text" id="otpCode" required maxlength="6" pattern="\d{6}"
+                       class="w-full border-4 border-blue-600 bg-black px-6 py-6 text-center text-4xl tracking-[1em] text-white placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
+                       placeholder="000000">
             </div>
 
-            <form id="otpConfirmForm" class="space-y-6">
-                <div>
-                    <label class="mb-2 block text-2xl font-bold uppercase text-center">ВВЕДИТЕ КОД</label>
-                    <input type="text" id="otpCode" required maxlength="6" pattern="\d{6}"
-                           class="w-full border-4 border-blue-600 bg-black px-6 py-6 text-center text-4xl tracking-[1em] text-white placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
-                           placeholder="000000">
-                </div>
-
-                <button type="submit"
-                        class="w-full border-4 border-blue-600 bg-white py-6 text-3xl font-bold text-black uppercase tracking-widest hover:bg-blue-600 hover:text-black transition-all">
-                    ПРОВЕРИТЬ
-                </button>
-            </form>
-        </div>
+            <button type="submit"
+                    class="w-full border-4 border-blue-600 bg-white py-6 text-3xl font-bold text-black uppercase tracking-widest hover:bg-blue-600 hover:text-black transition-all">
+                ПРОВЕРИТЬ
+            </button>
+        </form>
     </div>
 
 </div>
@@ -131,21 +149,34 @@
 <script>
     // Элементы шагов
     const stepRegister = document.getElementById('step-register');
+    const stepEmailConfirm = document.getElementById('step-email-confirm');
     const stepOtpPrompt = document.getElementById('step-otp-prompt');
     const stepOtpSetup = document.getElementById('step-otp-setup');
 
-    // Формы и кнопки
+    // Формы и инпуты
     const registerForm = document.getElementById('registerForm');
     const otpConfirmForm = document.getElementById('otpConfirmForm');
+    const emailConfirmOtpGroup = document.getElementById('emailConfirmOtpGroup');
+
+    // Кнопки
     const btnEnableOtp = document.getElementById('btnEnableOtp');
     const btnSkipOtp = document.getElementById('btnSkipOtp');
+    const confirmEmailBtn = document.getElementById('confirmEmailBtn');
+    const resendEmailCodeBtn = document.getElementById('resendEmailCodeBtn');
+
+    // Текста и таймер
+    const emailConfirmSubtitle = document.getElementById('emailConfirmSubtitle');
+    const timerDisplay = document.getElementById('timerDisplay');
 
     // Попап
     const systemPopup = document.getElementById('systemPopup');
     const popupMessage = document.getElementById('popupMessage');
 
     let userEmail = '';
+    let userPassword = '';
+    let emailTimerInterval = null;
 
+    // Утилиты попапа
     function showPopup(msg, isError = false) {
         popupMessage.textContent = msg;
         popupMessage.className = `text-2xl font-bold uppercase tracking-widest mb-6 ${isError ? 'text-red-500' : 'text-blue-400'}`;
@@ -161,40 +192,169 @@
         showElement.classList.remove('hidden');
     }
 
-    // ШАГ 1: Обработка регистрации
+    // Создание 6 квадратиков для почты
+    function createOtpInputs(container) {
+        container.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 1;
+            input.inputMode = 'numeric';
+            input.autocomplete = 'one-time-code';
+            input.className = 'h-16 w-12 sm:h-20 sm:w-16 border-4 border-blue-600 bg-black text-center text-3xl sm:text-4xl font-bold text-white outline-none focus:bg-blue-950 transition-colors focus:border-white focus:text-white';
+
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                if (value && !/^\d$/.test(value)) {
+                    e.target.value = '';
+                    return;
+                }
+                if (value && i < 5) {
+                    container.children[i + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && i > 0) {
+                    container.children[i - 1].focus();
+                }
+            });
+
+            container.appendChild(input);
+        }
+    }
+
+    function getOtpCode(container) {
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+            const val = container.children[i]?.value || '';
+            if (!val) return null;
+            code += val;
+        }
+        return code;
+    }
+
+    function clearInputs(container) {
+        for (let i = 0; i < 6; i++) {
+            if (container.children[i]) container.children[i].value = '';
+        }
+    }
+
+    // Логика таймера
+    function startEmailTimer() {
+        clearInterval(emailTimerInterval);
+        resendEmailCodeBtn.classList.add('hidden');
+        let timeLeft = 300; // 5 минут
+
+        const updateTimerDisplay = () => {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${m}:${s}`;
+        };
+
+        updateTimerDisplay();
+
+        emailTimerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+
+            if (timeLeft <= 0) {
+                clearInterval(emailTimerInterval);
+                resendEmailCodeBtn.classList.remove('hidden');
+            }
+        }, 1000);
+    }
+
+    // Выполнение запроса регистрации
+    async function performRegistration() {
+        const formdata = new FormData();
+        formdata.append("email", userEmail);
+        formdata.append("password", userPassword);
+
+        try {
+            const response = await fetch(`/auth/register`, {
+                method: 'POST',
+                body: formdata,
+                credentials: "include"
+            });
+
+            const data = await response.json();
+
+            if (response.status === 422) {
+                showPopup(data.detail?.[0]?.msg || "ОШИБКА ВАЛИДАЦИИ", true);
+                return;
+            }
+
+            // Проверка на требование подтверждения почты
+            const msgToCheck = data.error?.message || data.message || "";
+            console.log(msgToCheck)
+            
+            if (msgToCheck.includes("Confirm email. Sent code on")) {
+                emailConfirmSubtitle.textContent = `КОД ОТПРАВЛЕН НА ${userEmail}`;
+                clearInputs(emailConfirmOtpGroup);
+                switchStep(stepRegister, stepEmailConfirm);
+                startEmailTimer();
+                emailConfirmOtpGroup.children[0]?.focus();
+                return;
+            }
+
+            if (response.status === 200 || response.status === 201) {
+                // Если почта не требуется, идем дальше к OTP
+                showPopup('REGISTRATION_SUCCESS');
+                switchStep(stepRegister, stepOtpPrompt);
+            } else {
+                showPopup(data.error?.message || "ОШИБКА РЕГИСТРАЦИИ", true);
+            }
+        } catch (error) {
+            showPopup('NETWORK_ERROR', true);
+        }
+    }
+
+    // ШАГ 1: Обработка формы
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         userEmail = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value.trim();
+        userPassword = document.getElementById('password').value.trim();
 
-        if (!userEmail || !password) {
+        if (!userEmail || !userPassword) {
             showPopup('ERROR: MISSING_PARAMETERS', true);
             return;
         }
 
-        const formdata = new FormData()
-        formdata.append("email", userEmail)
-        formdata.append("password", password)
+        await performRegistration();
+    });
 
-        const response = await fetch(`/auth/register`, {
-            method: 'POST',
-            body: formdata,
-            credentials: "include" // ОБЯЗАТЕЛЬНО ДОБАВЬ
-        });
-
-        const data = await response.json()
-
-        if (response.status === 422 ) {
-            showPopup(data["detail"][0]["msg"], true)
-            return
+    // ШАГ 1.5: Подтверждение почты
+    confirmEmailBtn.addEventListener('click', async () => {
+        const code = getOtpCode(emailConfirmOtpGroup);
+        if (!code) {
+            showPopup('ВВЕДИТЕ 6 ЦИФР КОДА', true);
+            return;
         }
 
-        if (response.status === 200) {
-            showPopup('REGISTRATION_SUCCESS')
-            switchStep(stepRegister, stepOtpPrompt);
+        try {
+            const response = await fetch(`/auth/email/2fa/code/${code}`, {
+                method: 'GET',
+                credentials: "include"
+            });
+            const data = await response.json();
+
+            if (data.message === "Email verified") {
+                clearInterval(emailTimerInterval);
+                showPopup('ПОЧТА ПОДТВЕРЖДЕНА', false);
+                switchStep(stepEmailConfirm, stepOtpPrompt);
+            } else {
+                showPopup(data.error?.message || data.message || 'ОШИБКА ПОДТВЕРЖДЕНИЯ', true);
+            }
+        } catch (err) {
+            showPopup('NETWORK ERROR', true);
         }
-        else {
-            showPopup(data.error.message, true)
+    });
+
+    // Отправка кода повторно
+    resendEmailCodeBtn.addEventListener('click', async () => {
+        if (userEmail && userPassword) {
+            await performRegistration();
         }
     });
 
@@ -203,11 +363,11 @@
         window.location.href = '/';
     });
 
-    // ШАГ 2 -> 3: Запрос QR и переход к вводу
+    // ШАГ 2 -> 3: Запрос QR и переход к вводу 2FA
     btnEnableOtp.addEventListener('click', async () => {
         try {
-            const formdata = new FormData()
-            formdata.append("email", userEmail)
+            const formdata = new FormData();
+            formdata.append("email", userEmail);
             const response = await fetch(`/auth/otp/qr`, {
                 method: 'POST',
                 body: formdata
@@ -222,12 +382,10 @@
             switchStep(stepOtpPrompt, stepOtpSetup);
 
         } catch (error) {
-            // Заглушка для демо, если бэкенд недоступен
             console.warn("Бэкенд недоступен, показываю демо-интерфейс", error);
             document.getElementById('qrImage').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=otpauth://totp/Demo";
             switchStep(stepOtpPrompt, stepOtpSetup);
-            // В реальности раскомментировать:
-            showPopup('ERROR: MATRIX_FETCH_FAILED', true);
+            // showPopup('ERROR: MATRIX_FETCH_FAILED', true);
         }
     });
 
@@ -252,11 +410,13 @@
                 showPopup('ERROR: INVALID_TOKEN', true);
             }
         } catch (error) {
-            // Заглушка для демо
             showPopup('SYNC_COMPLETE. REDIRECTING...');
             setTimeout(() => window.location.href = '/', 1500);
         }
     });
+
+    // Инициализация
+    createOtpInputs(emailConfirmOtpGroup);
 </script>
 </body>
 </html>

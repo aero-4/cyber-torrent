@@ -78,7 +78,8 @@ class TokenAuth(ITokenAuth):
         await self._set_token(refresh, TokenType.REFRESH)
 
     async def set_fast_token(self, user: User, method: str, expire: int = config.email.TWO_FACTOR_TOKEN_EXPIRE_SECONDS):
-        token_data = {"sub": str(user.id)}
+        token_data = {"sub": str(user.id),
+                      "method": method}
 
         access = self.token_provider.create_access_token(token_data, expire=expire)
         await self._set_token(access, TokenType.ACCESS)

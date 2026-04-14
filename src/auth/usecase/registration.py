@@ -29,9 +29,9 @@ async def registration(email: str, password: str, auth: ITokenAuth, email_provid
 
         if not user.is_verify_email:
             await email_provider.sent_confirm_first_email_message(email)
-            await auth.set_fast_token(user, method=UserVerifications.FIRST_CONFIRM_EMAIL)
+            await auth.set_fast_token(user,
+                                      method=UserVerifications.FIRST_CONFIRM_EMAIL)
+            return "confirm_email"
 
-            raise BadRequest(f"Sent code on '{email}'")
 
     await auth.set_tokens(user)
-
