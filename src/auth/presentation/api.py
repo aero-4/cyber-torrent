@@ -26,7 +26,7 @@ async def register_user(request: Request,
                         auth_form: UserRegisterDTO = Form()):
     status = await registration(auth_form.email, auth_form.password, auth, email_provider)
     if status == "confirm_email":
-        return {"message": f"Confirm email. Sent code on '{auth_form.email}'"}
+        return {"message": f"Sent code on '{auth_form.email}'"}
 
     return {"message": "User registered!"}
 
@@ -36,10 +36,11 @@ async def login_user(
         auth: TokenAuthDep,
         hasher_provider: HasherProvideDep,
         qr_code_provider: QrProvideDep,
+        email_provider: EmailProvideDep,
         login_data: UserLoginDTO = Form(...),
 
 ):
-    await authenticate(login_data, auth, hasher_provider, qr_code_provider)
+    await authenticate(login_data, auth, hasher_provider, qr_code_provider, email_provider)
     return {"message": "User sign up"}
 
 

@@ -7,7 +7,81 @@
     </div>
 </div>
 
+<div id="lightbox-modal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-sm items-center justify-center opacity-0 transition-opacity duration-300">
+    <button onclick="closeLightbox()" class="absolute top-5 right-5 text-white hover:text-gray-300 z-50">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+    <button onclick="changeLightboxImage(-1)" class="absolute left-5 text-white hover:text-gray-300 z-50">
+        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+    </button>
+    <img id="lightbox-image" src="" class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl transition-transform duration-300" alt="Screenshot Full">
+    <button onclick="changeLightboxImage(1)" class="absolute right-5 text-white hover:text-gray-300 z-50">
+        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+    </button>
+</div>
+
 <script>
+    // Глобальные переменные для галереи
+    let currentImageIndex = 0;
+    let gameImages = [];
+
+    // Функции управления лайтбоксом
+    window.openLightbox = (index) => {
+        currentImageIndex = index;
+        const modal = document.getElementById('lightbox-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        // Небольшая задержка для плавной анимации opacity
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        updateLightboxImage();
+    };
+
+    window.closeLightbox = () => {
+        const modal = document.getElementById('lightbox-modal');
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300); // ждем окончания анимации
+    };
+
+    window.changeLightboxImage = (step) => {
+        currentImageIndex += step;
+        if (currentImageIndex < 0) currentImageIndex = gameImages.length - 1;
+        if (currentImageIndex >= gameImages.length) currentImageIndex = 0;
+        updateLightboxImage();
+    };
+
+    const updateLightboxImage = () => {
+        const imgEl = document.getElementById('lightbox-image');
+        imgEl.src = gameImages[currentImageIndex].image;
+    };
+
+    // Функция прокрутки карусели похожих игр
+    window.scrollSimilar = (direction) => {
+        const carousel = document.getElementById('similar-carousel');
+        if (carousel) {
+            // Прокручиваем на ширину одной карточки + отступ (примерно 220px)
+            carousel.scrollBy({left: direction * 220, behavior: 'smooth'});
+        }
+    };
+
+    // Управление галереей с клавиатуры
+    document.addEventListener('keydown', (e) => {
+        const modal = document.getElementById('lightbox-modal');
+        if (!modal.classList.contains('hidden')) {
+            if (e.key === 'Escape') window.closeLightbox();
+            if (e.key === 'ArrowLeft') window.changeLightboxImage(-1);
+            if (e.key === 'ArrowRight') window.changeLightboxImage(1);
+        }
+    });
+
     document.addEventListener("DOMContentLoaded", async () => {
         const content = document.getElementById("game-content");
         const pathParts = window.location.pathname.split('/');
@@ -21,6 +95,11 @@
             const response = await fetch(`/games/${slug}`);
             if (!response.ok) throw new Error("Игра не найдена");
             game = await response.json();
+
+            // Сохраняем скриншоты глобально для лайтбокса
+            if (game.game_images) {
+                gameImages = game.game_images;
+            }
         } catch (e) {
             content.innerHTML = "<h1 class='text-center py-10 text-xl font-bold'>Игра не найдена</h1>";
             return;
@@ -39,7 +118,7 @@
         const formatDate = (dateString) => {
             if (!dateString) return '';
             const date = new Date(dateString);
-            return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            return date.toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric'});
         };
 
         // Рендерим основной каркас
@@ -67,6 +146,8 @@
 
                 <div id="torrent-section" class="mb-16"></div>
 
+                <div id="similar-games-section" class="mb-16"></div>
+
                 <div class="border-t border-zinc-800 pt-10">
                     <h2 class="text-xl font-bold mb-6 border-l-4 border-indigo-500 pl-3">Комментарии</h2>
                     <form id="comment-form" class="mb-8 bg-zinc-900 p-4 rounded-xl border border-zinc-800">
@@ -83,16 +164,15 @@
 
         // --- РЕНДЕР СКРИНШОТОВ ---
         const screenshotContainer = document.getElementById('screenshots-section');
-        if (game.game_images && game.game_images.length > 0) {
+        if (gameImages.length > 0) {
             screenshotContainer.innerHTML = `
                 <h2 class="text-xl font-bold mb-6 border-l-4 border-blue-500 pl-3">Скриншоты</h2>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    ${game.game_images.map(img => `
-                        <div class="overflow-hidden rounded-xl bg-zinc-900 aspect-video">
+                    ${gameImages.map((img, index) => `
+                        <div class="overflow-hidden rounded-xl bg-zinc-900 aspect-video cursor-pointer" onclick="openLightbox(${index})">
                             <img src="${img.image}"
                                  alt="Screenshot"
-                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-zoom-in shadow-lg"
-                                 onclick="window.open(this.src, '_blank')">
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 shadow-lg">
                         </div>
                     `).join('')}
                 </div>
@@ -107,7 +187,7 @@
                 <div class="flex flex-col gap-4">
                     ${game.torrents.map(t => `
                         <a href="${t.magnet}" class="group flex items-center justify-between bg-zinc-900 border border-zinc-800 p-5 rounded-xl hover:bg-zinc-800 hover:border-green-500/50 transition-all duration-300 shadow-lg">
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-3">
                                 <div class="bg-green-500/10 p-3 rounded-lg group-hover:bg-green-500/20">
                                     <span class="text-green-500 font-bold text-xl">⬇</span>
                                 </div>
@@ -120,6 +200,43 @@
                         </a>
                     `).join('')}
                     <p class="text-xs text-zinc-500 mt-2">🛡️ Все файлы проверены. У нас только безопасные торренты.</p>
+                </div>
+            `;
+        }
+
+        // --- РЕНДЕР ПОХОЖИХ ИГР (КАРУСЕЛЬ ИЗ game.similar) ---
+        const similarSection = document.getElementById('similar-games-section');
+        if (game.similar && game.similar.length > 0) {
+            similarSection.innerHTML = `
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold border-l-4 border-yellow-500 pl-3">Похожие игры</h2>
+                    <div class="flex gap-2">
+                        <button onclick="scrollSimilar(-1)" class="bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 hover:border-yellow-500/50 p-2 rounded-lg text-white transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button onclick="scrollSimilar(1)" class="bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 hover:border-yellow-500/50 p-2 rounded-lg text-white transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <div id="similar-carousel" class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        ${game.similar.map(sg => `
+                            <a href="/game/${sg.slug || sg.id}" class="snap-start shrink-0 w-[180px] md:w-[200px] group flex flex-col overflow-hidden rounded-xl bg-zinc-900 border border-zinc-800 hover:border-yellow-500/50 transition-all duration-300">
+                                <div class="aspect-[3/4] w-full overflow-hidden relative">
+                                    <img src="${sg.background_image || ''}" alt="${sg.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    <div class="absolute top-2 right-2 bg-black/80 backdrop-blur-sm border border-yellow-500/30 text-yellow-500 font-bold text-xs px-2 py-1 rounded-md flex items-center gap-1 shadow-lg">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                        ${sg.metacritic || '0.0'}
+                                    </div>
+                                </div>
+                                <div class="p-3">
+                                    <h3 class="text-sm font-bold text-white truncate">${sg.name}</h3>
+                                </div>
+                            </a>
+                        `).join('')}
+                    </div>
                 </div>
             `;
         }
@@ -150,7 +267,10 @@
                 const prevBtn = document.createElement('button');
                 prevBtn.className = "bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg text-xs font-medium transition text-gray-300";
                 prevBtn.innerText = "Назад";
-                prevBtn.onclick = () => { currentPage--; loadComments(currentPage, false); };
+                prevBtn.onclick = () => {
+                    currentPage--;
+                    loadComments(currentPage, false);
+                };
                 pagination.appendChild(prevBtn);
             }
             const indicator = document.createElement('span');
@@ -161,7 +281,10 @@
                 const nextBtn = document.createElement('button');
                 nextBtn.className = "bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg text-xs font-medium transition text-gray-300";
                 nextBtn.innerText = "Вперед";
-                nextBtn.onclick = () => { currentPage++; loadComments(currentPage, false); };
+                nextBtn.onclick = () => {
+                    currentPage++;
+                    loadComments(currentPage, false);
+                };
                 pagination.appendChild(nextBtn);
             }
         };
@@ -175,8 +298,8 @@
             try {
                 const res = await fetch('/comments/all', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ game_id: game.id, offset: offset, limit: LIMIT })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({game_id: game.id, offset: offset, limit: LIMIT})
                 });
                 if (res.ok) {
                     const data = await res.json();
@@ -184,7 +307,9 @@
                     renderPagination(page, data.length === LIMIT);
                     if (page === 1) sessionStorage.setItem(cacheKey, JSON.stringify(data));
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+            }
         };
 
         document.getElementById('comment-form').addEventListener('submit', async (e) => {
@@ -199,7 +324,7 @@
                 const response = await fetch('/comments/', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ game_id: game.id, content: content })
+                    body: JSON.stringify({game_id: game.id, content: content})
                 });
                 if (response.ok) {
                     const newComment = await response.json();
@@ -216,6 +341,7 @@
             }
         });
 
+        // Запуск загрузки
         loadComments(1);
     });
 </script>

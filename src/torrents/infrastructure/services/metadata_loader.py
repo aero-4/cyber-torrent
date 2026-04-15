@@ -16,15 +16,13 @@ class MetadataParser:
         self.api_key = api_key
         self.base_url = "https://api.rawg.io/api/games"
 
-    async def search(self, page: int = 1) -> tuple[Any]:
+    async def search(self, page: int) -> tuple[Any]:
         try:
             results_data = await self.search_games(page)
             updated_results_data = await self.translate_descriptions_games(results_data)
             return updated_results_data
         except Exception as e:
             logging.error(f"Error load metadata: {e}")
-        await asyncio.sleep(1)
-        page += 1
 
     async def translate_descriptions_games(self, games: list[dict]) -> tuple[Any]:
         try:
@@ -35,7 +33,7 @@ class MetadataParser:
 
                 try:
                     data: dict = await self.get_details(slug)
-                    desc = data.get("description_raw")
+                    desc = data.get("description_raw") if isinstance(data, dict) else data[0].get("description_raw")
                     if not desc:
                         raise Exception("Desc not found")
 

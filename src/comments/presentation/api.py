@@ -11,16 +11,15 @@ from src.comments.presentation.dtos import CommentCreateDTO, CommentsDTO
 router = APIRouter()
 
 
+@router.post("/all")
+async def get_comments(request: Request, dto: CommentsDTO):
+    return await collect_comments(dto)
+
+
 @router.post("/")
 @check_roles([UserRoles.USER, UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.MANAGER])
 async def to_add_comment(request: Request, dto: CommentCreateDTO):
     return await add_comment(request.state.user, dto)
-
-
-@router.post("/all")
-@check_roles([UserRoles.USER, UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.MANAGER])
-async def get_comments(request: Request, dto: CommentsDTO):
-    return await collect_comments(dto)
 
 
 @router.delete("/{comment_id}")

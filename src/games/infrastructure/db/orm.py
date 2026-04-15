@@ -1,8 +1,24 @@
 from sqlalchemy import Text
 
-from src.games.domain.entities import GameImage, Game
+from src.games.domain.entities import GameImage, Game, GameTag
 from src.torrents.infrastructure.db.orm import *
 from src.utils.datetimes import get_timezone_now
+
+
+class GamesTagsOrm(Base):
+    __tablename__ = "game_tags"
+
+    game: Mapped["GamesOrm"] = relationship(back_populates="tags", lazy="joined")
+    game_id: Mapped[int] = mapped_column(ForeignKey("games.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(String(), nullable=False)
+    image: Mapped[str] = mapped_column(String(), nullable=True)
+
+    def to_entity(self):
+        return GameTag(
+            game_id=self.game_id,
+            image=self.image,
+            name=self.name,
+        )
 
 
 class GamesImagesOrm(Base):
@@ -32,9 +48,10 @@ class GamesOrm(Base):
     background_image: Mapped[str] = mapped_column(String(), nullable=True)
     description_raw: Mapped[str] = mapped_column(Text(), nullable=True)
     torrents: Mapped[List["TorrentsOrm"]] = relationship(back_populates="game_torrent", uselist=True, lazy="joined")
+    tags: Mapped[List["GamesTagsOrm"]] = relationship(back_populates="game", uselist=True, lazy="joined")
     game_images: Mapped[List["GamesImagesOrm"]] = relationship(back_populates="game", uselist=True, lazy="joined")
 
-    def to_entity(self):
+    def to_entity(self, similar=None):
         return Game(
             id=self.id,
             created_at=self.created_at,
@@ -49,4 +66,6 @@ class GamesOrm(Base):
             description_raw=self.description_raw,
             game_images=[i.to_entity() for i in self.game_images],
             torrents=[i.to_entity() for i in self.torrents],
+            tags=[i.to_entity() for i in self.tags],
+            similar=similar
         )

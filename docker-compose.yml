@@ -7,33 +7,33 @@ services:
       - "8000:8000"
     depends_on:
       - rabbitmq
-      - taskiq_worker
     command: [ "sh", "-c", "uvicorn src.core.app:app --reload --host 0.0.0.0 --port 8000" ]
 
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
   rabbitmq:
-    env_file: .env
-    build:
-      context: .
-    image: rabbitmq:3.11-management
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+    image: rabbitmq:3-management-alpine
+    hostname: rabbitmq
+    container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-
-#  taskiq_dashboard:
-#    image: ghcr.io/danfimov/taskiq-dashboard:latest
-#    environment:
-#      TASKIQ_DASHBOARD__STORAGE_TYPE: sqlite
-#      TASKIQ_DASHBOARD__SQLITE__DSN: sqlite+aiosqlite:///taskiq_dashboard.db
-#      TASKIQ_DASHBOARD__API__TOKEN: supersecret
-#    volumes:
-#      - taskiq_dashboard_sqlite:/app/taskiq-dashboard.db
-#    ports:
-#      - "8888:8888"
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+    restart: unless-stopped
 
   taskiq_worker:
     build: .
@@ -41,6 +41,19 @@ services:
     depends_on:
       - rabbitmq
     command: python -m taskiq worker src.core.taskiq_app:broker
+
+#  taskiq:
+#    image: ghcr.io/danfimov/taskiq-dashboard:latest
+#    environment:
+#      TASKIQ_DASHBOARD__STORAGE_TYPE: sqlite
+#      TASKIQ_DASHBOARD__SQLITE__DSN: sqlite+aiosqlite:///taskiq.db
+#      TASKIQ_DASHBOARD__API__TOKEN: supersecret
+#    volumes:
+#      - taskiq:/app/taskiq-dashboard.db
+#    ports:
+#      - "8888:8888"
+
+
 
 #  flower:
 #    env_file: .env
@@ -91,6 +104,11 @@ services:
 #    command: [ "sh", "-c", "celery -A src.core.celery_app beat --loglevel=info --pidfile=/tmp/celerybeat.pid" ]
 #    restart: always
 
+networks:
+  flower_shop_net:
+    driver: bridge
+
 volumes:
-  rabbitmq_data:
-  taskiq_dashboard_sqlite:
+  rabbitmq-data:
+  taskiq:
+  redis-data:

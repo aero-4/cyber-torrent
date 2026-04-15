@@ -20,3 +20,5 @@ async def confirm_email(user: User, token: str | int, email_provider: IEmailProv
         await uow.commit()
 
     await auth.set_tokens(user)
+
+

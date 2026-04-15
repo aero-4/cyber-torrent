@@ -3,10 +3,8 @@ import logging
 from datetime import timedelta
 
 from src.core.infrastructure.redis import get_redis_client
-from src.games.domain.entities import GameCreate, GameImageCreate
+from src.games.domain.entities import GameCreate, GameTagsCreate
 from src.games.infrastructure.db.uow import GamesUnitOfWork
-from src.torrents.infrastructure.db.repositories import PGTorrentsRepository
-from src.torrents.infrastructure.db.uow import TorrentsUnitOfWork
 from src.torrents.infrastructure.services.metadata_loader import MetadataParser
 from src.torrents.infrastructure.tasks.torrent import searcher_torrents
 
@@ -27,8 +25,19 @@ async def searcher_games() -> None:
         if not game.get("name"):
             continue
 
-        images = [GameImageCreate(game_id=1, image=i.get("image")) for i in game.get("short_screenshots")]
-        game_data = GameCreate(images=images, **game)
+        game_data = GameCreate(images=[i["image"] for i in game["short_screenshots"] if game["short_screenshots"] and len(game["short_screenshots"]) > 0],
+                               tags=[
+                                   GameTagsCreate(name=i["name"],
+                                                  image=i["image_background"]) for i in game.get("tags")
+                               ],
+                               release_date=game.get("released"),
+                               name=game["name"],
+                               slug=game["slug"],
+                               genre=game["genres"][0]["name"],
+                               platform=game["platforms"][0]["platform"]["name"],
+                               metacritic=game["metacritic"],
+                               background_image=game["background_image"],
+                               description_raw=game["description_raw"])
         game_obj = None
 
         async with uow:
@@ -40,12 +49,13 @@ async def searcher_games() -> None:
                 await uow.commit()
 
             except Exception as e:
-                logging.error(e)
+                logging.error(f"Game failed: {game["name"]} %s", e)
                 await uow.rollback()
-                continue
+                raise e
 
         if game_obj:
             await searcher_torrents(game_obj)
 
     await redis.setex(name="metadata_page", value=page, time=timedelta(minutes=60))
+
     logging.info(f"Success added games: {success}")

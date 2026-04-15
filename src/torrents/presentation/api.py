@@ -19,11 +19,6 @@ async def get_all_torrents():
     return await collect_torrents()
 
 
-# @router.get("/{slug}")
-# async def get_torrent(slug: str):
-#     return await collect_torrent(slug)
-
-
 @router.get("/search/")
 async def search(query: str = Query(...)):
     return await search_torrents(query)

@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, List
 
 from fastapi import HTTPException
 from sqlalchemy import select, or_, func
@@ -10,7 +10,7 @@ from starlette import status
 from src.auth.domain.entities import UserCreate, UserUpdate
 from src.core.domain.exceptions import NotFound, AlreadyExists
 from src.games.domain.entities import GameCreate, Game
-from src.games.infrastructure.db.orm import GamesOrm, GamesImagesOrm
+from src.games.infrastructure.db.orm import GamesOrm, GamesImagesOrm, GamesTagsOrm
 from src.users.infrastructure.db.orm import UsersOrm
 from src.users.domain.entities import User
 
@@ -32,13 +32,43 @@ class PGGamesRepository:
         return obj.to_entity()
 
     async def get_by_slug(self, slug: str) -> Game:
-        stmt = select(GamesOrm).where(GamesOrm.slug == slug)
+        stmt = (
+            select(GamesOrm)
+            .where(GamesOrm.slug == slug)
+            .options(
+                joinedload(GamesOrm.tags)
+            )
+        )
         result = await self.session.execute(stmt)
         obj = result.unique().scalar_one_or_none()
         if not obj:
             raise NotFound(message=f"Game '{slug}' not found")
+        similar_games = await self.get_by_tags([i.name for i in obj.tags])
+        return obj.to_entity(similar_games)
 
-        return obj.to_entity()
+    async def get_by_tags(self, tags: list[str]) -> list[Game]:
+        stmt = (
+            select(GamesOrm)
+            .join(GamesOrm.tags)
+            .where(GamesTagsOrm.name.in_(tags))
+            .options(joinedload(GamesOrm.tags))
+            .distinct()
+        )
+
+        result = await self.session.execute(stmt)
+        games = result.unique().scalars().all()
+
+        if not games:
+            raise NotFound(message=f"Games with tags {tags} not found")
+
+        return [game.to_entity() for game in games]
+
+    async def get_similar(self, game: Game) -> List[Game]:
+        stmt = select(GamesTagsOrm)
+        result = await self.session.execute(stmt)
+        obj = result.unique().scalar_one_or_none()
+
+        return obj
 
     async def get_all(self, offset: int, limit: int) -> list[Game]:
         stmt = (
@@ -58,7 +88,7 @@ class PGGamesRepository:
         return [i.to_entity() for i in result]
 
     async def add(self, game: GameCreate) -> Game:
-        obj = GamesOrm(**game.model_dump(exclude={"images"}))
+        obj = GamesOrm(**game.model_dump(exclude={"images", "tags"}))
         self.session.add(obj)
 
         try:
@@ -68,7 +98,7 @@ class PGGamesRepository:
             raise AlreadyExists(f"Game already exists: {game.name}")
 
         self.session.add_all([
-            GamesImagesOrm(game_id=obj.id, image=i.image) for i in game.images
+            GamesImagesOrm(game_id=obj.id, image=i) for i in game.images
         ])
 
         try:
@@ -76,5 +106,15 @@ class PGGamesRepository:
             await self.session.refresh(obj)
         except IntegrityError as e:
             raise AlreadyExists(f"Image already exists")
+
+        self.session.add_all([
+            GamesTagsOrm(game_id=obj.id, image=i.image, name=i.name) for i in game.tags
+        ])
+
+        try:
+            await self.session.flush()
+            await self.session.refresh(obj)
+        except IntegrityError as e:
+            raise AlreadyExists(f"Category already exists")
 
         return obj.to_entity()

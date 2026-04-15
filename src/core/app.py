@@ -16,6 +16,7 @@ from starlette_csrf import CSRFMiddleware
 
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
 from src.auth.presentation.api import router as auth_api_router
+from src.core.taskiq_app import broker
 from src.games.infrastructure.tasks.metadata import searcher_games
 from src.games.presentation.api import router as games_api_router
 
@@ -51,14 +52,15 @@ def setup_tasks(scheduler: AsyncIOScheduler):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # await broker.startup()
     setup_logging()
     # setup_tasks(scheduler)
     yield
+    # await broker.shutdown()
 
 
 logger = logging.getLogger(__name__)
 app = FastAPI(lifespan=lifespan)
-
 admin = Admin(app, engine=engine)
 # csrf_protect = CsrfProtect()
 

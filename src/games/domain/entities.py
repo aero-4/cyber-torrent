@@ -11,6 +11,12 @@ class GameImage(BaseModel):
     image: str
 
 
+class GameTag(BaseModel):
+    game_id: int
+    image: str
+    name: str
+
+
 class Game(BaseModel):
     id: int
     created_at: datetime.datetime
@@ -25,10 +31,16 @@ class Game(BaseModel):
     background_image: str | None
     torrents: list[Torrent] | None = None
     game_images: list[GameImage] | None = None
+    tags: list[GameTag] | None = None
+    similar: list | None = None
 
 
 class GameImageCreate(BaseModel):
-    game_id: int
+    image: str
+
+
+class GameTagsCreate(BaseModel):
+    name: str
     image: str
 
 
@@ -41,4 +53,5 @@ class GameCreate(BaseModel):
     release_date: datetime.datetime | None = None
     background_image: str | None = None
     description_raw: str | None = None
-    images: list[GameImageCreate] | None = None
+    images: list[str] | None = None
+    tags: list[GameTagsCreate] | None = None

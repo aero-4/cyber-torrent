@@ -287,9 +287,8 @@
 
             // Проверка на требование подтверждения почты
             const msgToCheck = data.error?.message || data.message || "";
-            console.log(msgToCheck)
-            
-            if (msgToCheck.includes("Confirm email. Sent code on")) {
+
+            if (msgToCheck.includes("Sent code on")) {
                 emailConfirmSubtitle.textContent = `КОД ОТПРАВЛЕН НА ${userEmail}`;
                 clearInputs(emailConfirmOtpGroup);
                 switchStep(stepRegister, stepEmailConfirm);
