@@ -99,6 +99,11 @@ class CeleryConfig(BaseAppConfig):
     CELERY_RESULT_BACKEND: str
 
 
+class TaskiqConfig(BaseAppConfig):
+    RABBITMQ_URL: str = "amqp://guest:guest@rabbitmq:5672"
+    RABBITMQ_BACKEND_RESULT: str = "rpc://"
+
+
 class Config(BaseAppConfig):
     auth: AuthConfig = AuthConfig()
     database: DatabaseConfig = DatabaseConfig()
@@ -109,6 +114,7 @@ class Config(BaseAppConfig):
     oauth2: OAuth2Config = OAuth2Config()
     celery: CeleryConfig = CeleryConfig()
     metadata: MetadataConfig = MetadataConfig()
+    taskiq: TaskiqConfig = TaskiqConfig()
 
 
 @CsrfProtect.load_config

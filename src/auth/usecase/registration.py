@@ -9,7 +9,7 @@ from src.users.domain.exceptions import UserAlreadyExists
 from src.users.infrastructure.db.uow import UsersUnitOfWork
 
 
-async def registration(email: str, password: str, auth: ITokenAuth, email_provider: IEmailProvider) -> None:
+async def registration(email: str, password: str, auth: ITokenAuth, email_provider: IEmailProvider) -> str:
     user_data = UserCreate(email=email,
                            password=password,
                            role=UserRoles.NOT_VERIFIED)
@@ -28,7 +28,7 @@ async def registration(email: str, password: str, auth: ITokenAuth, email_provid
         await uow.commit()
 
         if not user.is_verify_email:
-            await email_provider.sent_confirm_first_email_message(email)
+            await email_provider.sent_confirm_first_email_message.kiq(email)
             await auth.set_fast_token(user,
                                       method=UserVerifications.FIRST_CONFIRM_EMAIL)
             return "confirm_email"

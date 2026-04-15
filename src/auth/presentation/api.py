@@ -27,6 +27,7 @@ async def register_user(request: Request,
     status = await registration(auth_form.email, auth_form.password, auth, email_provider)
     if status == "confirm_email":
         return {"message": f"Confirm email. Sent code on '{auth_form.email}'"}
+
     return {"message": "User registered!"}
 
 
@@ -127,9 +128,3 @@ async def yandex_redirect_url(oauth_yandex: YandexOauth2ProvideDep):
     url = oauth_yandex.generate_redirect_uri()
     return RedirectResponse(url)
 
-# @router.get("/oauth2/github/callback")
-# async def login_user_github(oauth2_github: GitHubProviderDep, hasher: HasherProvideDep, auth: TokenAuthDep):
-#     response = RedirectResponse(url=config.app.APP_URI + "/profile")
-#     auth.response = response
-#     await oauth2_yandex_case(hasher, auth)
-#     return response

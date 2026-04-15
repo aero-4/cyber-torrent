@@ -10,6 +10,7 @@ from src.auth.domain.exceptions import InvalidTokenEmail, InvalidSentTokenEmail
 from src.auth.domain.interfaces.email import IEmailProvider
 from src.auth.domain.interfaces.token_auth import ITokenStorage
 from src.core.config import config
+from src.core.taskiq_app import broker
 
 
 class SmtpProvider(IEmailProvider):
@@ -18,6 +19,7 @@ class SmtpProvider(IEmailProvider):
                  storage: ITokenStorage):
         self.storage = storage
 
+    @broker.task
     async def send_confirm_2fa_message(self, email: str) -> None:
         token = secrets.token_urlsafe(32)
         content_mail = config.email.TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE.format(
@@ -26,6 +28,7 @@ class SmtpProvider(IEmailProvider):
         )
         return await self.send_confirm_message(email, token, content_mail)
 
+    @broker.task
     async def sent_confirm_first_email_message(self, email: str) -> None:
         rand_number = random.randint(100000, 999999)
         content_mail = config.email.CONFIRM_EMAIL_MESSAGE_TEMPLATE.format(
