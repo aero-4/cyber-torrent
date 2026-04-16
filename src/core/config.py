@@ -38,7 +38,7 @@ class AuthConfig(BaseAppConfig):
 
 class OTPAuthConfig(BaseAppConfig):
     OTP_SECRET: str = secrets.token_urlsafe(32)
-    OTP_ISSUER: str = "CyberTorrents"
+    OTP_ISSUER: str = "CyberTorrent"
 
 
 class DatabaseConfig(BaseAppConfig):
@@ -100,8 +100,13 @@ class CeleryConfig(BaseAppConfig):
 
 
 class TaskiqConfig(BaseAppConfig):
-    RABBITMQ_URL: str = "amqp://guest:guest@rabbitmq:5672"
-    RABBITMQ_BACKEND_RESULT: str = "rpc://"
+    RABBITMQ_URL: str
+    RABBITMQ_BACKEND_RESULT: str
+
+
+class RedisConfig(BaseAppConfig):
+    REDIS_HOST: str
+    REDIS_PORT: int
 
 
 class Config(BaseAppConfig):
@@ -115,6 +120,7 @@ class Config(BaseAppConfig):
     celery: CeleryConfig = CeleryConfig()
     metadata: MetadataConfig = MetadataConfig()
     taskiq: TaskiqConfig = TaskiqConfig()
+    redis: RedisConfig = RedisConfig()
 
 
 @CsrfProtect.load_config

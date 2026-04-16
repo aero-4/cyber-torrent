@@ -14,3 +14,4 @@ async def all_games(dto: GamesCollectionDTO):
 @router.get("/{slug}")
 async def get_info_game_slug(slug: str):
     return await get_game(slug)
+

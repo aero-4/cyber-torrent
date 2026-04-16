@@ -2,6 +2,7 @@ from sqlalchemy import Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.comments.domain.entities import Comment
+from src.core.infrastructure.admin import BaseAdmin
 from src.db.base import Base
 
 
@@ -21,3 +22,12 @@ class CommentsOrm(Base):
             content=self.content,
             created_at=self.created_at
         )
+
+
+class CommentsAdmin(BaseAdmin, model=CommentsOrm):
+    column_list = [
+        CommentsOrm.id,
+        CommentsOrm.game_id,
+        CommentsOrm.user_id,
+        CommentsOrm.content,
+    ]

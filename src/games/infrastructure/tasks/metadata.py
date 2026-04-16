@@ -8,14 +8,17 @@ from src.games.infrastructure.db.uow import GamesUnitOfWork
 from src.torrents.infrastructure.services.metadata_loader import MetadataParser
 from src.torrents.infrastructure.tasks.torrent import searcher_torrents
 
-redis = get_redis_client()
-
 
 async def searcher_games() -> None:
+    redis = get_redis_client()
+
     metadata = MetadataParser()
     uow = GamesUnitOfWork()
-
-    page = await redis.get("metadata_page")
+    page = 0
+    try:
+        page = await redis.get("metadata_page")
+    except:
+        pass
     page: int = int(page) + 1 if page else 1
 
     logging.info(f"RAWGIO: Metadata page: {page}")
@@ -51,7 +54,6 @@ async def searcher_games() -> None:
             except Exception as e:
                 logging.error(f"Game failed: {game["name"]} %s", e)
                 await uow.rollback()
-                raise e
 
         if game_obj:
             await searcher_torrents(game_obj)

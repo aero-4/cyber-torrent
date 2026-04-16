@@ -298,8 +298,6 @@
             }
 
             if (response.status === 200 || response.status === 201) {
-                // Если почта не требуется, идем дальше к OTP
-                showPopup('REGISTRATION_SUCCESS');
                 switchStep(stepRegister, stepOtpPrompt);
             } else {
                 showPopup(data.error?.message || "ОШИБКА РЕГИСТРАЦИИ", true);

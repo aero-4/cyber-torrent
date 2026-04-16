@@ -2608,6 +2608,30 @@ typing-extensions = {version = ">=4.10.0", markers = "python_version < \"3.13\""
 full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
 
 [[package]]
+name = "starlette-admin"
+version = "0.16.0"
+description = "Fast, beautiful and extensible administrative interface framework for Starlette/FastApi applications"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "starlette_admin-0.16.0-py3-none-any.whl", hash = "sha256:9b7ee51cc275684ba75dda5eafc650e0c8afa1d2b7e99e4d1c83fe7d1e83de9e"},
+    {file = "starlette_admin-0.16.0.tar.gz", hash = "sha256:e706a1582a22a69202d3165d8c626d5868822c229353a81e1d189666d8418f64"},
+]
+
+[package.dependencies]
+jinja2 = ">=3,<4"
+python-multipart = "*"
+starlette = "*"
+
+[package.extras]
+cov = ["coverage[toml] (>=7.0.0,<7.7.0)"]
+dev = ["pre-commit (>=2.20.0,<4.1.0)", "uvicorn (>=0.20.0,<0.33.0)"]
+doc = ["mkdocs (>=1.4.2,<2.0.0)", "mkdocs-material (>=9.0.0,<10.0.0)", "mkdocs-static-i18n (>=1.2.3,<1.3)", "mkdocstrings[python] (>=0.19.0,<0.27.0)"]
+i18n = ["babel (>=2.13.0)"]
+test = ["aiomysql (>=0.1.1,<0.3.0)", "aiosqlite (>=0.17.0,<0.21.0)", "arrow (>=1.2.3,<1.4.0)", "asyncpg (>=0.27.0,<0.31.0)", "backports-zoneinfo ; python_version < \"3.9\"", "beanie (<2.0.0)", "black (==25.11.0)", "colour (>=0.1.5,<0.2.0)", "fasteners (==0.19)", "httpx (>=0.23.3,<0.29.0)", "itsdangerous (>=2.2.0,<2.3.0)", "mongoengine (>=0.25.0,<0.30.0)", "mypy (==1.19.0)", "passlib (>=1.7.4,<1.8.0)", "phonenumbers (>=8.13.3,<8.14.0)", "pillow (>=9.4.0,<11.1.0)", "psycopg2-binary (>=2.9.5,<3.0.0)", "pydantic[email] (>=1.10.2,<2.10.0)", "pymysql[rsa] (>=1.0.2,<1.2.0)", "pytest (>=8.3.0,<8.4.0)", "pytest-asyncio (>=0.24.0,<0.25.0)", "ruff (==0.14.7)", "sqlalchemy-file (>=0.5.0,<0.7.0)", "sqlalchemy-utils (>=0.40.0,<0.42.0)", "sqlmodel (>=0.0.11,<0.1.0)", "tinydb (>=4.7.0,<4.9.0)"]
+
+[[package]]
 name = "taskiq"
 version = "0.12.1"
 description = "Distributed task queue with full async support"
@@ -3043,4 +3067,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4"
-content-hash = "9737722ed2bda914c1a7efd82529fefccf9a7d3b0a7bfa194056381a38bcec91"
+content-hash = "07c19b0fe306fdf79e7426b60213c491ef76669c492b4d4791dc1aaf7af24e9d"

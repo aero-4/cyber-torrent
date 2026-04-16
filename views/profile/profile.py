@@ -9,6 +9,5 @@ router = APIRouter()
 
 
 @router.get("/profile")
-@check_roles(roles=[UserRoles.USER])
 async def get_user_profile(request: Request):
     return templates.TemplateResponse(name="profile.html", request=request)

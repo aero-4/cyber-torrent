@@ -18,15 +18,15 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         auth = get_token_auth(request)
-        access_token_data = await auth.read_token(TokenType.ACCESS)
-        if access_token_data:
-            try:
+        try:
+            access_token_data = await auth.read_token(TokenType.ACCESS)
+            if access_token_data:
                 uow = UsersUnitOfWork()
                 async with uow:
                     if user := await uow.users.get_by_id(access_token_data.sub):
                         request.state.user = user or AnonymousUser()
-            except Exception as e:
-                request.state.user = AnonymousUser()
+        except Exception as e:
+            request.state.user = AnonymousUser()
 
         response = await call_next(request)
         return response
@@ -36,20 +36,23 @@ class RefreshMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         pre_auth = get_token_auth(request)
-        access_data = await pre_auth.read_token(TokenType.ACCESS)
-        if not access_data:
-            try:
+        try:
+            access_data = await pre_auth.read_token(TokenType.ACCESS)
+            if not access_data:
                 await pre_auth.refresh_access_token()
-            except:
-                pass
+        except:
+            pass
 
         response = await call_next(request)
 
-        post_auth = get_token_auth(request=request, response=response)
+        try:
+            post_auth = get_token_auth(request=request, response=response)
 
-        refresh_data = await post_auth.read_token(TokenType.REFRESH)
-        if refresh_data:
-            await post_auth.inject_access(response)
+            refresh_data = await post_auth.read_token(TokenType.REFRESH)
+            if refresh_data:
+                await post_auth.inject_access(response)
+        except:
+            pass
 
         return response
 

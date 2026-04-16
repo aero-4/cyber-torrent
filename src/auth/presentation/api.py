@@ -28,7 +28,7 @@ async def register_user(request: Request,
     if status == "confirm_email":
         return {"message": f"Sent code on '{auth_form.email}'"}
 
-    return {"message": "User registered!"}
+    return {"message": "User registered"}
 
 
 @router.post("/login")
@@ -41,7 +41,7 @@ async def login_user(
 
 ):
     await authenticate(login_data, auth, hasher_provider, qr_code_provider, email_provider)
-    return {"message": "User sign up"}
+    return {"message": "User sign in"}
 
 
 @router.post("/logout")

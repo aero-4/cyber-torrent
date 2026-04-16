@@ -27,5 +27,16 @@ class TorrentsOrm(Base):
             name=self.name,
             seeders=self.seeders,
             magnet=self.magnet,
-            size=round(self.size / 1_000_000_000, 2),
+            size=round(self.size / (1024 * 1024 * 1024), 2),
         )
+
+
+class TorrentsAdmin(BaseAdmin, model=TorrentsOrm):
+    column_list = [
+        TorrentsOrm.id,
+        TorrentsOrm.name,
+        TorrentsOrm.size,
+        TorrentsOrm.seeders,
+        TorrentsOrm.magnet,
+        TorrentsOrm.game_id
+    ]

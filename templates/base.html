@@ -4,282 +4,264 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}КИБЕР ТОРРЕНТ{% endblock %}</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <style type="text/tailwindcss">
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
 
         @layer base {
             body {
-                @apply bg-black text-blue-500 antialiased min-h-screen;
+                @apply bg-black text-blue-500 antialiased min-h-screen transition-colors duration-300;
                 font-family: 'Space Mono', monospace;
             }
 
-            ::-webkit-scrollbar { width: 8px; }
-            ::-webkit-scrollbar-track { @apply bg-black; }
-            ::-webkit-scrollbar-thumb { @apply bg-blue-900 border-2 border-black hover:bg-blue-600; }
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
 
-            h1, h2, h3, h4 { @apply font-bold uppercase tracking-tighter text-white; }
-            h1 { @apply text-4xl sm:text-6xl mb-6 border-b-4 border-blue-600 pb-2; }
-            h2 { @apply text-3xl sm:text-4xl mb-4 border-l-8 border-blue-600 pl-4; }
-            h3 { @apply text-2xl mb-2 text-blue-400; }
+            ::-webkit-scrollbar-track {
+                @apply bg-black;
+            }
 
-            p { @apply mb-4 leading-relaxed text-lg text-blue-400/90; }
-            a { @apply transition-all duration-200 cursor-pointer; }
+            ::-webkit-scrollbar-thumb {
+                @apply bg-blue-900 border-2 border-black hover:bg-blue-600;
+            }
+
+            h1, h2, h3, h4 {
+                @apply font-bold uppercase tracking-tighter text-white transition-colors duration-300;
+            }
+
+            h1 {
+                @apply text-4xl sm:text-6xl mb-6 border-b-4 border-blue-600 pb-2;
+            }
+
+            h2 {
+                @apply text-3xl sm:text-4xl mb-4 border-l-8 border-blue-600 pl-4;
+            }
+
+            h3 {
+                @apply text-2xl mb-2 text-blue-400;
+            }
+
+            p {
+                @apply mb-4 leading-relaxed text-lg text-blue-400/90;
+            }
+
+            a {
+                @apply transition-all duration-200 cursor-pointer;
+            }
 
             input, select, textarea {
-                @apply w-full border-4 border-blue-600 bg-black px-6 py-4 text-xl text-blue-400
-                       placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors rounded-none;
+                @apply w-full border-4 border-blue-600 bg-black px-6 py-4 text-xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors rounded-none;
             }
 
             button {
-                @apply border-4 border-blue-600 bg-blue-600 px-8 py-4 text-xl font-bold
-                       text-black uppercase tracking-widest hover:bg-black hover:text-blue-600
-                       transition-all active:translate-x-1 active:translate-y-1 rounded-none;
+                @apply border-4 border-blue-600 bg-blue-600 px-8 py-4 text-xl font-bold text-black uppercase tracking-widest hover:bg-black hover:text-blue-600 transition-all active:translate-x-1 active:translate-y-1 rounded-none;
             }
 
-            table { @apply w-full border-collapse border-4 border-blue-900 my-6; }
-            th { @apply border-2 border-blue-900 bg-blue-950 p-4 text-left uppercase text-white; }
-            td { @apply border-2 border-blue-900 p-4 font-mono; }
-            tr:hover { @apply bg-blue-900/20; }
-
-            input:-webkit-autofill {
-                -webkit-text-fill-color: #3b82f6;
-                -webkit-box-shadow: 0 0 0px 1000px #000 inset;
+            table {
+                @apply w-full border-collapse border-4 border-blue-900 my-6 transition-colors duration-300;
             }
-        }
 
-        @keyframes scanline {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100%); }
-        }
+            th {
+                @apply border-2 border-blue-900 bg-blue-950 p-4 text-left uppercase text-white transition-colors duration-300;
+            }
 
-        .scanline::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom, transparent, rgba(37,99,235,0.05), transparent);
-            animation: scanline 8s linear infinite;
-            pointer-events: none;
+            td {
+                @apply border-2 border-blue-900 p-4 font-mono transition-colors duration-300;
+            }
+
+            tr:hover {
+                @apply bg-blue-900/20;
+            }
+
+            .sidebar-link {
+                @apply text-blue-400;
+            }
+
+            .sidebar-link:hover {
+                @apply bg-blue-600 text-black;
+            }
         }
     </style>
 </head>
-<body >
+<body class="flex flex-col min-h-screen">
 
-    <header class="border-b-8 border-blue-600 bg-black sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-            <a href="/" class="group">
-                <div class="text-3xl sm:text-5xl font-bold tracking-tighter uppercase text-white group-hover:skew-x-12 transition-transform">
-                    КИБЕР<span class="text-blue-600">.TORRENT</span>
-                </div>
-            </a>
+<header class="border-b-8 border-blue-600 bg-black sticky top-0 z-50 transition-colors duration-300">
+    <div class="mx-auto px-4 py-6 flex justify-between items-center gap-4">
+        <a href="/" class="group shrink-0">
+            <div class="logo-text text-3xl sm:text-5xl font-bold tracking-tighter uppercase text-white group-hover:skew-x-12 transition-transform">
+                КИБЕР<span class="text-blue-600">.TORRENT</span>
+            </div>
+        </a>
 
-            <div class="relative group">
-                <button class="">
-                    Категории <span class="text-xs">▼</span>
+        <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+            <button id="mobileCategoriesBtn" type="button" class="md:hidden !bg-transparent !border-2 !border-blue-600 !text-blue-500 hover:!bg-blue-600 hover:!text-black !px-3 !py-2 flex items-center gap-2">
+                <span>Категории</span>
+                <span id="mobileCategoriesArrow" class="transition-transform text-sm">▼</span>
+            </button>
+
+            <button id="burgerBtn" type="button" class="!bg-transparent !border-2 !border-blue-600 !text-blue-500 hover:!bg-blue-600 hover:!text-black !px-3 sm:!px-4 !py-2 flex items-center gap-2">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-width="3" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+                <span class="hidden sm:inline">Меню</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="mobileCategoriesDropdown" class="hidden md:hidden absolute right-0 top-full mt-2 w-[min(92vw,20rem)] bg-black border-4 border-blue-600 shadow-[16px_16px_0px_rgba(37,99,235,0.25)] z-[60]">
+        <div id="mobileCategoriesList" class="flex flex-col">
+            <div class="p-4 text-sm animate-pulse text-blue-900">Загрузка категорий...</div>
+        </div>
+    </div>
+
+    <nav id="mobileMenu" class="hidden fixed right-0 bottom-0 w-full sm:w-96 bg-black border-l-0 sm:border-l-8 border-blue-600 shadow-[20px_20px_0px_rgba(37,99,235,0.2)] overflow-y-auto z-[55]">
+        <div class="flex flex-col p-6 sm:p-8 gap-6 text-xl font-bold uppercase">
+            <div id="guestLinks" class="flex flex-col gap-4">
+                <a href="/login" class="hover:pl-4 hover:bg-blue-600 hover:text-black p-2 transition-all">Войти</a>
+                <a href="/register" class="hover:pl-4 hover:bg-blue-600 hover:text-black p-2 transition-all">Регистрация</a>
+            </div>
+
+            <div id="authLinks" class="hidden flex-col gap-4">
+                <a href="/profile" class="hover:pl-4 hover:bg-blue-600 hover:text-black p-2 transition-all">Профиль</a>
+                <button onclick="window.AuthContext.logout()" type="button" class="!bg-transparent !border-red-600 !text-red-600 hover:!bg-red-600 hover:!text-white !text-left !px-2 !py-2 transition-all">
+                    Выход
                 </button>
+            </div>
+        </div>
+    </nav>
+</header>
 
-                <div id="categoriesDropdown" class="absolute top-full left-0 w-64 bg-black border-4 border-blue-600 hidden group-hover:grid grid-cols-1 z-[100] shadow-[10px_10px_0px_#000]">
+<main class="flex-grow w-full">
+    <div class="mx-auto py-4 sm:px-12 grid grid-cols-1 md:grid-cols-[18rem_minmax(0,1fr)] gap-8 items-start">
+        <aside id="categoriesPanel" class="hidden md:block sticky self-start">
+            <div class="border-4 border-blue-600 bg-black shadow-[10px_10px_0px_rgba(37,99,235,0.2)]">
+                <div class="border-b-4 border-blue-600 px-5 py-4 text-2xl font-bold uppercase text-white">
+                    Категории
+                </div>
+                <div id="desktopCategories" class="flex flex-col">
                     <div class="p-4 text-sm animate-pulse text-blue-900">Загрузка категорий...</div>
                 </div>
             </div>
+        </aside>
 
-            <div class="flex items-center gap-6">
-                <nav class="hidden md:flex gap-8 text-xl font-bold uppercase">
-                    <a href="/" class="hover:text-white border-b-2 border-transparent hover:border-blue-600">Главная</a>
-                    <a href="/faq" class="hover:text-white border-b-2 border-transparent hover:border-blue-600">Инфо</a>
-                </nav>
+        <section class="min-w-0">
+            {% block content %}{% endblock %}
+        </section>
+    </div>
+</main>
 
-                <button id="burgerBtn" class="!p-2 !bg-transparent border-2">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="3" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-            </div>
+<footer class="border-t-8 border-blue-900 bg-black p-10 mt-auto transition-colors duration-300">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div class="uppercase">
+            <div class="logo-text text-2xl font-bold text-white mb-2">CYBERTORRENT</div>
+            <p class="text-sm text-blue-900 m-0">ALL RIGHTS RESERVED 2026.</p>
         </div>
-
-        <nav id="mobileMenu" class="hidden absolute top-full right-0 w-full sm:w-96 border-b-8 border-l-0 sm:border-l-8 border-blue-600 bg-black shadow-[20px_20px_0px_#000]">
-            <div class="flex flex-col p-8 space-y-6 text-2xl font-bold uppercase">
-                <div id="guestLinks" class="flex flex-col gap-4">
-                    <a href="/login" class="hover:pl-4 hover:bg-blue-600 hover:text-black p-2 transition-all">Войти</a>
-                    <a href="/register" class="hover:pl-4 hover:bg-blue-600 hover:text-black p-2 transition-all">Регистрация</a>
-                </div>
-
-                <div id="authLinks" class="hidden flex flex-col gap-4">
-                    <a href="/profile" class="hover:pl-4 hover:bg-blue-600 hover:text-black p-2 text-white transition-all">Профиль</a>
-                    <button onclick="window.AuthContext.logout()" class="!bg-transparent !border-red-600 !text-red-600 hover:!bg-red-600 hover:!text-black !text-left !px-2 !py-2 transition-all">
-                        Выход
-                    </button>
-                </div>
-            </div>
-        </nav>
-    </header>
-
-    <main class="flex-grow w-full max-w-7xl mx-auto p-4 sm:p-12 min-h-screen">
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer class="border-t-8 border-blue-900 bg-black p-10 mt-auto">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div class="uppercase">
-                <div class="text-2xl font-bold text-white mb-2">CYBERPUNK TORRENT TRACKER</div>
-                <p class="text-sm text-blue-900 m-0">Все права защищены законом о цифровом суверенитете 2026.</p>
-            </div>
-            <div class="flex md:justify-end gap-10 font-bold uppercase">
-                <a href="/" class="hover:text-white">Главная</a>
-                <a href="/faq" class="hover:text-white">FAQ</a>
-            </div>
+        <div class="flex md:justify-end gap-10 font-bold uppercase">
+            <a href="/" class="hover:text-blue-500">Главная</a>
+            <a href="/faq" class="hover:text-blue-500">FAQ</a>
         </div>
-    </footer>
+    </div>
+</footer>
 
-    <script>
-        // Управление меню
-        const burgerBtn = document.getElementById('burgerBtn');
-        const mobileMenu = document.getElementById('mobileMenu');
-        burgerBtn.onclick = () => mobileMenu.classList.toggle('hidden');
+<script>
+    const header = document.querySelector('header');
+    const burgerBtn = document.getElementById('burgerBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileCategoriesBtn = document.getElementById('mobileCategoriesBtn');
+    const mobileCategoriesDropdown = document.getElementById('mobileCategoriesDropdown');
+    const mobileCategoriesArrow = document.getElementById('mobileCategoriesArrow');
 
-        // Глобальный Auth Context (Vanilla JS порт твоего React хука)
-        window.AuthContext = {
-            user: null,
-            isAuthenticated: false,
-            loading: true,
-            refreshIntervalRef: null,
+    function syncHeaderHeight() {
+        document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`);
+        mobileMenu.style.top = `var(--header-h)`;
+    }
 
-            // Настройка API путей (поменяй если у тебя они другие)
-            endpoints: {
-                me: "/users/me",
-                refresh: "/auth/refresh",
-                logout: "/auth/logout"
-            },
+    burgerBtn.onclick = () => {
+        mobileMenu.classList.toggle('hidden');
+        syncHeaderHeight();
+    };
 
-            async init() {
-                await this.fetchCurrentUser();
-            },
+    mobileCategoriesBtn.onclick = (e) => {
+        e.stopPropagation();
+        const open = mobileCategoriesDropdown.classList.contains('hidden');
+        mobileCategoriesDropdown.classList.toggle('hidden');
+        mobileCategoriesArrow.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+    };
 
-            handleNotAuthenticated() {
-                this.user = null;
-                this.isAuthenticated = false;
-                this.stopInterval();
-                this.updateUI();
-            },
+    document.addEventListener('click', (e) => {
+        if (!mobileCategoriesDropdown.contains(e.target) && !mobileCategoriesBtn.contains(e.target)) {
+            mobileCategoriesDropdown.classList.add('hidden');
+            mobileCategoriesArrow.style.transform = 'rotate(0deg)';
+        }
+    });
 
-            // 1. Получение данных юзера
-            async fetchCurrentUser() {
-                this.loading = true;
-                try {
-                    const res = await fetch(this.endpoints.me, {
-                        method: "GET",
-                        headers: { "Accept": "application/json" }
-                    });
+    window.addEventListener('resize', syncHeaderHeight);
 
-                    if (!res.ok) {
-                        this.handleNotAuthenticated();
-                        return;
-                    }
-
-                    const json = await res.json();
-                    this.user = json;
-                    this.isAuthenticated = true;
-                    this.startInterval(); // Запускаем цикл рефреша
-                } catch (err) {
-                    console.error("fetchCurrentUser error", err);
-                    this.handleNotAuthenticated();
-                } finally {
-                    this.loading = false;
-                    this.updateUI();
-                }
-            },
-
-            // 2. Рефреш токена
-            async refreshToken() {
-                try {
-                    const res = await fetch(this.endpoints.refresh, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" }
-                    });
-
-                    if (!res.ok) {
-                        this.handleNotAuthenticated();
-                        return;
-                    }
-
-                    // Если рефреш успешен, обновляем данные пользователя
-                    await this.fetchCurrentUser();
-                } catch (err) {
-                    console.error("refreshToken error", err);
-                    this.handleNotAuthenticated();
-                }
-            },
-
-            // 3. Управление интервалом (15 минут = 900 000 мс)
-            startInterval() {
-                if (this.refreshIntervalRef) return; // Уже запущен
-                this.refreshIntervalRef = window.setInterval(() => {
-                    this.refreshToken();
-                }, 15 * 60 * 1000);
-            },
-
-            stopInterval() {
-                if (this.refreshIntervalRef) {
-                    clearInterval(this.refreshIntervalRef);
-                    this.refreshIntervalRef = null;
-                }
-            },
-
-            async logout() {
-                try {
-                    await fetch(this.endpoints.logout, { method: "POST" });
-                } catch (e) {
-                    console.warn("logout error", e);
-                }
-                this.handleNotAuthenticated();
-                window.location.assign("/");
-            },
-
-            // Обновление DOM-элементов
-            updateUI() {
-                const guestLinks = document.getElementById('guestLinks');
-                const authLinks = document.getElementById('authLinks');
-                const status = document.getElementById('userStatus');
-
-                if (this.isAuthenticated && this.user) {
-                    guestLinks.classList.add('hidden');
-                    authLinks.classList.remove('hidden');
-                    // // Достаем email/username (подстрой под ответ своего бэка)
-                    // const identifier = this.user.email || this.user.username || 'USER';
-                    // status.innerHTML = `АККАУНТ: <span class="text-white">${identifier}</span>`;
-                    // status.classList.remove('opacity-50');
-                } else {
-                    guestLinks.classList.remove('hidden');
-                    authLinks.classList.add('hidden');
-                    // status.innerHTML = "STATUS: UNAUTHORIZED_VISITOR";
-                    // status.classList.add('opacity-50');
-                }
-            }
+    async function loadCategories() {
+        const categories = {
+            "Приключения": "Adventure",
+            "Инди": "Indie",
+            "Шутер": "Shooter",
+            "Казуальные": "Casual",
+            "Семейные": "Family",
+            "Гонки": "Racing",
+            "Экшен": "Action",
+            "РПГ": "RPG",
+            "Кооператив": "Massively Multiplayer",
+            "Стратегии": "Strategy",
+            "Платформер": "Platformer"
         };
 
-        async function loadCategories() {
-            const dropdown = document.getElementById('categoriesDropdown');
-            try {
-                const res = await fetch('/categories/');
-                const categories = await res.json();
+        const desktopCategories = document.getElementById('desktopCategories');
+        const mobileCategoriesList = document.getElementById('mobileCategoriesList');
 
-                dropdown.innerHTML = categories.map(cat => `
-                    <a href="/category/${cat.name}" class="flex items-center gap-3 p-3 hover:bg-blue-600 hover:text-black transition-all border-b border-blue-900 last:border-none">
-                        ${cat.image ? `<img src="${cat.image}" class="w-10 h-10 object-cover border border-blue-400">` : ''}
-                        <span class="truncate">${cat.name}</span>
-                    </a>
-                `).join('');
-            } catch (e) {
-                dropdown.innerHTML = '<div class="p-4 text-red-600 text-xs">ERR: CATEGORY_OFFLINE</div>';
-            }
+        try {
+            desktopCategories.innerHTML = Object.entries(categories).map(([ru, en]) => `
+                <a href="/?category=${encodeURIComponent(en)}" class="sidebar-link block px-5 py-3 border-b border-blue-900 last:border-none hover:bg-blue-600 hover:text-black transition-all">
+                    ${ru}
+                </a>
+            `).join('');
+
+            mobileCategoriesList.innerHTML = Object.entries(categories).map(([ru, en]) => `
+                <a href="/?category=${encodeURIComponent(en)}" class="block px-4 py-3 border-b border-blue-900 last:border-none hover:bg-blue-600 hover:text-black transition-all">
+                    ${ru}
+                </a>
+            `).join('');
+        } catch (e) {
+            desktopCategories.innerHTML = '<div class="p-4 text-red-600 text-xs">Ошибка загрузки</div>';
+            mobileCategoriesList.innerHTML = '<div class="p-4 text-red-600 text-xs">Ошибка загрузки</div>';
+            console.error(e);
         }
-        document.addEventListener('DOMContentLoaded', loadCategories);
+    }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            window.AuthContext.init();
-        });
-    </script>
+    window.AuthContext = {
+        async logout() {
+            await fetch("/auth/logout", { method: "POST" });
+            window.location.href = "/";
+        },
 
-    {% block scripts %}{% endblock %}
+        async init() {
+            try {
+                const res = await fetch("/users/me");
+                if (res.ok) {
+                    document.getElementById('guestLinks').classList.add('hidden');
+                    document.getElementById('authLinks').classList.remove('hidden');
+                }
+            } catch {}
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        syncHeaderHeight();
+        loadCategories();
+        window.AuthContext.init();
+    });
+</script>
+
+{% block scripts %}{% endblock %}
+
 </body>
 </html>

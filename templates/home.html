@@ -3,8 +3,6 @@
 {% block content %}
 
 <div class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8 text-white">Последние загруженные игры</h1>
-
     <div id="home" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
     </div>
 
@@ -19,13 +17,18 @@
 
         const LIMIT = 40;
 
-        // Функция получения страницы из URL
         const getUrlPage = () => {
             const params = new URLSearchParams(window.location.search);
             return parseInt(params.get('page')) || 1;
         };
 
+        const getCategory = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("category") || null
+        }
+
         let currentPage = getUrlPage();
+        let currentCategory = getCategory();
 
         const renderGames = (games) => {
             if (!games || games.length === 0) {
@@ -34,8 +37,8 @@
             }
 
             home.innerHTML = games.map(game => `
-                <a href="/game/${game.slug}"
-                   class="group bg-zinc-900 rounded-lg overflow-hidden shadow-lg hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col">
+                <a href="/game/${game.slug}" target="_blank"
+                   class="group  overflow-hidden shadow-lg hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col">
                     <div class="relative aspect-video overflow-hidden">
                         <img
                             src="${game.background_image || 'https://via.placeholder.com/400x225?text=No+Image'}"
@@ -56,9 +59,6 @@
                         </h3>
 
                         <div class="mt-auto flex items-center justify-between">
-                            <span class="text-[10px] uppercase tracking-wider text-gray-500 font-medium">
-                                ${game.platform || 'PC'}
-                            </span>
                             <span class="text-[10px] text-gray-400">
                                 ${game.release_date ? new Date(game.release_date).getFullYear() : 'N/A'}
                             </span>
@@ -67,7 +67,7 @@
                 </a>
             `).join('');
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({top: 0, behavior: 'smooth'});
         };
 
         const renderPagination = (current, totalItems) => {
@@ -132,8 +132,9 @@
 
                 const response = await fetch('/games/', {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
+                        category: currentCategory,
                         offset: offset,
                         limit: LIMIT
                     })
@@ -141,17 +142,15 @@
 
                 const data = await response.json();
 
-                // Если твой бэк возвращает { items, total_count } — отлично.
-                // Если только список [game1, game2], то пагинация будет "бесконечной" пока данные не кончатся.
                 const games = Array.isArray(data) ? data : data.items;
-                const totalCount = data.total_count || 1000; // Подставь реальное поле если есть
+                const totalCount = 1000;
 
                 renderGames(games);
                 renderPagination(currentPage, totalCount);
 
-                games.forEach(game => {
-                    sessionStorage.setItem(`game_detail_${game.slug}`, JSON.stringify(game));
-                });
+                // games.forEach(game => {
+                //     sessionStorage.setItem(`game_detail_${game.slug}`, JSON.stringify(game));
+                // });
 
             } catch (error) {
                 home.innerHTML = "<p class='text-red-500 col-span-full text-center'>Ошибка загрузки контента.</p>";

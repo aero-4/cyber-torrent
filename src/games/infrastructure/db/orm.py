@@ -1,7 +1,9 @@
 from sqlalchemy import Text
 
+from src.core.infrastructure.admin import BaseAdmin
 from src.games.domain.entities import GameImage, Game, GameTag
 from src.torrents.infrastructure.db.orm import *
+from src.utils.admin import format_photo
 from src.utils.datetimes import get_timezone_now
 
 
@@ -69,3 +71,25 @@ class GamesOrm(Base):
             tags=[i.to_entity() for i in self.tags],
             similar=similar
         )
+
+
+class GamesAdmin(BaseAdmin, model=GamesOrm):
+    column_list = [
+        GamesOrm.id,
+        GamesOrm.name,
+        GamesOrm.slug,
+        GamesOrm.genre,
+        GamesOrm.platform,
+        GamesOrm.metacritic,
+        GamesOrm.release_date,
+        GamesOrm.background_image,
+        GamesOrm.description_raw,
+    ]
+
+    column_formatters = {
+        GamesOrm.background_image: format_photo
+    }
+
+    column_formatters_detail = {
+        GamesOrm.background_image: lambda m, a: format_photo(m, a, width=250)
+    }

@@ -32,7 +32,8 @@ dependencies = [
     "taskiq-dashboard (>=0.4.1,<0.5.0)",
     "taskiq-redis (>=1.2.2,<2.0.0)",
     "taskiq-aio-pika (>=0.6.0,<0.7.0)",
-    "taskiq (>=0.12.1,<0.13.0)"
+    "taskiq (>=0.12.1,<0.13.0)",
+    "starlette-admin (>=0.16.0,<0.17.0)"
 ]
 
 

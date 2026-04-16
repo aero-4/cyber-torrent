@@ -11,6 +11,7 @@ from src.auth.domain.entities import UserCreate, UserUpdate
 from src.core.domain.exceptions import NotFound, AlreadyExists
 from src.games.domain.entities import GameCreate, Game
 from src.games.infrastructure.db.orm import GamesOrm, GamesImagesOrm, GamesTagsOrm
+from src.games.presentation.dtos import GamesCollectionDTO
 from src.users.infrastructure.db.orm import UsersOrm
 from src.users.domain.entities import User
 
@@ -46,12 +47,13 @@ class PGGamesRepository:
         similar_games = await self.get_by_tags([i.name for i in obj.tags])
         return obj.to_entity(similar_games)
 
-    async def get_by_tags(self, tags: list[str]) -> list[Game]:
+    async def get_by_tags(self, tags: list[str], limit: int = 20) -> list[Game]:
         stmt = (
             select(GamesOrm)
             .join(GamesOrm.tags)
             .where(GamesTagsOrm.name.in_(tags))
             .options(joinedload(GamesOrm.tags))
+            .limit(limit)
             .distinct()
         )
 
@@ -70,7 +72,7 @@ class PGGamesRepository:
 
         return obj
 
-    async def get_all(self, offset: int, limit: int) -> list[Game]:
+    async def get_all(self, data: GamesCollectionDTO) -> list[Game]:
         stmt = (
             select(GamesOrm)
             .options(
@@ -80,9 +82,12 @@ class PGGamesRepository:
             .order_by(
                 GamesOrm.updated_at
             )
-            .offset(offset)
-            .limit(limit)
+            .offset(data.offset)
+            .limit(data.limit)
         )
+        if data.category:
+            stmt = stmt.where(GamesOrm.genre == data.category)
+
         result = await self.session.execute(stmt)
         result = result.unique().scalars().all()
         return [i.to_entity() for i in result]

@@ -136,7 +136,7 @@
                 </div>
             </div>
 
-            <div class="max-w-5xl mx-auto px-4 py-10">
+            <div class="mx-auto px-4 py-10">
                 <div class="prose prose-invert max-w-none mb-12">
                     <h2 class="text-xl font-bold mb-4 border-l-4 border-gray-500 pl-3">Об игре</h2>
                     <p class="text-gray-400 leading-relaxed whitespace-pre-wrap">${game.description_raw || 'Описание отсутствует.'}</p>
@@ -150,8 +150,8 @@
 
                 <div class="border-t border-zinc-800 pt-10">
                     <h2 class="text-xl font-bold mb-6 border-l-4 border-indigo-500 pl-3">Комментарии</h2>
-                    <form id="comment-form" class="mb-8 bg-zinc-900 p-4 rounded-xl border border-zinc-800">
-                        <textarea id="comment-text" required class="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none transition resize-none" rows="3" placeholder="Ваш отзыв..."></textarea>
+                    <form id="comment-form" class="mb-8 p-4 rounded-xl border border-zinc-800">
+                        <textarea id="comment-text" required class="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none transition resize-none" rows="3" placeholder="Напишите здесь комментарий..."></textarea>
                         <div class="flex justify-end mt-3">
                             <button type="submit" id="submit-btn" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-2 rounded-lg text-sm font-bold transition">Отправить</button>
                         </div>
@@ -186,7 +186,7 @@
                 <h2 class="text-xl font-bold mb-6 border-l-4 border-green-500 pl-3">Скачать Торрент</h2>
                 <div class="flex flex-col gap-4">
                     ${game.torrents.map(t => `
-                        <a href="${t.magnet}" class="group flex items-center justify-between bg-zinc-900 border border-zinc-800 p-5 rounded-xl hover:bg-zinc-800 hover:border-green-500/50 transition-all duration-300 shadow-lg">
+                        <a href="${t.magnet}" class="group flex items-center justify-between bg-zinc-900 p-5 hover:bg-zinc-800 hover:border-green-500/50 transition-all duration-300 shadow-lg">
                             <div class="flex items-center gap-3">
                                 <div class="bg-green-500/10 p-3 rounded-lg group-hover:bg-green-500/20">
                                     <span class="text-green-500 font-bold text-xl">⬇</span>
@@ -223,7 +223,7 @@
                 <div class="relative group">
                     <div id="similar-carousel" class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         ${game.similar.map(sg => `
-                            <a href="/game/${sg.slug || sg.id}" class="snap-start shrink-0 w-[180px] md:w-[200px] group flex flex-col overflow-hidden rounded-xl bg-zinc-900 border border-zinc-800 hover:border-yellow-500/50 transition-all duration-300">
+                            <a href="/game/${sg.slug || sg.id}" class="snap-start shrink-0 w-[180px] md:w-[200px] group flex flex-col overflow-hidden  hover:border-yellow-500/50 transition-all duration-300">
                                 <div class="aspect-[3/4] w-full overflow-hidden relative">
                                     <img src="${sg.background_image || ''}" alt="${sg.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                     <div class="absolute top-2 right-2 bg-black/80 backdrop-blur-sm border border-yellow-500/30 text-yellow-500 font-bold text-xs px-2 py-1 rounded-md flex items-center gap-1 shadow-lg">

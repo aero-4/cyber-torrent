@@ -16,9 +16,12 @@ from starlette_csrf import CSRFMiddleware
 
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
 from src.auth.presentation.api import router as auth_api_router
+from src.comments.infrastructure.db.orm import CommentsAdmin
 from src.core.taskiq_app import broker
+from src.games.infrastructure.db.orm import GamesAdmin
 from src.games.infrastructure.tasks.metadata import searcher_games
 from src.games.presentation.api import router as games_api_router
+from src.torrents.infrastructure.db.orm import TorrentsAdmin
 
 from views.home.home import router as home_view
 from views.login.login import router as login_view
@@ -61,10 +64,13 @@ async def lifespan(app: FastAPI):
 
 logger = logging.getLogger(__name__)
 app = FastAPI(lifespan=lifespan)
-admin = Admin(app, engine=engine)
+admin = Admin(app, engine=engine, title="CyberTorrents Admin Panel")
 # csrf_protect = CsrfProtect()
 
 admin.add_view(UsersAdmin)
+admin.add_view(GamesAdmin)
+admin.add_view(TorrentsAdmin)
+admin.add_view(CommentsAdmin)
 
 app.add_middleware(
     CORSMiddleware,

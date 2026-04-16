@@ -11,10 +11,12 @@ from starlette.datastructures import FormData
 from wtforms import FileField
 
 from src.auth.domain.entities import UserRoles
+from src.core.infrastructure.admin import BaseAdmin
 from src.db.base import Base
 from src.users.domain.entities import User
 from src.utils.admin import format_photo, on_model_change_photo
 from src.comments.infrastructure.db.orm import CommentsOrm
+
 
 class UsersOrm(Base):
     __tablename__ = "users"
@@ -39,7 +41,7 @@ class UsersOrm(Base):
         )
 
 
-class UsersAdmin(ModelView, model=UsersOrm):
+class UsersAdmin(BaseAdmin, model=UsersOrm):
     column_list = [
         UsersOrm.id,
         UsersOrm.email,
@@ -56,8 +58,3 @@ class UsersAdmin(ModelView, model=UsersOrm):
     column_formatters_detail = {
         UsersOrm.avatar_image: lambda m, a: format_photo(m, a, width=250)
     }
-
-    form_overrides = dict(avatar_image=FileField)
-
-    async def on_model_change(self, data: FormData, model, is_created, request):
-        await on_model_change_photo(data)
