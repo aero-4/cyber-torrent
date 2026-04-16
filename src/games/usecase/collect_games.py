@@ -12,7 +12,6 @@ async def collect_games(dto: GamesCollectionDTO) -> list[Game]:
 
 async def get_game(slug: str) -> Game:
     uow = GamesUnitOfWork()
-
     async with uow:
         game = await uow.games.get_by_slug(slug)
     return game

@@ -24,11 +24,17 @@
 
         const getCategory = () => {
             const params = new URLSearchParams(window.location.search);
-            return params.get("category") || null
+            return params.get("category")
+        }
+
+        const getTag = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("tag")
         }
 
         let currentPage = getUrlPage();
         let currentCategory = getCategory();
+        let currentTag = getTag();
 
         const renderGames = (games) => {
             if (!games || games.length === 0) {
@@ -134,6 +140,7 @@
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
+                        tag: currentTag,
                         category: currentCategory,
                         offset: offset,
                         limit: LIMIT
@@ -142,8 +149,8 @@
 
                 const data = await response.json();
 
-                const games = Array.isArray(data) ? data : data.items;
-                const totalCount = 1000;
+                const games = Array.isArray(data) ? data : data.games;
+                const totalCount = data.total_count;
 
                 renderGames(games);
                 renderPagination(currentPage, totalCount);

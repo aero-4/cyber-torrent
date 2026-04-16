@@ -55,3 +55,8 @@ class GameCreate(BaseModel):
     description_raw: str | None = None
     images: list[str] | None = None
     tags: list[GameTagsCreate] | None = None
+
+
+class GameCollection(BaseModel):
+    games: list[Game]
+    total_count: int = 0

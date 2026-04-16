@@ -121,15 +121,19 @@
             return date.toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric'});
         };
 
-        // Рендерим основной каркас
         content.innerHTML = `
             <div class="relative h-[400px] w-full">
                 <img src="${game.background_image || ''}" class="w-full h-full object-cover opacity-30 absolute inset-0" alt="Cover">
                 <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
-                <div class="relative max-w-5xl mx-auto px-4 h-full flex flex-col justify-end pb-10">
+                <div class="relative mx-auto px-4 h-full flex flex-col justify-end pb-10">
                     <div class="flex flex-wrap gap-2 mb-4">
                         <span class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">${game.platform || 'PC'}</span>
-                        <span class="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">${game.genre || "Без жанра"}</span>
+                        ${game.tags.slice(0, 5).map((tag) => `
+                            <a href="/?tag=${encodeURIComponent(tag.name)}" class="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full hover:bg-blue-600 hover:text-white transition-colors">
+                                ${tag.name || "Без жанра"}
+                            </a>
+                        `).join('')}
+
                     </div>
                     <h1 class="text-4xl md:text-6xl font-black text-white mb-2">${game.name}</h1>
                     <p class="text-gray-400">Релиз: ${formatDate(game.release_date) || 'Неизвестно'}</p>

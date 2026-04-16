@@ -5,11 +5,12 @@ from sqlalchemy import select, or_, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql.functions import count
 from starlette import status
 
 from src.auth.domain.entities import UserCreate, UserUpdate
 from src.core.domain.exceptions import NotFound, AlreadyExists
-from src.games.domain.entities import GameCreate, Game
+from src.games.domain.entities import GameCreate, Game, GameCollection
 from src.games.infrastructure.db.orm import GamesOrm, GamesImagesOrm, GamesTagsOrm
 from src.games.presentation.dtos import GamesCollectionDTO
 from src.users.infrastructure.db.orm import UsersOrm
@@ -45,6 +46,7 @@ class PGGamesRepository:
         if not obj:
             raise NotFound(message=f"Game '{slug}' not found")
         similar_games = await self.get_by_tags([i.name for i in obj.tags])
+
         return obj.to_entity(similar_games)
 
     async def get_by_tags(self, tags: list[str], limit: int = 20) -> list[Game]:
@@ -65,22 +67,16 @@ class PGGamesRepository:
 
         return [game.to_entity() for game in games]
 
-    async def get_similar(self, game: Game) -> List[Game]:
-        stmt = select(GamesTagsOrm)
-        result = await self.session.execute(stmt)
-        obj = result.unique().scalar_one_or_none()
-
-        return obj
-
-    async def get_all(self, data: GamesCollectionDTO) -> list[Game]:
+    async def get_all(self, data: GamesCollectionDTO) -> GameCollection:
         stmt = (
             select(GamesOrm)
+            .join(GamesOrm.tags)
             .options(
                 joinedload(GamesOrm.game_images),
                 joinedload(GamesOrm.torrents)
             )
             .order_by(
-                GamesOrm.updated_at
+                GamesOrm.updated_at.desc()
             )
             .offset(data.offset)
             .limit(data.limit)
@@ -88,9 +84,26 @@ class PGGamesRepository:
         if data.category:
             stmt = stmt.where(GamesOrm.genre == data.category)
 
+        if data.tag:
+            stmt = stmt.where(GamesTagsOrm.name == data.tag)
+
         result = await self.session.execute(stmt)
         result = result.unique().scalars().all()
-        return [i.to_entity() for i in result]
+
+        stmt = select(count(GamesOrm.id))
+        if data.category:
+            stmt = stmt.where(GamesOrm.genre == data.category)
+
+        if data.tag:
+            stmt = stmt.where(GamesTagsOrm.name == data.tag)
+
+        result2 = await self.session.execute(stmt)
+        total_count = result2.scalar_one_or_none()
+
+        return GameCollection(
+            games=[i.to_entity() for i in result],
+            total_count=total_count
+        )
 
     async def add(self, game: GameCreate) -> Game:
         obj = GamesOrm(**game.model_dump(exclude={"images", "tags"}))
@@ -115,7 +128,6 @@ class PGGamesRepository:
         self.session.add_all([
             GamesTagsOrm(game_id=obj.id, image=i.image, name=i.name) for i in game.tags
         ])
-
         try:
             await self.session.flush()
             await self.session.refresh(obj)
