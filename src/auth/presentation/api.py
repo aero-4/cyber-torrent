@@ -10,11 +10,12 @@ from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO, UserOtpVer
 from src.auth.presentation.roles import check_roles
 from src.auth.usecase.authentication import authenticate
 from src.auth.usecase.auth_qr import *
-from src.auth.usecase.confirm_email import confirm_email
+from src.auth.usecase.confirm_email import confirm_email, sent_confirm_message_email
 from src.auth.usecase.oauth2 import oauth2_google_case, oauth2_yandex_case
 from src.auth.usecase.registration import registration
 from src.core.config import config
 from templates import templates
+from src.auth.infrastructure.tasks.confirm_message import send_confirm_2fa_message, sent_2fa_code_email_message
 
 router = APIRouter()
 
@@ -68,11 +69,11 @@ async def qr_code(email: str = Form(..., description="Email required for qr auth
     return FileResponse(qr_path)
 
 
-@router.get("/email/2fa/confirm/{token}")
-@check_roles([UserRoles.USER])
-async def email_confirm_token_user(request: Request, token: str, email_provider: EmailProvideDep, auth: TokenAuthDep):
-    await confirm_email(request.state.user, token, email_provider, auth)
-    return {"message": "Email confirmed"}
+@router.post("/email/2fa/sent-confirm/")
+@check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
+async def email_confirm_token_user(request: Request, email_provider: EmailProvideDep, auth: TokenAuthDep):
+    await sent_2fa_code_email_message.kiq(email_provider, request.state.user.email)
+    return {"message": f"Sent message '{request.state.user.email}'"}
 
 
 @router.get("/email/2fa/code/{code}")
@@ -128,4 +129,3 @@ async def login_user_yandex(access_token: str, oauth2_yandex: YandexOauth2Provid
 async def yandex_redirect_url(oauth_yandex: YandexOauth2ProvideDep):
     url = oauth_yandex.generate_redirect_uri()
     return RedirectResponse(url)
-

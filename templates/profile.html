@@ -1,48 +1,261 @@
 {% extends "base.html" %}
 
 {% block content %}
-<body>
-    <div class="w-full border-4 border-blue-600 bg-black p-6 sm:p-10 shadow-[8px_8px_0px_#2563eb]">
-        <div class="mb-8 border-b-4 border-blue-600 pb-4">
-            <h1 class="text-4xl sm:text-5xl font-bold tracking-tighter uppercase text-white">ПРОФИЛЬ</h1>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+    body { font-family: 'Space Mono', monospace; }
+</style>
+
+<div id="systemPopup" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="border-4 border-blue-600 bg-black p-8 text-center min-w-[320px] shadow-[0_0_40px_rgba(37,99,235,0.5)]">
+        <div id="popupMessage" class="text-2xl font-bold uppercase tracking-widest mb-6 text-blue-400">TEXT</div>
+        <button onclick="closePopup()" class="border-2 border-blue-600 bg-blue-600/20 px-8 py-3 text-xl font-bold uppercase hover:bg-blue-600 hover:text-black transition-colors w-full">ОК</button>
+    </div>
+</div>
+
+<div id="modalEditEmail" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4">
+    <div class="w-full max-w-md border-4 border-blue-600 bg-black p-6 shadow-[8px_8px_0px_#2563eb]">
+        <div class="mb-4 text-2xl font-bold uppercase text-white text-center">ИЗМЕНИТЬ EMAIL</div>
+        <p class="text-blue-400 text-xs mb-6 text-center">ВВЕДИТЕ НОВЫЙ АДРЕС. СИСТЕМА ПЕРЕВЕРИФИЦИРУЕТ ВАШ ДОСТУП.</p>
+        <input type="email" id="newEmailInput"
+               class="w-full border-4 border-blue-600 bg-black px-4 py-4 text-xl text-blue-400 outline-none focus:bg-blue-950 mb-6"
+               placeholder="NEW_USER@NODE.SYS">
+        <button onclick="requestEmailChange()" class="w-full border-4 border-blue-600 bg-blue-600 py-4 text-xl font-bold text-black uppercase hover:bg-white transition-all">ОБНОВИТЬ И ОТПРАВИТЬ КОД</button>
+        <button onclick="closeModals()" class="w-full mt-4 text-blue-900 uppercase font-bold hover:text-blue-600">ОТМЕНА</button>
+    </div>
+</div>
+
+<div id="modalEmail" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+    <div class="w-full max-w-md border-4 border-blue-600 bg-black p-6 shadow-[8px_8px_0px_#2563eb]">
+        <div class="mb-4 text-2xl font-bold uppercase text-white text-center">ПОДТВЕРДИТЕ ЕМЕЙЛ</div>
+        <div id="emailConfirmSubtitle" class="mb-6 text-center text-blue-400 text-xs uppercase tracking-widest"></div>
+        <div id="emailConfirmOtpGroup" class="mb-4 flex gap-2 justify-center"></div>
+        <div id="timerDisplay" class="mb-6 text-center text-3xl font-bold text-white">05:00</div>
+        <button id="confirmEmailBtn" class="w-full border-4 border-blue-600 bg-white py-4 text-xl font-bold text-black uppercase hover:bg-blue-600 transition-all">ПОДТВЕРДИТЬ</button>
+        <button id="resendEmailCodeBtn" class="hidden w-full mt-4 border-4 border-blue-600 bg-black py-2 text-blue-600 uppercase font-bold hover:bg-blue-900">ОТПРАВИТЬ ПОВТОРНО</button>
+        <button onclick="closeModals()" class="w-full mt-4 text-blue-900 uppercase font-bold hover:text-blue-600">ОТМЕНА</button>
+    </div>
+</div>
+
+<div id="modalOtp" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+    <div class="w-full max-w-md border-4 border-blue-600 bg-black p-6 shadow-[8px_8px_0px_#2563eb]">
+        <h2 class="mb-4 text-2xl font-bold uppercase text-white text-center">НАСТРОЙКА OTP</h2>
+        <div class="mb-6 flex flex-col items-center border-4 border-blue-600 bg-blue-950 p-4 text-center">
+            <div class="text-[10px] text-blue-400 mb-2">ОТСКАНИРУЙТЕ QR-КОД В GOOGLE AUTHENTICATOR</div>
+            <img id="qrImage" class="w-48 h-48 border-4 border-black bg-white object-contain" alt="QR">
         </div>
+        <form id="otpConfirmForm" class="space-y-4">
+            <input type="text" id="otpCode" required maxlength="6" class="w-full border-4 border-blue-600 bg-black py-4 text-center text-3xl text-white outline-none focus:bg-blue-950" placeholder="000000">
+            <button type="submit" class="w-full border-4 border-blue-600 bg-white py-4 text-xl font-bold text-black uppercase hover:bg-blue-600">ПРОВЕРИТЬ</button>
+        </form>
+        <button onclick="closeModals()" class="w-full mt-4 text-blue-900 uppercase font-bold hover:text-blue-600">ОТМЕНА</button>
+    </div>
+</div>
 
-        <div id="user" class="my-auto justify-center w-full mb-6 text-center font-bold uppercase">
-
-        </div>
-
+<div class="w-full border-4 border-blue-600 bg-black p-6 sm:p-10 shadow-[8px_8px_0px_#2563eb]">
+    <div class="mb-8 border-b-4 border-blue-600 pb-4">
+        <h1 class="text-4xl sm:text-5xl font-bold tracking-tighter uppercase text-white">ПРОФИЛЬ</h1>
     </div>
 
-    <script>
-        const user = document.getElementById('user');
+    <div id="user" class="my-auto justify-center w-full mb-6 text-center font-bold uppercase">
+        </div>
+</div>
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            try {
-                const response = await fetch(`/users/me`,
-                    {method: "GET"}
-                );
-                const data = await response.json();
+<script>
+    const userContainer = document.getElementById('user');
+    let currentUserEmail = '';
+    let emailTimerInterval = null;
 
-                if (!data.email) {
-                    user.innerHTML = "<p>Error loading content.</p>";
-                    return
-                }
+    // --- ИНИЦИАЛИЗАЦИЯ ---
+    document.addEventListener("DOMContentLoaded", loadUserData);
 
-                user.innerHTML = `
-                    <img class="rounded-full mx-auto justify-center items-center w-24 h-24" src="${data.avatar_image}"/>
+    async function loadUserData() {
+        try {
+            const response = await fetch(`/users/me`, { method: "GET" });
+            const data = await response.json();
+            if (!data.email) throw new Error();
 
-                    <h3>EMAIL: ${data.email}</h3>
+            currentUserEmail = data.email;
 
-                `;
-            } catch (error) {
-                user.innerHTML = "<p>Error loading content.</p>";
+            userContainer.innerHTML = `
+                <img class="rounded-full mx-auto mb-4 border-4 border-blue-600 w-24 h-24 object-cover" src="${data.avatar_image}"/>
+                <h3 class="text-2xl mb-8 text-white tracking-widest">EMAIL: ${data.email}</h3>
+
+                <div class="flex flex-col gap-6 max-w-sm mx-auto">
+                    <div class="flex flex-col gap-2">
+                        <button onclick="handleEmailVerify(${data.is_verify_email})"
+                            class="py-5 px-4 font-bold uppercase transition-all border-4 ${data.is_verify_email ? 'border-green-600 text-green-600 hover:bg-green-600/10' : 'bg-red-600 text-white hover:bg-red-500 border-red-600'}">
+                            2FA ПО ПОЧТЕ: ${data.is_verify_email ? 'АКТИВНО' : 'ПОДТВЕРДИТЬ'}
+                        </button>
+                        ${data.is_verify_email ? '<span class="text-[10px] text-blue-900">НАЖМИТЕ НА КНОПКУ, ЧТОБЫ ИЗМЕНИТЬ АДРЕС</span>' : ''}
+                    </div>
+
+                    <button onclick="handleOtpVerify(${data.is_verify_otp})"
+                        class="py-5 px-4 font-bold uppercase transition-all border-4 ${data.is_verify_otp ? 'border-green-600 text-green-600 hover:bg-green-600/10' : 'bg-red-600 text-white hover:bg-red-500 border-red-600'}">
+                        OTP - КОДЫ: ${data.is_verify_otp ? 'АКТИВНО' : 'ПОДКЛЮЧИТЬ'}
+                    </button>
+                </div>
+            `;
+        } catch (error) {
+            userContainer.innerHTML = "<p class='text-red-500'>CRITICAL_ERROR: DATA_FETCH_FAILED</p>";
+        }
+    }
+
+    // --- ЛОГИКА ПОЧТЫ ---
+    async function handleEmailVerify(isVerified) {
+        if (isVerified) {
+            // Если почта уже есть, открываем окно для смены на новую
+            document.getElementById('modalEditEmail').classList.remove('hidden');
+        } else {
+            // Если почта не подтверждена, просто шлем код на текущую
+            sendVerificationCode(currentUserEmail);
+        }
+    }
+
+    async function requestEmailChange() {
+        const newEmail = document.getElementById('newEmailInput').value.trim();
+        if (!newEmail || !newEmail.includes('@')) {
+            showPopup("ОШИБКА: НЕКОРРЕКТНЫЙ EMAIL", true);
+            return;
+        }
+        // Шлем код на новую почту
+        sendVerificationCode(newEmail);
+    }
+
+    async function sendVerificationCode(email) {
+        try {
+            // Мы передаем email в параметрах или заголовках, если бэкенд поддерживает.
+            // Если бэкенд берет email только из сессии, его нужно сначала обновить в БД.
+            const res = await fetch('/auth/email/2fa/sent-confirm/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // body: JSON.stringify({ email: email }) // Раскомментируйте, если бэкенд принимает email
+            });
+            const data = await res.json();
+
+            if (res.ok || (data.message && data.message.includes("Sent"))) {
+                document.getElementById('modalEditEmail').classList.add('hidden');
+                document.getElementById('modalEmail').classList.remove('hidden');
+                document.getElementById('emailConfirmSubtitle').textContent = `КОД ОТПРАВЛЕН НА ${email}`;
+                createOtpInputs(document.getElementById('emailConfirmOtpGroup'));
+                startEmailTimer();
+            } else {
+                showPopup(data.message || "ОШИБКА ОТПРАВКИ КОДА", true);
             }
-        });
+        } catch (e) {
+            showPopup("ОШИБКА СВЯЗИ С СЕРВЕРОМ", true);
+        }
+    }
 
-    </script>
-</body>
+    // --- ЛОГИКА OTP ---
+    async function handleOtpVerify(isVerified) {
+        if (isVerified) {
+            showPopup("OTP-ПРОТОКОЛ УЖЕ АКТИВИРОВАН");
+            return;
+        }
+        try {
+            const formdata = new FormData();
+            formdata.append("email", currentUserEmail);
+            const response = await fetch(`/auth/otp/qr`, { method: 'POST', body: formdata });
+            if (!response.ok) throw new Error();
+            const blob = await response.blob();
+            document.getElementById('qrImage').src = URL.createObjectURL(blob);
+            document.getElementById('modalOtp').classList.remove('hidden');
+        } catch (e) {
+            showPopup("ОШИБКА ГЕНЕРАЦИИ QR-МАТРИЦЫ", true);
+        }
+    }
+
+    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+    function showPopup(msg, isError = false) {
+        const msgEl = document.getElementById('popupMessage');
+        msgEl.textContent = msg;
+        msgEl.className = `text-2xl font-bold uppercase tracking-widest mb-6 ${isError ? 'text-red-500' : 'text-blue-400'}`;
+        document.getElementById('systemPopup').classList.remove('hidden');
+    }
+
+    function closePopup() { document.getElementById('systemPopup').classList.add('hidden'); }
+
+    function closeModals() {
+        document.getElementById('modalEmail').classList.add('hidden');
+        document.getElementById('modalOtp').classList.add('hidden');
+        document.getElementById('modalEditEmail').classList.add('hidden');
+        clearInterval(emailTimerInterval);
+    }
+
+    function createOtpInputs(container) {
+        container.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+            const input = document.createElement('input');
+            input.type = 'text'; input.maxLength = 1; input.inputMode = 'numeric';
+            input.className = 'h-12 w-10 border-4 border-blue-600 bg-black text-center text-xl font-bold text-white outline-none focus:border-white focus:bg-blue-900 transition-all';
+            input.addEventListener('input', (e) => {
+                if (e.target.value && i < 5) container.children[i + 1].focus();
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && i > 0) container.children[i - 1].focus();
+            });
+            container.appendChild(input);
+        }
+    }
+
+    function startEmailTimer() {
+        let timeLeft = 300;
+        const display = document.getElementById('timerDisplay');
+        clearInterval(emailTimerInterval);
+        const updateTimer = () => {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            display.textContent = `${m}:${s}`;
+            if (timeLeft <= 0) {
+                clearInterval(emailTimerInterval);
+                document.getElementById('resendEmailCodeBtn').classList.remove('hidden');
+            }
+            timeLeft--;
+        };
+        updateTimer();
+        emailTimerInterval = setInterval(updateTimer, 1000);
+    }
+
+    // ПОДТВЕРЖДЕНИЕ КОДА ИЗ ПОЧТЫ
+    document.getElementById('confirmEmailBtn').addEventListener('click', async () => {
+        const inputs = document.getElementById('emailConfirmOtpGroup').children;
+        const code = Array.from(inputs).map(i => i.value).join('');
+        if (code.length < 6) return showPopup("ВВЕДИТЕ ВЕСЬ КОД", true);
+
+        try {
+            const res = await fetch(`/auth/email/2fa/code/${code}`);
+            if (res.ok) {
+                showPopup("ВЕРИФИКАЦИЯ ПРОЙДЕНА");
+                closeModals();
+                loadUserData(); // Обновляем кнопки
+            } else {
+                showPopup("НЕВЕРНЫЙ КОД", true);
+            }
+        } catch (e) {
+            showPopup("ОШИБКА СЕРВЕРА", true);
+        }
+    });
+
+    // ПОДТВЕРЖДЕНИЕ OTP
+    document.getElementById('otpConfirmForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('otpCode').value;
+        const fd = new FormData();
+        fd.append('email', currentUserEmail);
+        fd.append('otp_code', code);
+        try {
+            const res = await fetch('/auth/otp/confirm', { method: 'POST', body: fd });
+            if (res.ok) {
+                showPopup("OTP ЗАЩИТА АКТИВИРОВАНА");
+                closeModals();
+                loadUserData();
+            } else {
+                showPopup("ОШИБКА: НЕВЕРНЫЙ ТОКЕН", true);
+            }
+        } catch (e) {
+            showPopup("ОШИБКА СИНХРОНИЗАЦИИ", true);
+        }
+    });
+</script>
 {% endblock %}
-
-
-
-

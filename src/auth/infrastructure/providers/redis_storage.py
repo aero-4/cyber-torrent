@@ -25,7 +25,7 @@ class RedisTokenStorage(ITokenStorage):
         await self.redis.setex(name=key, value=token_data.sub, time=total_seconds)
         await self.redis.sadd(f"user_tokens:{token_data.sub}", token_data.jti)
 
-    async def add_email_token(self, email: str, token: str | int, expire_seconds: int = config.email.TWO_FACTOR_TOKEN_EXPIRE_SECONDS) -> None:
+    async def add_email_token(self, email: str, token: str | int, expire_seconds: int) -> None:
         key = f"email:{token}"
         await self.redis.setex(key, value=email, time=expire_seconds)
 

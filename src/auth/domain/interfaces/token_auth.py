@@ -47,7 +47,7 @@ class ITokenStorage(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def add_email_token(self, email: str, token: str) -> None:
+    async def add_email_token(self, email: str, token: str, expire: int) -> None:
         pass
 
     @abc.abstractmethod

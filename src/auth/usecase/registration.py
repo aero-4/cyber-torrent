@@ -4,6 +4,7 @@ from src.auth.domain.entities import UserCreate, UserRoles, UserVerifications
 from src.auth.domain.interfaces.email import IEmailProvider
 from src.auth.domain.interfaces.token_auth import ITokenAuth
 from src.auth.infrastructure.providers.hasher import HasherProvider
+from src.core.config import config
 from src.users.domain.exceptions import UserAlreadyExists
 from src.users.infrastructure.db.uow import UsersUnitOfWork
 from src.auth.infrastructure.tasks.confirm_message import sent_2fa_code_email_message
@@ -30,7 +31,8 @@ async def registration(email: str, password: str, auth: ITokenAuth, email_provid
         if not user.is_verify_email:
             await sent_2fa_code_email_message.kiq(email)
             await auth.set_fast_token(user,
-                                      method=UserVerifications.FIRST_CONFIRM_EMAIL)
+                                      method=UserVerifications.FIRST_CONFIRM_EMAIL,
+                                      expire=config.email.TWO_FACTOR_TOKEN_EXPIRE_SECONDS)
             return "confirm_email"
 
 

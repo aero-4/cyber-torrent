@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/me")
-@check_roles(roles=[UserRoles.USER])
+@check_roles(roles=[UserRoles.USER, UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.MANAGER])
 async def get_me(request: Request):
     return request.state.user.model_dump(
         exclude={

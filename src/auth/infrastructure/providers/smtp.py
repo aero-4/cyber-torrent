@@ -21,10 +21,10 @@ class SmtpProvider(IEmailProvider):
 
 
 
-    async def send_confirm_message(self, email: str, token: str | int, content_mail: str) -> None:
+    async def send_confirm_message(self, email: str, token: str | int, content_mail: str, expire: int = config.email.TWO_FACTOR_TOKEN_EXPIRE_SECONDS) -> None:
         msg = self.mail_message(email, content=content_mail)
         await self.send_to_mail(msg)
-        await self.storage.add_email_token(email, token)
+        await self.storage.add_email_token(email, token, expire)
 
     async def validate_token(self, email: str, token: str) -> str:
         email = await self.storage.is_valid_token_email(email, token)
