@@ -37,7 +37,7 @@ class AuthConfig(BaseAppConfig):
 
 
 class OTPAuthConfig(BaseAppConfig):
-    OTP_SECRET: str = "daskdajdk213j12kjlkladsjasdk"
+    OTP_SECRET: str = secrets.token_urlsafe(32)
     OTP_ISSUER: str = "Cyber"
 
 

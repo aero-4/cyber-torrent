@@ -28,8 +28,7 @@ class PGGamesRepository:
         obj = result.scalar_one_or_none()
 
         if not obj:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="User not found")
+            raise NotFound(f"Game '{id}' not found ")
 
         return obj.to_entity()
 
@@ -45,15 +44,16 @@ class PGGamesRepository:
         obj = result.unique().scalar_one_or_none()
         if not obj:
             raise NotFound(message=f"Game '{slug}' not found")
-        similar_games = await self.get_by_tags([i.name for i in obj.tags])
+        similar_games = await self.get_by_tags(obj, [i.name for i in obj.tags[:1]])
 
         return obj.to_entity(similar_games)
 
-    async def get_by_tags(self, tags: list[str], limit: int = 20) -> list[Game]:
+    async def get_by_tags(self, obj: Game, tags: list[str], limit: int = 20) -> list[Game]:
         stmt = (
             select(GamesOrm)
             .join(GamesOrm.tags)
-            .where(GamesTagsOrm.name.in_(tags))
+            .where(GamesTagsOrm.name.in_(tags),
+                   GamesOrm.name != obj.name)
             .options(joinedload(GamesOrm.tags))
             .limit(limit)
             .distinct()
@@ -70,14 +70,12 @@ class PGGamesRepository:
     async def get_all(self, data: GamesCollectionDTO) -> GameCollection:
         stmt = (
             select(GamesOrm)
-            .join(GamesOrm.tags)
             .options(
-                joinedload(GamesOrm.game_images),
                 joinedload(GamesOrm.torrents)
             )
-            .order_by(
-                GamesOrm.updated_at.desc()
-            )
+            # .order_by(
+            #     GamesOrm.updated_at.desc()
+            # )
             .offset(data.offset)
             .limit(data.limit)
         )
@@ -90,14 +88,14 @@ class PGGamesRepository:
         result = await self.session.execute(stmt)
         result = result.unique().scalars().all()
 
-        stmt = select(count(GamesOrm.id))
+        stmt2 = select(count(GamesOrm.id))
         if data.category:
-            stmt = stmt.where(GamesOrm.genre == data.category)
+            stmt2 = stmt2.where(GamesOrm.genre == data.category)
 
         if data.tag:
-            stmt = stmt.where(GamesTagsOrm.name == data.tag)
+            stmt2 = stmt2.where(GamesTagsOrm.name == data.tag)
 
-        result2 = await self.session.execute(stmt)
+        result2 = await self.session.execute(stmt2)
         total_count = result2.scalar_one_or_none()
 
         return GameCollection(
@@ -132,6 +130,6 @@ class PGGamesRepository:
             await self.session.flush()
             await self.session.refresh(obj)
         except IntegrityError as e:
-            raise AlreadyExists(f"Category already exists")
+            raise AlreadyExists(f"Tag already exists")
 
         return obj.to_entity()

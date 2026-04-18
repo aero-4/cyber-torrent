@@ -1,16 +1,11 @@
 import logging
-import random
-import secrets
-
 import aiosmtplib
 
 from email.message import Message, EmailMessage
-
 from src.auth.domain.exceptions import InvalidTokenEmail, InvalidSentTokenEmail
 from src.auth.domain.interfaces.email import IEmailProvider
 from src.auth.domain.interfaces.token_auth import ITokenStorage
 from src.core.config import config
-from src.core.taskiq_app import broker
 
 
 class SmtpProvider(IEmailProvider):
@@ -18,8 +13,6 @@ class SmtpProvider(IEmailProvider):
     def __init__(self,
                  storage: ITokenStorage):
         self.storage = storage
-
-
 
     async def send_confirm_message(self, email: str, token: str | int, content_mail: str, expire: int = config.email.TWO_FACTOR_TOKEN_EXPIRE_SECONDS) -> None:
         msg = self.mail_message(email, content=content_mail)

@@ -76,6 +76,13 @@ async def email_confirm_token_user(request: Request, email_provider: EmailProvid
     return {"message": f"Sent message '{request.state.user.email}'"}
 
 
+@router.post("/email/2fa/sent-confirm/renew")
+@check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
+async def email_confirm_token_user(email_provider: EmailProvideDep, auth: TokenAuthDep, email: str = Body(...)):
+    await sent_2fa_code_email_message.kiq(email_provider, email)
+    return {"message": f"Sent confirm message '{email}'"}
+
+
 @router.get("/email/2fa/code/{code}")
 @check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
 async def email_first_confirm_code(request: Request, code: int, email_provider: EmailProvideDep, auth: TokenAuthDep):

@@ -124,6 +124,8 @@ udp://6ahddutb1ucc3cp.ru:6969/announce
                         size_bytes = item['size_bytes']
 
                         magnet = f"magnet:?xt=urn:btih:{info_hash}&dn={name}"
+                        print(improved_clean_title(name))
+
                         torrents.append({
                             "name": name,
                             "magnet": magnet,

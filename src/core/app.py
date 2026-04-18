@@ -55,11 +55,11 @@ def setup_tasks(scheduler: AsyncIOScheduler):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # await broker.startup()
+    await broker.startup()
     setup_logging()
     # setup_tasks(scheduler)
     yield
-    # await broker.shutdown()
+    await broker.shutdown()
 
 
 logger = logging.getLogger(__name__)
