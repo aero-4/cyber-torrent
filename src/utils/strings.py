@@ -1,3 +1,5 @@
+import re
+
 from googletrans.models import Translated
 from slugify import slugify
 from googletrans import Translator
@@ -11,3 +13,6 @@ async def translate_text(text: str, dest_lang: str = "ru") -> str:
     async with Translator() as translator:
         translated: Translated = await translator.translate(text, dest=dest_lang)
         return translated.text
+
+
+

@@ -6,19 +6,15 @@ from src.torrents.infrastructure.db.uow import TorrentsUnitOfWork
 from src.torrents.infrastructure.services.torrents_loader import TorrentSearchProvider
 
 
-
 async def searcher_torrents(game: Game) -> None:
     logging.info("Loading torrents...")
 
-    query = f"{game.name} repack"
     torrent = TorrentSearchProvider()
     uow = TorrentsUnitOfWork()
 
     success = 0
 
-    search_results = await torrent.search(query)
-
-    logging.info(f"Search query: {query} | Found torrents: {len(search_results)}")
+    search_results = await torrent.search(game.name)
 
     async with uow:
         for torrent_data in search_results:
@@ -27,9 +23,11 @@ async def searcher_torrents(game: Game) -> None:
                 torr = await uow.torrents.add(t_data)
                 success += 1
 
-                logging.info(f"Added torrent: {torr.name}")
+                logging.info(f"Added torrent: {t_data.name}")
                 await uow.commit()
             except AlreadyExists as e:
                 logging.error(e)
 
     logging.info(f"Success torrents added: {success}")
+
+

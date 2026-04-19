@@ -12,7 +12,7 @@ from src.users.infrastructure.db.uow import UsersUnitOfWork
 async def edit_new_avatar(avatar: UploadFile, user: User) -> str:
     uow = UsersUnitOfWork()
 
-    random_name = Path(f"/static/{uuid.uuid4()}.jpeg")
+    random_name = Path(f"static/uploads/{uuid.uuid4()}.jpeg")
 
     async with aiofiles.open(random_name, "wb") as file:
         bytes = await avatar.read()

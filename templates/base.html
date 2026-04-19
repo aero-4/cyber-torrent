@@ -32,8 +32,17 @@
                 @apply font-bold uppercase tracking-tighter text-white transition-colors duration-300;
             }
 
+            /* Заменили скучный бордер H1 на кибер-линию */
             h1 {
-                @apply text-4xl sm:text-6xl mb-6 border-b-4 border-blue-600 pb-2;
+                @apply text-4xl sm:text-6xl mb-6 pb-2 relative inline-block;
+            }
+
+            h1::after {
+                content: '';
+                @apply absolute bottom-0 left-0 w-full h-1;
+                background: linear-gradient(90deg, #00f0ff, #ff003c, #fcee0a, #00f0ff);
+                background-size: 300% 100%;
+                animation: cyber-gradient 3s linear infinite;
             }
 
             h2 {
@@ -84,15 +93,54 @@
                 @apply bg-blue-600 text-black;
             }
         }
+
+
+        .cyber-animated-line {
+            background: linear-gradient(90deg, #00f0ff, #ff003c, #fcee0a, #00f0ff);
+            background-size: 300% 100%;
+            animation: cyber-gradient 3s linear infinite;
+        }
+
+        @keyframes cyber-gradient {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .hologram-text {
+            color: #fff;
+            position: relative;
+            text-shadow:
+                0 0 8px rgba(0, 240, 255, 0.8),
+                -3px 0 0 rgba(255, 0, 60, 0.7),
+                3px 0 0 rgba(0, 240, 255, 0.7);
+            animation: hologram-flicker 4s infinite alternate;
+        }
+
+        @keyframes hologram-flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+                opacity: 1;
+                text-shadow:
+                    0 0 10px rgba(0, 240, 255, 0.9),
+                    -3px 0 0 rgba(255, 0, 60, 0.8),
+                    3px 0 0 rgba(0, 240, 255, 0.8);
+            }
+            20%, 24%, 55% {
+                opacity: 0.6;
+                text-shadow: none;
+            }
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
-<header class="border-b-8 border-blue-600 bg-black sticky top-0 z-50 transition-colors duration-300">
+<header class="bg-black sticky top-0 z-50 transition-colors duration-300 relative">
+
+    <div class="cyber-animated-line absolute bottom-0 left-0 w-full h-2"></div>
+
     <div class="mx-auto px-4 py-6 flex justify-between items-center gap-4">
-        <a href="/" class="group shrink-0">
-            <div class="logo-text text-3xl sm:text-5xl font-bold tracking-tighter uppercase text-white group-hover:skew-x-12 transition-transform">
-                КИБЕР<span class="text-blue-600">.TORRENT</span>
+        <a href="/" class="group shrink-0 relative">
+            <div class="logo-text hologram-text text-3xl sm:text-5xl font-bold tracking-tighter uppercase text-white group-hover:skew-x-12 transition-transform inline-block">
+                КИБЕР<span class="text-blue-500" style="text-shadow: none;">.TORRENT</span>
             </div>
         </a>
 
@@ -150,15 +198,19 @@
         </aside>
 
         <section class="min-w-0">
-            {% block content %}{% endblock %}
+            {% block content %}
+            <h1>Добро пожаловать</h1>
+            <p>Система функционирует нормально.</p>
+            {% endblock %}
         </section>
     </div>
 </main>
 
-<footer class="border-t-8 border-blue-900 bg-black p-10 mt-auto transition-colors duration-300">
+<footer class="bg-black p-10 mt-auto transition-colors duration-300 relative">
+    <div class="cyber-animated-line absolute top-0 left-0 w-full h-2"></div>
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         <div class="uppercase">
-            <div class="logo-text text-2xl font-bold text-white mb-2">CYBERTORRENT</div>
+            <div class="logo-text hologram-text text-2xl font-bold text-white mb-2 inline-block">КИБЕР.TORRENT</div>
             <p class="text-sm text-blue-900 m-0">ALL RIGHTS RESERVED 2026.</p>
         </div>
         <div class="flex md:justify-end gap-10 font-bold uppercase">

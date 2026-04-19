@@ -3,7 +3,10 @@
 {% block content %}
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
-    body { font-family: 'Space Mono', monospace; }
+
+    body {
+        font-family: 'Space Mono', monospace;
+    }
 </style>
 
 <div id="systemPopup" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
@@ -20,7 +23,8 @@
         <input type="email" id="newEmailInput"
                class="w-full border-4 border-blue-600 bg-black px-4 py-4 text-xl text-blue-400 outline-none focus:bg-blue-950 mb-6"
                placeholder="NEW_USER@NODE.SYS">
-        <button onclick="requestEmailChange()" class="w-full border-4 border-blue-600 bg-blue-600 py-4 text-xl font-bold text-black uppercase hover:bg-white transition-all">ОБНОВИТЬ И ОТПРАВИТЬ КОД</button>
+        <button onclick="requestEmailChange()" class="w-full border-4 border-blue-600 bg-blue-600 py-4 text-xl font-bold text-black uppercase hover:bg-white transition-all">ОБНОВИТЬ И ОТПРАВИТЬ КОД
+        </button>
         <button onclick="closeModals()" class="w-full mt-4 text-blue-900 uppercase font-bold hover:text-blue-600">ОТМЕНА</button>
     </div>
 </div>
@@ -37,6 +41,22 @@
     </div>
 </div>
 
+<div id="modalChangePassword" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4">
+    <div class="w-full max-w-md border-4 border-blue-600 bg-black p-6 shadow-[8px_8px_0px_#2563eb]">
+        <div class="mb-4 text-2xl font-bold uppercase text-white text-center">ИЗМЕНИТЬ ПАРОЛЬ</div>
+        <input type="password" id="oldPasswordInput"
+               class="w-full border-4 border-blue-600 bg-black px-4 py-4 text-xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 mb-4"
+               placeholder="СТАРЫЙ ПАРОЛЬ">
+
+        <input type="password" id="newPasswordInput"
+               class="w-full border-4 border-blue-600 bg-black px-4 py-4 text-xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 mb-6"
+               placeholder="НОВЫЙ ПАРОЛЬ">
+
+        <button onclick="submitChangePassword()" class="w-full border-4 border-blue-600 bg-blue-600 py-4 text-xl font-bold text-black uppercase hover:bg-white transition-all">СОХРАНИТЬ</button>
+        <button onclick="closeModals()" class="w-full mt-4 text-blue-900 uppercase font-bold hover:text-blue-600">ОТМЕНА</button>
+    </div>
+</div>
+
 <div id="modalOtp" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
     <div class="w-full max-w-md border-4 border-blue-600 bg-black p-6 shadow-[8px_8px_0px_#2563eb]">
         <h2 class="mb-4 text-2xl font-bold uppercase text-white text-center">НАСТРОЙКА OTP</h2>
@@ -45,7 +65,8 @@
             <img id="qrImage" class="w-48 h-48 border-4 border-black bg-white object-contain" alt="QR">
         </div>
         <form id="otpConfirmForm" class="space-y-4">
-            <input type="text" id="otpCode" required maxlength="6" class="w-full border-4 border-blue-600 bg-black py-4 text-center text-3xl text-white outline-none focus:bg-blue-950" placeholder="000000">
+            <input type="text" id="otpCode" required maxlength="6" class="w-full border-4 border-blue-600 bg-black py-4 text-center text-3xl text-white outline-none focus:bg-blue-950"
+                   placeholder="000000">
             <button type="submit" class="w-full border-4 border-blue-600 bg-white py-4 text-xl font-bold text-black uppercase hover:bg-blue-600">ПРОВЕРИТЬ</button>
         </form>
         <button onclick="closeModals()" class="w-full mt-4 text-blue-900 uppercase font-bold hover:text-blue-600">ОТМЕНА</button>
@@ -58,56 +79,162 @@
     </div>
 
     <div id="user" class="my-auto justify-center w-full mb-6 text-center font-bold uppercase">
-        </div>
+    </div>
 </div>
 
 <script>
     const userContainer = document.getElementById('user');
     let currentUserEmail = '';
     let emailTimerInterval = null;
+    const avatarInput = document.getElementById('avatarInput');
 
-    // --- ИНИЦИАЛИЗАЦИЯ ---
+    async function uploadAvatar() {
+        const input = document.getElementById('avatarInput');
+        const file = input.files?.[0];
+
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/users/avatar', {
+                method: 'PATCH',
+                body: formData
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                showPopup(data.message || 'ОШИБКА ОБНОВЛЕНИЯ АВАТАРА', true);
+                return;
+            }
+
+            const blob = await res.blob();
+            const newAvatarUrl = URL.createObjectURL(blob);
+
+            const avatarEl = document.getElementById('userAvatar');
+            if (avatarEl) avatarEl.src = newAvatarUrl;
+
+            showPopup('АВАТАР УСПЕШНО ОБНОВЛЕН');
+            input.value = '';
+        } catch (e) {
+            showPopup('СИСТЕМНАЯ ОШИБКА: НЕТ СВЯЗИ С СЕРВЕРОМ', true);
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", loadUserData);
 
     async function loadUserData() {
         try {
-            const response = await fetch(`/users/me`, { method: "GET" });
+            const response = await fetch(`/users/me`, {method: "GET"});
             const data = await response.json();
             if (!data.email) throw new Error();
 
             currentUserEmail = data.email;
 
             userContainer.innerHTML = `
-                <img class="rounded-full mx-auto mb-4 border-4 border-blue-600 w-24 h-24 object-cover" src="${data.avatar_image}"/>
+               <img
+                    id="userAvatar"
+                    class="rounded-full mx-auto mb-4 w-24 h-24 object-cover bg-black"
+                    src="${data.avatar_image || ''}"
+                    alt="avatar"
+                />
+
+                <button
+                    onclick="document.getElementById('avatarInput').click()"
+                    class="py-5 px-4 font-bold uppercase transition-all border-4 border-blue-600 text-black hover:bg-blue-600/10">
+                    ИЗМЕНИТЬ ФОТО АВАТАРА
+                </button>
+
+                <input
+                    id="avatarInput"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                />
                 <h3 class="text-2xl mb-8 text-white tracking-widest">EMAIL: ${data.email}</h3>
 
                 <div class="flex flex-col gap-6 max-w-sm mx-auto">
+
                     <div class="flex flex-col gap-2">
                         <button onclick="handleEmailVerify(${data.is_verify_email})"
-                            class="py-5 px-4 font-bold uppercase transition-all border-4 ${data.is_verify_email ? 'border-green-600 text-green-600 hover:bg-green-600/10' : 'bg-red-600 text-white hover:bg-red-500 border-red-600'}">
+                            class="text-black py-5 px-4 font-bold uppercase transition-all border-4 ${data.is_verify_email ? 'border-green-600 hover:bg-green-600/10' : 'bg-red-600 hover:bg-red-500 border-red-600'}">
                             2FA ПО ПОЧТЕ: ${data.is_verify_email ? 'АКТИВНО' : 'ПОДТВЕРДИТЬ'}
                         </button>
-                        ${data.is_verify_email ? '<span class="text-[10px] text-blue-900">НАЖМИТЕ НА КНОПКУ, ЧТОБЫ ИЗМЕНИТЬ АДРЕС</span>' : ''}
                     </div>
 
                     <button onclick="handleOtpVerify(${data.is_verify_otp})"
-                        class="py-5 px-4 font-bold uppercase transition-all border-4 ${data.is_verify_otp ? 'border-green-600 text-green-600 hover:bg-green-600/10' : 'bg-red-600 text-white hover:bg-red-500 border-red-600'}">
+                        class="text-black py-5 px-4 font-bold uppercase transition-all border-4 ${data.is_verify_otp ? 'border-green-600 hover:bg-green-600/10' : 'bg-red-600 hover:bg-red-500 border-red-600'}">
                         OTP - КОДЫ: ${data.is_verify_otp ? 'АКТИВНО' : 'ПОДКЛЮЧИТЬ'}
+                    </button>
+
+                    <button onclick="openChangePasswordModal()"
+                        class="text-black py-5 px-4 font-bold uppercase transition-all border-4 border-blue-600 hover:bg-blue-600/10">
+                        ИЗМЕНИТЬ ПАРОЛЬ
+                    </button>
+
+                    <button onclick="showPopup('ФУНКЦИЯ УДАЛЕНИЯ В РАЗРАБОТКЕ')"
+                        class="text-black py-5 px-4 font-bold uppercase transition-all border-4 border-red-900 text-red-900 hover:bg-red-900/10 hover:border-red-600 hover:text-red-600">
+                        УДАЛИТЬ АККАУНТ
                     </button>
                 </div>
             `;
+            document.getElementById('avatarInput').addEventListener('change', uploadAvatar);
         } catch (error) {
             userContainer.innerHTML = "<p class='text-red-500'>CRITICAL_ERROR: DATA_FETCH_FAILED</p>";
         }
     }
 
+    // --- ЛОГИКА СМЕНЫ ПАРОЛЯ ---
+    function openChangePasswordModal() {
+        document.getElementById('oldPasswordInput').value = '';
+        document.getElementById('newPasswordInput').value = '';
+        document.getElementById('modalChangePassword').classList.remove('hidden');
+    }
+
+    async function submitChangePassword() {
+        const old_password = document.getElementById('oldPasswordInput').value;
+        const new_password = document.getElementById('newPasswordInput').value;
+
+        // Базовая валидация согласно DTO
+        if (old_password.length < 6 || old_password.length > 32 ||
+            new_password.length < 6 || new_password.length > 32) {
+            showPopup("ОШИБКА: ДЛИНА ПАРОЛЯ ДОЛЖНА БЫТЬ ОТ 6 ДО 32 СИМВОЛОВ", true);
+            return;
+        }
+
+        try {
+            const res = await fetch('/users/change-password', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({old_password, new_password})
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                showPopup("ПАРОЛЬ УСПЕШНО ОБНОВЛЕН");
+                closeModals();
+            } else if (res.status === 421) {
+                showPopup("ОШИБКА: НЕВЕРНО ВВЕДЕНЫ ДАННЫЕ", true);
+            } else {
+                // Если с бэка пришел 400 и есть кастомное сообщение в data.error.message
+                const errMsg = (data.error && data.error.message) ? data.error.message : "ОШИБКА ОБНОВЛЕНИЯ СИСТЕМЫ";
+                showPopup(`ОШИБКА: ${errMsg}`, true);
+            }
+        } catch (e) {
+            showPopup("СИСТЕМНАЯ ОШИБКА: НЕТ СВЯЗИ С СЕРВЕРОМ", true);
+        }
+    }
+
+
     // --- ЛОГИКА ПОЧТЫ ---
     async function handleEmailVerify(isVerified) {
         if (isVerified) {
-            // Если почта уже есть, открываем окно для смены на новую
             document.getElementById('modalEditEmail').classList.remove('hidden');
         } else {
-            // Если почта не подтверждена, просто шлем код на текущую
             sendVerificationCode(currentUserEmail);
         }
     }
@@ -118,18 +245,14 @@
             showPopup("ОШИБКА: НЕКОРРЕКТНЫЙ EMAIL", true);
             return;
         }
-        // Шлем код на новую почту
         sendVerificationCode(newEmail);
     }
 
     async function sendVerificationCode(email) {
         try {
-            // Мы передаем email в параметрах или заголовках, если бэкенд поддерживает.
-            // Если бэкенд берет email только из сессии, его нужно сначала обновить в БД.
             const res = await fetch('/auth/email/2fa/sent-confirm/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // body: JSON.stringify({ email: email }) // Раскомментируйте, если бэкенд принимает email
+                headers: {'Content-Type': 'application/json'}
             });
             const data = await res.json();
 
@@ -156,7 +279,7 @@
         try {
             const formdata = new FormData();
             formdata.append("email", currentUserEmail);
-            const response = await fetch(`/auth/otp/qr`, { method: 'POST', body: formdata });
+            const response = await fetch(`/auth/otp/qr`, {method: 'POST', body: formdata});
             if (!response.ok) throw new Error();
             const blob = await response.blob();
             document.getElementById('qrImage').src = URL.createObjectURL(blob);
@@ -174,12 +297,15 @@
         document.getElementById('systemPopup').classList.remove('hidden');
     }
 
-    function closePopup() { document.getElementById('systemPopup').classList.add('hidden'); }
+    function closePopup() {
+        document.getElementById('systemPopup').classList.add('hidden');
+    }
 
     function closeModals() {
         document.getElementById('modalEmail').classList.add('hidden');
         document.getElementById('modalOtp').classList.add('hidden');
         document.getElementById('modalEditEmail').classList.add('hidden');
+        document.getElementById('modalChangePassword').classList.add('hidden'); // Добавлено скрытие модалки пароля
         clearInterval(emailTimerInterval);
     }
 
@@ -187,7 +313,9 @@
         container.innerHTML = '';
         for (let i = 0; i < 6; i++) {
             const input = document.createElement('input');
-            input.type = 'text'; input.maxLength = 1; input.inputMode = 'numeric';
+            input.type = 'text';
+            input.maxLength = 1;
+            input.inputMode = 'numeric';
             input.className = 'h-12 w-10 border-4 border-blue-600 bg-black text-center text-xl font-bold text-white outline-none focus:border-white focus:bg-blue-900 transition-all';
             input.addEventListener('input', (e) => {
                 if (e.target.value && i < 5) container.children[i + 1].focus();
@@ -228,7 +356,7 @@
             if (res.ok) {
                 showPopup("ВЕРИФИКАЦИЯ ПРОЙДЕНА");
                 closeModals();
-                loadUserData(); // Обновляем кнопки
+                loadUserData();
             } else {
                 showPopup("НЕВЕРНЫЙ КОД", true);
             }
@@ -245,7 +373,7 @@
         fd.append('email', currentUserEmail);
         fd.append('otp_code', code);
         try {
-            const res = await fetch('/auth/otp/confirm', { method: 'POST', body: fd });
+            const res = await fetch('/auth/otp/confirm', {method: 'POST', body: fd});
             if (res.ok) {
                 showPopup("OTP ЗАЩИТА АКТИВИРОВАНА");
                 closeModals();
