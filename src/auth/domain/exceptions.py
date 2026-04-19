@@ -38,3 +38,7 @@ class InvalidSentTokenEmail(BadRequest):
 
 class EmailCodeRequired(BadRequest):
     message = "Email code required"
+
+
+class EmailAlreadyExists(BadRequest):
+    message = "Email already exists"

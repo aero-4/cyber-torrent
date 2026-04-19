@@ -7,12 +7,12 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from time import perf_counter
 
-from fastapi_csrf_protect import CsrfProtect
+# from fastapi_csrf_protect import CsrfProtect
 from sqladmin import Admin
 from starlette.responses import Response
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
-from starlette_csrf import CSRFMiddleware
+# from starlette_csrf import CSRFMiddleware
 
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
 from src.auth.presentation.api import router as auth_api_router
@@ -57,7 +57,7 @@ def setup_tasks(scheduler: AsyncIOScheduler):
 async def lifespan(app: FastAPI):
     await broker.startup()
     setup_logging()
-    # setup_tasks(scheduler)
+    setup_tasks(scheduler)
     yield
     await broker.shutdown()
 
@@ -176,8 +176,8 @@ async def logging_requests(request: Request, call_next):
     return response
 
 
-class CustomResponseCSRFMiddleware(CSRFMiddleware):
-    def _get_error_response(self, request: Request) -> Response:
-        return JSONResponse(
-            content={"code": "Not valid csrf-token"}, status_code=403
-        )
+# class CustomResponseCSRFMiddleware(CSRFMiddleware):
+#     def _get_error_response(self, request: Request) -> Response:
+#         return JSONResponse(
+#             content={"code": "Not valid csrf-token"}, status_code=403
+#         )

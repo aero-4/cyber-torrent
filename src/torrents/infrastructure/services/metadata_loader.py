@@ -42,7 +42,7 @@ class MetadataParser:
                     game_data['description_raw'] = translated_desc
                     return game_data
                 except Exception as e:
-                    logging.warning(f"Not translate this desc '{slug}'. Reason {e}")
+                    logging.warning(f"Not translate desc '{slug}'. Reason {e}")
 
                 return {}
 
@@ -54,7 +54,7 @@ class MetadataParser:
             logging.error("Not worked updating description games")
             raise e
 
-    async def search_games(self, page: int = 1, max_size: int = 40, platform: str = "1"):
+    async def search_games(self, page: int = 1, max_size: int = 100, platform: str = "1"):
         params = {
             "key": self.api_key,
             "platforms": platform,
@@ -80,5 +80,5 @@ class MetadataParser:
                 data = await r.json()
                 return data.get("results", []) if not url else data
             except Exception as e:
-                logging.error(f"Fail request {params}: {e}")
+                logging.error(f"Fail request {url}:{params}: {e}")
                 return []

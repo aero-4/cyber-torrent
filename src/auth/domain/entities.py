@@ -45,3 +45,4 @@ class UserUpdate(BaseModel):
     is_verify_email: bool | None = None
     avatar_image: str | None = None
     role: UserRoles | None = None
+    otp_secret: str | None = None

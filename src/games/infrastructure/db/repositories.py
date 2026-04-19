@@ -44,6 +44,7 @@ class PGGamesRepository:
         obj = result.unique().scalar_one_or_none()
         if not obj:
             raise NotFound(message=f"Game '{slug}' not found")
+
         similar_games = await self.get_by_tags(obj, [i.name for i in obj.tags[:1]])
 
         return obj.to_entity(similar_games)
@@ -73,9 +74,9 @@ class PGGamesRepository:
             .options(
                 joinedload(GamesOrm.torrents)
             )
-            # .order_by(
-            #     GamesOrm.updated_at.desc()
-            # )
+            .order_by(
+                GamesOrm.created_at.desc()
+            )
             .offset(data.offset)
             .limit(data.limit)
         )

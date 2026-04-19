@@ -1,5 +1,3 @@
-import io
-import secrets
 import uuid
 import pyotp
 import qrcode
@@ -10,14 +8,16 @@ from src.core.config import config
 
 class QrCodeProvider(IQrCodeProvider):
 
-    def __init__(self, issuer: str = config.otp.OTP_ISSUER, secret: str = config.otp.OTP_SECRET):
+    def __init__(self, issuer: str = config.otp.OTP_ISSUER):
+        self.qr = None
+        self.totp = None
         self.issuer = issuer
-        self.secret = secret
 
-        self.totp = pyotp.totp.TOTP(self.secret)
+
+    def create_qr_code(self, email: str, secret: str) -> str:
+        self.totp = pyotp.TOTP(secret)
         self.qr = qrcode.QRCode()
 
-    def create_qr_code(self, email: str) -> str:
         uri = self._get_opt_code_uri(email)
 
         self.qr.add_data(uri)
@@ -25,7 +25,8 @@ class QrCodeProvider(IQrCodeProvider):
 
         return self._image()
 
-    def check_otp_code(self, code: str) -> bool:
+    def check_otp_code(self, code: str, secret: str) -> bool:
+        self.totp = pyotp.TOTP(secret)
         return self.totp.verify(code)
 
     def _get_opt_code_uri(self, email: str) -> str:

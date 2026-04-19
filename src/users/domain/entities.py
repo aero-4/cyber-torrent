@@ -8,6 +8,7 @@ class User(BaseModel):
     role: int = None
     avatar_image: str | None = None
     is_verify_otp: bool = False
+    otp_secret: str | None = None
     is_verify_email: bool = False
 
 

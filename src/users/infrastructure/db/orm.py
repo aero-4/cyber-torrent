@@ -26,6 +26,7 @@ class UsersOrm(Base):
     role: Mapped[UserRoles] = mapped_column(Integer(), default=UserRoles.USER, nullable=True)
     is_verify_otp: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=True)
     is_verify_email: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=True)
+    otp_secret: Mapped[str] = mapped_column(String(), nullable=True)
     avatar_image: Mapped[str] = mapped_column(String(), nullable=True)
     comments: Mapped[List["CommentsOrm"]] = relationship(back_populates="user", uselist=True)
 
@@ -37,7 +38,8 @@ class UsersOrm(Base):
             role=self.role,
             avatar_image=self.avatar_image,
             is_verify_otp=self.is_verify_otp,
-            is_verify_email=self.is_verify_email
+            is_verify_email=self.is_verify_email,
+            otp_secret=self.otp_secret
         )
 
 
@@ -48,7 +50,9 @@ class UsersAdmin(BaseAdmin, model=UsersOrm):
         UsersOrm.password,
         UsersOrm.role,
         UsersOrm.is_verify_otp,
-        UsersOrm.avatar_image
+        UsersOrm.is_verify_email,
+        UsersOrm.avatar_image,
+        UsersOrm.otp_secret
     ]
 
     column_formatters = {

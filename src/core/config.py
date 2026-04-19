@@ -1,8 +1,9 @@
 import secrets
 from typing import Literal
 
+import pyotp
 from dotenv import find_dotenv, load_dotenv
-from fastapi_csrf_protect import CsrfProtect
+# from fastapi_csrf_protect import CsrfProtect
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = find_dotenv()
@@ -37,7 +38,6 @@ class AuthConfig(BaseAppConfig):
 
 
 class OTPAuthConfig(BaseAppConfig):
-    OTP_SECRET: str = secrets.token_urlsafe(32)
     OTP_ISSUER: str = "Cyber"
 
 
@@ -123,9 +123,9 @@ class Config(BaseAppConfig):
     redis: RedisConfig = RedisConfig()
 
 
-@CsrfProtect.load_config
-def get_csrf_config():
-    return CsrfConfig()
+# @CsrfProtect.load_config
+# def get_csrf_config():
+#     return CsrfConfig()
 
 
 config = Config()

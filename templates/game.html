@@ -8,19 +8,22 @@
 </div>
 
 <div id="lightbox-modal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-sm items-center justify-center opacity-0 transition-opacity duration-300">
-    <button onclick="closeLightbox()" class="absolute top-5 right-5 text-white hover:text-gray-300 z-50">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <button onclick="closeLightbox()" class="border-0 bg-transparent absolute top-5 right-5 text-white/50 hover:text-white z-50 transition-colors">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
     </button>
-    <button onclick="changeLightboxImage(-1)" class="absolute left-5 text-white hover:text-gray-300 z-50">
-        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+    <button onclick="changeLightboxImage(-1)" class="border-0 bg-transparent absolute left-0 top-0 bottom-0 w-20 md:w-32 flex items-center justify-center text-white/20 hover:text-white/80 hover:bg-white/5 transition-all z-40">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
     </button>
-    <img id="lightbox-image" src="" class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl transition-transform duration-300" alt="Screenshot Full">
-    <button onclick="changeLightboxImage(1)" class="absolute right-5 text-white hover:text-gray-300 z-50">
-        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+    <img id="lightbox-image" src="" class="bg-transparent max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl transition-transform duration-300" alt="Screenshot Full">
+
+    <button onclick="changeLightboxImage(1)" class="border-0 bg-transparent absolute right-0 top-0 bottom-0 w-20 md:w-32 flex items-center justify-center text-white/20 hover:text-white/80 hover:bg-white/5 transition-all z-40">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
         </svg>
     </button>
@@ -192,7 +195,7 @@
                     ${game.torrents.map(t => `
                         <a href="${t.magnet}" class="group flex items-center justify-between bg-zinc-900 p-5 hover:bg-zinc-800 hover:border-green-500/50 transition-all duration-300 shadow-lg">
                             <div class="flex items-center gap-3">
-                                <div class="bg-green-500/10 p-3 rounded-lg group-hover:bg-green-500/20">
+                                <div class="bg-green-500/10 p-2 rounded-lg group-hover:bg-green-500/20">
                                     <span class="text-green-500 font-bold text-xl">⬇</span>
                                 </div>
                                 <div>

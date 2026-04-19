@@ -24,15 +24,14 @@ async def oauth2_google_case(request: Request, oauth2_google: IOauth2Provider, h
     hashed_password = hasher.hash_password(password)
     email = data['email']
 
-    user_data = UserCreate(email=email,
-                           password=hashed_password,
-                           avatar_image=data["picture"],
-                           is_verify_email=data["email_verified"])
-
     async with uow:
         user = await uow.users.get_by_email(email=email)
 
         if not user:
+            user_data = UserCreate(email=email,
+                                   password=hashed_password,
+                                   avatar_image=data["picture"],
+                                   is_verify_email=data["email_verified"])
             user = await uow.users.add(user_data)
             await uow.commit()
 

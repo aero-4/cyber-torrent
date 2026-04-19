@@ -6,6 +6,7 @@ from src.torrents.infrastructure.db.uow import TorrentsUnitOfWork
 from src.torrents.infrastructure.services.torrents_loader import TorrentSearchProvider
 
 
+
 async def searcher_torrents(game: Game) -> None:
     logging.info("Loading torrents...")
 

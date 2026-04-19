@@ -1,7 +1,5 @@
-from fastapi import APIRouter, Form, Body, Query
+from fastapi import APIRouter, Form, Body
 from fastapi.responses import RedirectResponse
-from fastapi_csrf_protect import CsrfProtect
-from starlette.requests import Request
 from starlette.responses import FileResponse, HTMLResponse
 
 from src.auth.domain.entities import UserRoles
@@ -10,11 +8,10 @@ from src.auth.presentation.dtos import UserRegisterDTO, UserLoginDTO, UserOtpVer
 from src.auth.presentation.roles import check_roles
 from src.auth.usecase.authentication import authenticate
 from src.auth.usecase.auth_qr import *
-from src.auth.usecase.confirm_email import confirm_email, sent_confirm_message_email
+from src.auth.usecase.confirm_email import confirm_email, sent_confirm_message_email_renew
 from src.auth.usecase.oauth2 import oauth2_google_case, oauth2_yandex_case
 from src.auth.usecase.registration import registration
 from src.core.config import config
-from templates import templates
 from src.auth.infrastructure.tasks.confirm_message import send_confirm_2fa_message, sent_2fa_code_email_message
 
 router = APIRouter()
@@ -37,11 +34,10 @@ async def login_user(
         auth: TokenAuthDep,
         hasher_provider: HasherProvideDep,
         qr_code_provider: QrProvideDep,
-        email_provider: EmailProvideDep,
         login_data: UserLoginDTO = Form(...),
 
 ):
-    await authenticate(login_data, auth, hasher_provider, qr_code_provider, email_provider)
+    await authenticate(login_data, auth, hasher_provider, qr_code_provider)
     return {"message": "User sign in"}
 
 
@@ -58,28 +54,32 @@ async def refresh_token(auth: TokenAuthDep):
 
 
 @router.post("/otp/confirm")
-async def qr_code_auth(otp_form: UserOtpVerifyDTO = Form()):
-    await authenticate_opt_code(otp_form.otp_code, otp_form.email)
+@check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
+async def qr_code_auth(request: Request, auth: TokenAuthDep, otp_form: UserOtpVerifyDTO = Form()):
+    await authenticate_opt_code(otp_form.otp_code, request.state.user, auth)
     return {"message": "Otp verify confirm"}
 
 
 @router.post("/otp/qr")
-async def qr_code(email: str = Form(..., description="Email required for qr auth")):
-    qr_path = generate_qr_code(email)
+@check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
+async def qr_code(request: Request):
+    qr_path = await generate_qr_code(request.state.user)
     return FileResponse(qr_path)
 
 
 @router.post("/email/2fa/sent-confirm/")
 @check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
-async def email_confirm_token_user(request: Request, email_provider: EmailProvideDep, auth: TokenAuthDep):
+async def email_confirm_token_user(request: Request, email_provider: EmailProvideDep):
     await sent_2fa_code_email_message.kiq(email_provider, request.state.user.email)
     return {"message": f"Sent message '{request.state.user.email}'"}
 
 
 @router.post("/email/2fa/sent-confirm/renew")
 @check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
-async def email_confirm_token_user(email_provider: EmailProvideDep, auth: TokenAuthDep, email: str = Body(...)):
-    await sent_2fa_code_email_message.kiq(email_provider, email)
+async def email_confirm_token_user(request: Request,
+                                   email_provider: EmailProvideDep,
+                                   email: str = Body(...)):
+    await sent_confirm_message_email_renew(request.state.user, email, email_provider)
     return {"message": f"Sent confirm message '{email}'"}
 
 
