@@ -4,5 +4,7 @@ from src.core.domain.entities import PageCollection
 
 
 class GamesCollectionDTO(PageCollection):
-    category: str | None = None
+    category: str | int | None = None
     tag: str | None = None
+    query: str | None = None
+    year: int | None = None

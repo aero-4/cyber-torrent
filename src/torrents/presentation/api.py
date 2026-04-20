@@ -18,7 +18,3 @@ async def create_torrent(torrent_data: TorrentCreateDTO):
 async def get_all_torrents():
     return await collect_torrents()
 
-
-@router.get("/search/")
-async def search(query: str = Query(...)):
-    return await search_torrents(query)

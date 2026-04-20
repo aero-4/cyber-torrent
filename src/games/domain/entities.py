@@ -57,6 +57,6 @@ class GameCreate(BaseModel):
     tags: list[GameTagsCreate] | None = None
 
 
-class GameCollection(BaseModel):
+class GamesCollection(BaseModel):
     games: list[Game]
     total_count: int = 0

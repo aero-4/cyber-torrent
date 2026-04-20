@@ -32,9 +32,15 @@
             return params.get("tag")
         }
 
+        const getQuerySearch = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("query")
+        }
+
         let currentPage = getUrlPage();
         let currentCategory = getCategory();
         let currentTag = getTag();
+        let currentSearch = getQuerySearch();
 
         const renderGames = (games) => {
             if (!games || games.length === 0) {
@@ -136,16 +142,19 @@
                         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
                     </div>`;
 
+
                 const response = await fetch('/games/', {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
                         tag: currentTag,
                         category: currentCategory,
+                        query: currentSearch,
                         offset: offset,
                         limit: LIMIT
                     })
                 });
+
 
                 const data = await response.json();
 
@@ -155,16 +164,15 @@
                 renderGames(games);
                 renderPagination(currentPage, totalCount);
 
-                // games.forEach(game => {
-                //     sessionStorage.setItem(`game_detail_${game.slug}`, JSON.stringify(game));
-                // });
+                games.forEach(game => {
+                    sessionStorage.setItem(`game_detail_${game.slug}`, JSON.stringify(game));
+                });
 
             } catch (error) {
                 home.innerHTML = "<p class='text-red-500 col-span-full text-center'>Ошибка загрузки контента.</p>";
             }
         };
 
-        // Обработка кнопки "Назад" в браузере
         window.onpopstate = () => {
             currentPage = getUrlPage();
             fetchGames();

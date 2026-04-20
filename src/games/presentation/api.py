@@ -1,7 +1,10 @@
-from fastapi import APIRouter
+from typing import Annotated
+
+from fastapi import APIRouter, Query
 
 from src.games.presentation.dtos import GamesCollectionDTO
 from src.games.usecase.collect_games import collect_games, get_game
+from src.games.usecase.search_games import search_games
 
 router = APIRouter()
 
@@ -15,3 +18,7 @@ async def all_games(dto: GamesCollectionDTO):
 async def get_info_game_slug(slug: str):
     return await get_game(slug)
 
+
+@router.get("/search/")
+async def get_search_games(query: Annotated[str, Query(..., min_length=1)]):
+    return await search_games(query)

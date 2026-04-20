@@ -23,7 +23,7 @@ async def searcher_torrents(game: Game) -> None:
         for torrent_data in search_results:
             t_data = TorrentCreate(game_id=game.id, **torrent_data)
             try:
-                torr = await uow.torrents.add(t_data)
+                await uow.torrents.add(t_data)
                 success += 1
 
                 logging.info(f"Added torrent: {t_data.name}")

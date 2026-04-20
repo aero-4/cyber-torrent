@@ -11,9 +11,9 @@ from src.torrents.infrastructure.tasks.torrent import searcher_torrents
 
 async def searcher_games() -> None:
     redis = get_redis_client()
-
     metadata = MetadataParser()
     uow = GamesUnitOfWork()
+
     page = 0
     try:
         page = await redis.get("metadata_page")
@@ -58,6 +58,6 @@ async def searcher_games() -> None:
         if game_obj:
             await searcher_torrents(game_obj)
 
-    await redis.setex(name="metadata_page", value=page, time=timedelta(minutes=60))
+    await redis.setex(name="metadata_page", value=page, time=timedelta(minutes=65))
 
     logging.info(f"Success added games: {success}")

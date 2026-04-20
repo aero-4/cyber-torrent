@@ -57,7 +57,7 @@ def setup_tasks(scheduler: AsyncIOScheduler):
 async def lifespan(app: FastAPI):
     await broker.startup()
     setup_logging()
-    setup_tasks(scheduler)
+    # setup_tasks(scheduler)
     yield
     await broker.shutdown()
 

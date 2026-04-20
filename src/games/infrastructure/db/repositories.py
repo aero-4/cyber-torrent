@@ -10,7 +10,7 @@ from starlette import status
 
 from src.auth.domain.entities import UserCreate, UserUpdate
 from src.core.domain.exceptions import NotFound, AlreadyExists
-from src.games.domain.entities import GameCreate, Game, GameCollection
+from src.games.domain.entities import GameCreate, Game, GamesCollection
 from src.games.infrastructure.db.orm import GamesOrm, GamesImagesOrm, GamesTagsOrm
 from src.games.presentation.dtos import GamesCollectionDTO
 from src.users.infrastructure.db.orm import UsersOrm
@@ -41,7 +41,7 @@ class PGGamesRepository:
             )
         )
         result = await self.session.execute(stmt)
-        obj = result.unique().scalar_one_or_none()
+        obj: Game | None = result.unique().scalar_one_or_none()
         if not obj:
             raise NotFound(message=f"Game '{slug}' not found")
 
@@ -68,7 +68,7 @@ class PGGamesRepository:
 
         return [game.to_entity() for game in games]
 
-    async def get_all(self, data: GamesCollectionDTO) -> GameCollection:
+    async def get_all(self, data: GamesCollectionDTO) -> GamesCollection:
         stmt = (
             select(GamesOrm)
             .options(
@@ -81,11 +81,19 @@ class PGGamesRepository:
             .offset(data.offset)
             .limit(data.limit)
         )
-        if data.category:
+
+        if data.category and data.category.isdigit():
+            stmt = stmt.where(GamesOrm.release_date.icontains(data.category))
+
+        elif data.category and not data.category.isdigit():
             stmt = stmt.where(GamesOrm.genre == data.category)
+
 
         if data.tag:
             stmt = stmt.where(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))
+
+        if data.query:
+            stmt = stmt.where(GamesOrm.name.icontains(data.query))
 
         result = await self.session.execute(stmt)
         result = result.unique().scalars().all()
@@ -97,10 +105,30 @@ class PGGamesRepository:
         if data.tag:
             count_stmt = count_stmt.where(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))
 
+        if data.query:
+            count_stmt = count_stmt.where(GamesOrm.name.icontains(data.query))
+
         result2 = await self.session.execute(count_stmt)
         total_count = result2.scalar_one()
 
-        return GameCollection(
+        return GamesCollection(
+            games=[i.to_entity() for i in result],
+            total_count=total_count or 0
+        )
+
+    async def get_by_search(self, query: str) -> GamesCollection:
+        stmt = select(GamesOrm).where(
+            GamesOrm.name.icontains(query)
+        )
+        result = await self.session.execute(stmt)
+        result = result.unique().scalars().all()
+
+        count_stmt = select(count(GamesOrm.id))
+
+        result2 = await self.session.execute(count_stmt)
+        total_count = result2.scalar_one()
+
+        return GamesCollection(
             games=[i.to_entity() for i in result],
             total_count=total_count or 0
         )
