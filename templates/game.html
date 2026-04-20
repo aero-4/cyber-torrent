@@ -119,9 +119,10 @@
         };
 
         const formatDate = (dateString) => {
-            if (!dateString) return '';
+            if (!dateString)
+                return '';
             const date = new Date(dateString);
-            return date.toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric'});
+            return date.toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric', hour: "2-digit", minute: "2-digit"});
         };
 
         content.innerHTML = `
@@ -258,12 +259,23 @@
                 return;
             }
             commentsList.innerHTML = comments.map(c => `
-                <div class="bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-indigo-400 font-bold text-sm">${maskUser(c.user)}</span>
-                        <span class="text-zinc-600 text-[11px]">${formatDate(c.created_at)}</span>
+                <div class="flex flex-row gap-3 bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg">
+                    <img src="/${c.user_avatar}" class="w-16 h-16 rounded-full" alt="user-photo">
+
+                    <div class="flex flex-col flex-1">
+                        <div class="flex justify-between items-center w-full mb-2">
+                            <span class="text-indigo-400 font-bold text-sm truncate mr-4">
+                                ${c.user}
+                            </span>
+                            <span class="text-zinc-500 text-[12px] whitespace-nowrap shrink-0">
+                                ${formatDate(c.created_at)}
+                            </span>
+                        </div>
+
+                        <span class="text-gray-300 text-sm">
+                            ${c.content}
+                        </span>
                     </div>
-                    <p class="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">${c.content}</p>
                 </div>
             `).join('');
         };

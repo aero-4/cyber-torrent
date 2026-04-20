@@ -71,6 +71,7 @@ class TorrentSearchProvider:
                 'multirepack', 'cracfix', 'prophet', 'dodge', 'doge'
             ]
         s = (raw_name or "")
+
         s = unicodedata.normalize("NFKC", s)
         s = re.sub(r"\[.*?\]|\(.*?\)|\{.*?\}", " ", s)
         s = re.sub(r"\b(?:v|version|update|patch)\s*[\d\.]+\w*\b", " ", s, flags=re.IGNORECASE)

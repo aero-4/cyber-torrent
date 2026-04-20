@@ -15,6 +15,9 @@ async def searcher_torrents(game: Game) -> None:
     success = 0
 
     search_results = await torrent.search(game.name)
+    if not search_results:
+        logging.info("No finding torrents")
+        return None
 
     async with uow:
         for torrent_data in search_results:

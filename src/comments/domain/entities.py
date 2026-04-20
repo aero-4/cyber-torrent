@@ -7,6 +7,7 @@ class Comment(BaseModel):
     game_id: int
     user_id: int
     user: str
+    user_avatar: str
     content: str
     created_at: datetime.datetime
 

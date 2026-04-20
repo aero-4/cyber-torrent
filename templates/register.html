@@ -62,6 +62,12 @@
 
         <form id="registerForm" class="space-y-6">
             <div>
+                <label class="mb-2 block text-2xl font-bold uppercase">НИКНЕЙМ</label>
+                <input type="text" id="username" required
+                       class="w-full border-4 border-blue-600 bg-black px-6 py-5 text-2xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
+                       placeholder="Ivan1234">
+            </div>
+            <div>
                 <label class="mb-2 block text-2xl font-bold uppercase">ЕМЕЙЛ</label>
                 <input type="email" id="email" required
                        class="w-full border-4 border-blue-600 bg-black px-6 py-5 text-2xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
@@ -174,6 +180,7 @@
 
     let userEmail = '';
     let userPassword = '';
+    let userName = '';
     let emailTimerInterval = null;
 
     // Утилиты попапа
@@ -267,14 +274,11 @@
 
     // Выполнение запроса регистрации
     async function performRegistration() {
-        const formdata = new FormData();
-        formdata.append("email", userEmail);
-        formdata.append("password", userPassword);
-
         try {
             const response = await fetch(`/auth/register`, {
                 method: 'POST',
-                body: formdata,
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({"email": userEmail, "password": userPassword, "username": userName}),
                 credentials: "include"
             });
 
@@ -312,9 +316,10 @@
         e.preventDefault();
         userEmail = document.getElementById('email').value.trim();
         userPassword = document.getElementById('password').value.trim();
+        userName = document.getElementById("username").value.trim();
 
-        if (!userEmail || !userPassword) {
-            showPopup('ERROR: MISSING_PARAMETERS', true);
+        if (!userEmail || !userPassword || !userName) {
+            showPopup('Пропущено поле или несколько полей', true);
             return;
         }
 

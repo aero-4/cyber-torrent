@@ -18,7 +18,8 @@ class CommentsOrm(Base):
         return Comment(
             game_id=self.game_id,
             user_id=self.user_id,
-            user=self.user.email,
+            user=self.user.username,
+            user_avatar=self.user.avatar_image,
             content=self.content,
             created_at=self.created_at
         )

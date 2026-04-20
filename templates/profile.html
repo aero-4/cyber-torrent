@@ -59,9 +59,9 @@
 
 <div id="modalOtp" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
     <div class="w-full max-w-md border-4 border-blue-600 bg-black p-6 shadow-[8px_8px_0px_#2563eb]">
-        <h2 class="mb-4 text-2xl font-bold uppercase text-white text-center">НАСТРОЙКА OTP</h2>
+        <h3 class="mb-4 text-3xl font-bold uppercase text-white text-center">НАСТРОЙКА OTP</h3>
         <div class="mb-6 flex flex-col items-center border-4 border-blue-600 bg-blue-950 p-4 text-center">
-            <div class="text-[10px] text-blue-400 mb-2">ОТСКАНИРУЙТЕ QR-КОД В GOOGLE AUTHENTICATOR</div>
+            <p class="text-[13px] text-blue-400 mb-2">ОТСКАНИРУЙТЕ QR-КОД В GOOGLE AUTHENTICATOR ИЛИ ЧЕРЕЗ ЭТО <a href="https://chromewebstore.google.com/detail/authenticator/bhghoamapcdpbohphigoooaddinpkbai?hl=ru">РАСШИРЕНИЕ</a></p>
             <img id="qrImage" class="w-48 h-48 border-4 border-black bg-white object-contain" alt="QR">
         </div>
         <form id="otpConfirmForm" class="space-y-4">
@@ -133,26 +133,32 @@
             currentUserEmail = data.email;
 
             userContainer.innerHTML = `
-               <img
-                    id="userAvatar"
-                    class="rounded-full mx-auto mb-4 w-24 h-24 object-cover bg-black"
-                    src="${data.avatar_image || ''}"
-                    alt="avatar"
-                />
+                <div class="relative w-24 h-24 mx-auto mb-4">
+                    <img
+                        id="userAvatar"
+                        class="rounded-full w-full h-full object-cover border-2 border-blue-500"
+                        src="${data.avatar_image || '/static/images/default-avatar.png'}"
+                        alt="avatar"
+                    />
 
-                <button
-                    onclick="document.getElementById('avatarInput').click()"
-                    class="py-5 px-4 font-bold uppercase transition-all border-4 border-blue-600 text-black hover:bg-blue-600/10">
-                    ИЗМЕНИТЬ ФОТО АВАТАРА
-                </button>
+                    <button
+                        onclick="document.getElementById('avatarInput').click()"
+                        class="absolute top-0 right-0 p-1 rounded-full shadow-sm hover:bg-gray-100 transition"
+                        title="Change Avatar">
+                        <img src="/static/icons/edit_avatar.png" alt="edit-avatar" class="w-4 h-4">
+                    </button>
 
-                <input
-                    id="avatarInput"
-                    type="file"
-                    accept="image/*"
-                    class="hidden"
-                />
-                <h3 class="text-2xl mb-8 text-white tracking-widest">EMAIL: ${data.email}</h3>
+                    <input
+                        id="avatarInput"
+                        type="file"
+                        accept="image/*"
+                        class="hidden"
+                        onchange="previewImage(this)"
+                    />
+                </div>
+
+                <h3 class="text-xl mb-8 text-white tracking-widest">${data.username}</h3>
+                <p class="text-white tracking-widest">EMAIL: ${data.email}</p>
 
                 <div class="flex flex-col gap-6 max-w-sm mx-auto">
 

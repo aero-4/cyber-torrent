@@ -21,6 +21,7 @@ from src.comments.infrastructure.db.orm import CommentsOrm
 class UsersOrm(Base):
     __tablename__ = "users"
 
+    username: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
     email: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(), nullable=False)
     role: Mapped[UserRoles] = mapped_column(Integer(), default=UserRoles.USER, nullable=True)
@@ -33,6 +34,7 @@ class UsersOrm(Base):
     def to_entity(self):
         return User(
             id=self.id,
+            username=self.username,
             email=self.email,
             password=self.password,
             role=self.role,
@@ -46,6 +48,7 @@ class UsersOrm(Base):
 class UsersAdmin(BaseAdmin, model=UsersOrm):
     column_list = [
         UsersOrm.id,
+        UsersOrm.username,
         UsersOrm.email,
         UsersOrm.password,
         UsersOrm.role,

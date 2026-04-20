@@ -5,6 +5,7 @@ from starlette.responses import FileResponse
 from src.auth.infrastructure.providers.hasher import HasherProvider
 from src.auth.presentation.dependencies import TokenAuthDep, HasherProvideDep
 from src.auth.presentation.roles import check_roles, UserRoles
+from src.users.domain.entities import UserRead
 from src.users.presentation.dtos import ChangePasswordDTO
 from src.users.usecase.change_password_user import change_password_user
 from src.users.usecase.edit_avatar import edit_new_avatar
@@ -16,11 +17,8 @@ router = APIRouter()
 @router.get("/me")
 @check_roles(roles=[UserRoles.USER, UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.MANAGER])
 async def get_me(request: Request):
-    return request.state.user.model_dump(
-        exclude={
-            "password",
-            "id"
-        }
+    return UserRead(
+        **request.state.user.model_dump()
     )
 
 

@@ -1,6 +1,6 @@
 from sqlite3 import IntegrityError
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload
 
 from src.comments.domain.entities import Comment, CommentCreate, Comments
@@ -16,8 +16,10 @@ class PGCommentsRepository:
 
     async def get_all(self, comments_data: Comments) -> list[Comment]:
         stmt = (
-            select(CommentsOrm).where(CommentsOrm.game_id == comments_data.game_id)
+            select(CommentsOrm)
+            .where(CommentsOrm.game_id == comments_data.game_id)
             .options(joinedload(CommentsOrm.user))
+            .order_by(CommentsOrm.created_at.desc())
             .offset(comments_data.offset)
             .limit(comments_data.limit)
         )

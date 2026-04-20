@@ -21,8 +21,8 @@ router = APIRouter()
 async def register_user(request: Request,
                         auth: TokenAuthDep,
                         email_provider: EmailProvideDep,
-                        auth_form: UserRegisterDTO = Form()):
-    status = await registration(auth_form.email, auth_form.password, auth, email_provider)
+                        auth_form: UserRegisterDTO):
+    status = await registration(auth_form, auth, email_provider)
     if status == "confirm_email":
         return {"message": f"Sent code on '{auth_form.email}'"}
 
@@ -34,7 +34,7 @@ async def login_user(
         auth: TokenAuthDep,
         hasher_provider: HasherProvideDep,
         qr_code_provider: QrProvideDep,
-        login_data: UserLoginDTO = Form(...),
+        login_data: UserLoginDTO,
 
 ):
     await authenticate(login_data, auth, hasher_provider, qr_code_provider)
@@ -55,7 +55,7 @@ async def refresh_token(auth: TokenAuthDep):
 
 @router.post("/otp/confirm")
 @check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
-async def qr_code_auth(request: Request, auth: TokenAuthDep, otp_form: UserOtpVerifyDTO = Form()):
+async def qr_code_auth(request: Request, auth: TokenAuthDep, otp_form: UserOtpVerifyDTO):
     await authenticate_opt_code(otp_form.otp_code, request.state.user, auth)
     return {"message": "Otp verify confirm"}
 

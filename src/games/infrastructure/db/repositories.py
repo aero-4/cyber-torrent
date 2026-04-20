@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, or_, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.sql.functions import count
 from starlette import status
 
@@ -72,7 +72,8 @@ class PGGamesRepository:
         stmt = (
             select(GamesOrm)
             .options(
-                joinedload(GamesOrm.torrents)
+                joinedload(GamesOrm.torrents),
+                joinedload(GamesOrm.tags)
             )
             .order_by(
                 GamesOrm.created_at.desc()
@@ -84,24 +85,24 @@ class PGGamesRepository:
             stmt = stmt.where(GamesOrm.genre == data.category)
 
         if data.tag:
-            stmt = stmt.where(GamesTagsOrm.name == data.tag)
+            stmt = stmt.where(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))
 
         result = await self.session.execute(stmt)
         result = result.unique().scalars().all()
 
-        stmt2 = select(count(GamesOrm.id))
+        count_stmt = select(count(GamesOrm.id))
         if data.category:
-            stmt2 = stmt2.where(GamesOrm.genre == data.category)
+            count_stmt = count_stmt.where(GamesOrm.genre == data.category)
 
         if data.tag:
-            stmt2 = stmt2.where(GamesTagsOrm.name == data.tag)
+            count_stmt = count_stmt.where(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))
 
-        result2 = await self.session.execute(stmt2)
-        total_count = result2.scalar_one_or_none()
+        result2 = await self.session.execute(count_stmt)
+        total_count = result2.scalar_one()
 
         return GameCollection(
             games=[i.to_entity() for i in result],
-            total_count=total_count
+            total_count=total_count or 0
         )
 
     async def add(self, game: GameCreate) -> Game:
