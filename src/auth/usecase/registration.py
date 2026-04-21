@@ -29,8 +29,8 @@ async def registration(user_data: UserRegisterDTO, auth: ITokenAuth, email_provi
         await uow.commit()
 
         if not user.is_verify_email:
-            # await sent_2fa_code_email_message.kiq(user_data.email)
-            asyncio.create_task(sent_2fa_code_email_message(email_provider, user_data.email))
+            await sent_2fa_code_email_message.kiq(user_data.email)
+            # asyncio.create_task(sent_2fa_code_email_message(email_provider, user_data.email))
             await auth.set_fast_token(user,
                                       method=UserVerifications.FIRST_CONFIRM_EMAIL,
                                       expire=config.email.TWO_FACTOR_TOKEN_EXPIRE_SECONDS)

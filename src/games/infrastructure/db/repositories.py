@@ -1,3 +1,4 @@
+import random
 from typing import Type, List
 
 from fastapi import HTTPException
@@ -45,26 +46,30 @@ class PGGamesRepository:
         if not obj:
             raise NotFound(message=f"Game '{slug}' not found")
 
-        similar_games = await self.get_by_tags(obj, [i.name for i in obj.tags[:1]])
-
+        similar_games = None
+        try:
+            tag = random.choice(obj.tags)
+            similar_games = await self.get_by_tags(obj, tag.name)
+        except:
+            pass
         return obj.to_entity(similar_games)
 
-    async def get_by_tags(self, obj: Game, tags: list[str], limit: int = 20) -> list[Game]:
+    async def get_by_tags(self, obj: Game, tag: str, limit: int = 20) -> list[Game]:
         stmt = (
             select(GamesOrm)
             .join(GamesOrm.tags)
-            .where(GamesTagsOrm.name.in_(tags),
-                   GamesOrm.name != obj.name)
-            .options(joinedload(GamesOrm.tags))
+            .where(GamesOrm.name != obj.name,
+                   GamesTagsOrm.name == tag)
+            .group_by(GamesOrm.id)
+            .order_by(func.count(GamesTagsOrm.id).desc())
             .limit(limit)
-            .distinct()
         )
 
         result = await self.session.execute(stmt)
         games = result.unique().scalars().all()
 
         if not games:
-            raise NotFound(message=f"Games with tags {tags} not found")
+            raise NotFound(message=f"Games with tags {tag} not found")
 
         return [game.to_entity() for game in games]
 
