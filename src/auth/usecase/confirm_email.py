@@ -4,7 +4,7 @@ from src.auth.domain.entities import UserUpdate, UserRoles
 from src.auth.domain.exceptions import EmailAlreadyExists
 from src.auth.domain.interfaces.email import IEmailProvider
 from src.auth.domain.interfaces.token_auth import ITokenAuth
-from src.auth.infrastructure.tasks.confirm_message import send_confirm_2fa_message, sent_2fa_code_email_message
+from src.auth.infrastructure.tasks.confirm_message import sent_2fa_code_email_message
 from src.core.domain.exceptions import NotFound
 from src.users.domain.entities import User
 from src.users.infrastructure.db.uow import UsersUnitOfWork
@@ -32,6 +32,6 @@ async def sent_confirm_message_email_renew(user: User, email: str, email_provide
         if user.email == email:
             raise EmailAlreadyExists()
 
-        await sent_2fa_code_email_message.kiq(email_provider, email)
+        await sent_2fa_code_email_message.kiq(email)
 
 

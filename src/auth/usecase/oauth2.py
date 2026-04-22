@@ -23,12 +23,12 @@ async def oauth2_google_case(request: Request, oauth2_google: IOauth2Provider, h
     password = secrets.token_urlsafe(16)
     hashed_password = hasher.hash_password(password)
     email = data['email']
-
     async with uow:
         user = await uow.users.get_by_email(email=email)
 
         if not user:
             user_data = UserCreate(email=email,
+                                   username=data["name"],
                                    password=hashed_password,
                                    avatar_image=data["picture"],
                                    is_verify_email=data["email_verified"])

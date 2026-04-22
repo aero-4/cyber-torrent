@@ -2,12 +2,15 @@ import random
 import secrets
 
 from src.auth.domain.interfaces.email import IEmailProvider
+from src.auth.presentation.dependencies import EmailProvideDep, get_email_provide
 from src.core.config import config
 from src.core.taskiq_app import broker
 
 
+email_provider = get_email_provide()
+
 @broker.task
-async def send_confirm_2fa_message(email_provider: IEmailProvider, email: str) -> None:
+async def send_confirm_2fa_message(email: str) -> None:
     token = secrets.token_urlsafe(32)
     content_mail = config.email.TWO_FACTOR_EMAIL_MESSAGE_TEMPLATE.format(
         link=f"{config.app.APP_URI}/auth/email/confirm/{token}",
@@ -17,7 +20,7 @@ async def send_confirm_2fa_message(email_provider: IEmailProvider, email: str) -
 
 
 @broker.task
-async def sent_2fa_code_email_message(email_provider: IEmailProvider, email: str) -> None:
+async def sent_2fa_code_email_message(email: str) -> None:
     rand_number = random.randint(100000, 999999)
     content_mail = config.email.CONFIRM_EMAIL_MESSAGE_TEMPLATE.format(
         code=rand_number,

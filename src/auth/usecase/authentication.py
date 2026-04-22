@@ -11,7 +11,8 @@ from src.auth.infrastructure.tasks.confirm_message import sent_2fa_code_email_me
 async def authenticate(login_data: UserLoginDTO,
                        auth: ITokenAuth,
                        hasher_provider: IHasherProvider,
-                       qr_code_provider: IQrCodeProvider) -> None:
+                       qr_code_provider: IQrCodeProvider,
+                       email_provider: IEmailProvider) -> None:
     uow = UsersUnitOfWork()
 
     async with uow:

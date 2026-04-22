@@ -1,4 +1,8 @@
-from pydantic import BaseModel, EmailStr, Field
+import re
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+from src.auth.domain.exceptions import ValidationErrorPassword
 
 
 class UserRegisterDTO(BaseModel):
@@ -6,6 +10,14 @@ class UserRegisterDTO(BaseModel):
     email: EmailStr = Field(min_length=5, description="Email is required")
     password: str = Field(min_length=5, description="Password is required")
     username: str = Field(min_length=5)
+
+    @field_validator("password", "after")
+    async def _validate_password(self, v: str):
+        r = re.search("[a-zA-Z0-9$%#@!.?]", v)
+        if not r:
+            raise ValidationErrorPassword()
+
+        return v
 
 
 class UserLoginDTO(BaseModel):

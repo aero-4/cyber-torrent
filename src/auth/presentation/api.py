@@ -12,7 +12,7 @@ from src.auth.usecase.confirm_email import confirm_email, sent_confirm_message_e
 from src.auth.usecase.oauth2 import oauth2_google_case, oauth2_yandex_case
 from src.auth.usecase.registration import registration
 from src.core.config import config
-from src.auth.infrastructure.tasks.confirm_message import send_confirm_2fa_message, sent_2fa_code_email_message
+from src.auth.infrastructure.tasks.confirm_message import sent_2fa_code_email_message
 
 router = APIRouter()
 
@@ -35,9 +35,10 @@ async def login_user(
         hasher_provider: HasherProvideDep,
         qr_code_provider: QrProvideDep,
         login_data: UserLoginDTO,
+        email: EmailProvideDep
 
 ):
-    await authenticate(login_data, auth, hasher_provider, qr_code_provider)
+    await authenticate(login_data, auth, hasher_provider, qr_code_provider, email)
     return {"message": "User sign in"}
 
 
@@ -70,7 +71,7 @@ async def qr_code(request: Request):
 @router.post("/email/2fa/sent-confirm/")
 @check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
 async def email_confirm_token_user(request: Request, email_provider: EmailProvideDep):
-    await sent_2fa_code_email_message.kiq(email_provider, request.state.user.email)
+    await sent_2fa_code_email_message.kiq(request.state.user.email)
     return {"message": f"Sent message '{request.state.user.email}'"}
 
 

@@ -9,7 +9,8 @@ from src.users.presentation.dtos import ChangePasswordDTO
 
 async def change_password_user(user: User, password: ChangePasswordDTO, hasher: IHasherProvider, auth: ITokenAuth):
     uow = UsersUnitOfWork()
-    user_data = UserUpdate(email=user.email, password=hasher.hash_password(password.new_password))
+    user_data = UserUpdate(email=user.email,
+                           password=hasher.hash_password(password.new_password))
     async with uow:
         if not hasher.verify_password(password.old_password, user.password):
             raise BadRequest("Not valid password")

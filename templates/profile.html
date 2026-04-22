@@ -205,7 +205,7 @@
         // Базовая валидация согласно DTO
         if (old_password.length < 6 || old_password.length > 32 ||
             new_password.length < 6 || new_password.length > 32) {
-            showPopup("ОШИБКА: ДЛИНА ПАРОЛЯ ДОЛЖНА БЫТЬ ОТ 6 ДО 32 СИМВОЛОВ", true);
+            showPopup("ДЛИНА ПАРОЛЯ ДОЛЖНА БЫТЬ ОТ 6 ДО 32 СИМВОЛОВ", true);
             return;
         }
 
@@ -224,11 +224,10 @@
                 showPopup("ПАРОЛЬ УСПЕШНО ОБНОВЛЕН");
                 closeModals();
             } else if (res.status === 421) {
-                showPopup("ОШИБКА: НЕВЕРНО ВВЕДЕНЫ ДАННЫЕ", true);
+                showPopup("НЕВЕРНО ВВЕДЕНЫ ДАННЫЕ", true);
             } else {
-                // Если с бэка пришел 400 и есть кастомное сообщение в data.error.message
                 const errMsg = (data.error && data.error.message) ? data.error.message : "ОШИБКА ОБНОВЛЕНИЯ СИСТЕМЫ";
-                showPopup(`ОШИБКА: ${errMsg}`, true);
+                showPopup(`${errMsg}`, true);
             }
         } catch (e) {
             showPopup("СИСТЕМНАЯ ОШИБКА: НЕТ СВЯЗИ С СЕРВЕРОМ", true);
@@ -248,7 +247,7 @@
     async function requestEmailChange() {
         const newEmail = document.getElementById('newEmailInput').value.trim();
         if (!newEmail || !newEmail.includes('@')) {
-            showPopup("ОШИБКА: НЕКОРРЕКТНЫЙ EMAIL", true);
+            showPopup("НЕКОРРЕКТНЫЙ EMAIL", true);
             return;
         }
         sendVerificationCode(newEmail);
@@ -385,7 +384,7 @@
                 closeModals();
                 loadUserData();
             } else {
-                showPopup("ОШИБКА: НЕВЕРНЫЙ ТОКЕН", true);
+                showPopup("НЕВЕРНЫЙ ТОКЕН", true);
             }
         } catch (e) {
             showPopup("ОШИБКА СИНХРОНИЗАЦИИ", true);

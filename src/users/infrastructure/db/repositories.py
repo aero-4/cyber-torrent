@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from src.auth.domain.entities import UserCreate, UserUpdate
-from src.core.domain.exceptions import NotFound
+from src.core.domain.exceptions import NotFound, AlreadyExists
 from src.users.infrastructure.db.orm import UsersOrm
 from src.users.domain.entities import User
 
@@ -42,8 +42,7 @@ class PGUsersRepository:
 
             await self.session.flush()
         except IntegrityError as e:
-            raise HTTPException(status_code=409,
-                                detail="User already exists")
+            raise AlreadyExists(message="User already exists")
         return obj.to_entity()
 
     async def update(self, user: UserUpdate) -> User:
