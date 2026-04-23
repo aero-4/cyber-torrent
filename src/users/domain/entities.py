@@ -22,5 +22,7 @@ class UserRead(BaseModel):
     is_verify_email: bool = False
 
 
+
+
 class AnonymousUser(User):
     pass

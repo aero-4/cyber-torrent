@@ -105,7 +105,8 @@ class PGGamesRepository:
 
         count_stmt = select(count(GamesOrm.id))
         if data.category:
-            count_stmt = count_stmt.where(GamesOrm.genre == data.category)
+            count_stmt = count_stmt.where(or_(GamesOrm.genre == data.category,
+                                              GamesOrm.release_date.icontains(data.category)))
 
         if data.tag:
             count_stmt = count_stmt.where(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))

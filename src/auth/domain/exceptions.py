@@ -44,4 +44,4 @@ class EmailAlreadyExists(BadRequest):
     message = "Email already exists"
 
 class ValidationErrorPassword(BadRequest):
-    message = "Password required contains 1 upper-case symbol, 1-digit, 1-symbol ($%#@!.?)"
+    message = "Password required contains 1 lower case symbol, 1 upper-case symbol, 1-digit, 1-symbol ($%#@!.?)"

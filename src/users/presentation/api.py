@@ -6,8 +6,9 @@ from src.auth.infrastructure.providers.hasher import HasherProvider
 from src.auth.presentation.dependencies import TokenAuthDep, HasherProvideDep
 from src.auth.presentation.roles import check_roles, UserRoles
 from src.users.domain.entities import UserRead
-from src.users.presentation.dtos import ChangePasswordDTO
+from src.users.presentation.dtos import ChangePasswordDTO, UsernameDTO
 from src.users.usecase.change_password_user import change_password_user
+from src.users.usecase.username_check import check_username
 from src.users.usecase.edit_avatar import edit_new_avatar
 from templates import templates
 
@@ -34,3 +35,8 @@ async def edit_avatar(file: UploadFile, request: Request):
 async def patch_change_password(request: Request, password: ChangePasswordDTO, auth: TokenAuthDep, hasher: HasherProvideDep):
     await change_password_user(request.state.user, password, hasher, auth)
     return {"message": "Password changed"}
+
+
+@router.post("/check/username")
+async def post_check_username(data: UsernameDTO):
+    return await check_username(data)

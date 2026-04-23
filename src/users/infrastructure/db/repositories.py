@@ -35,6 +35,13 @@ class PGUsersRepository:
         if obj:
             return obj.to_entity()
 
+    async def get_by_username(self, username: str) -> User:
+        stmt = select(UsersOrm).where(UsersOrm.username == username)
+        result = await self.session.execute(stmt)
+        obj = result.scalar_one_or_none()
+        if obj:
+            raise AlreadyExists(f"Already exists user with username '{username}'")
+
     async def add(self, user: UserCreate) -> User:
         obj = UsersOrm(**user.model_dump())
         try:

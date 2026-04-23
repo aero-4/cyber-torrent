@@ -11,10 +11,9 @@
         body {
             background-color: #000000;
             font-family: 'Space Mono', monospace;
-            color: #3b82f6; /* Tailwind blue-500 */
+            color: #3b82f6;
         }
 
-        /* Жесткий стиль для инпутов без скруглений */
         input:-webkit-autofill,
         input:-webkit-autofill:focus {
             transition: background-color 0s 600000s, color 0s 600000s;
@@ -22,7 +21,6 @@
             -webkit-box-shadow: 0 0 0px 1000px #000 inset;
         }
 
-        /* Анимация глитча/появления попапа */
         @keyframes popup-appear {
             0% {
                 transform: scaleY(0);
@@ -60,13 +58,15 @@
             <h1 class="text-4xl sm:text-5xl font-bold tracking-tighter uppercase text-white">РЕГИСТРАЦИЯ</h1>
         </div>
 
-        <form id="registerForm" class="space-y-6">
+        <form id="registerForm" class="space-y-6" novalidate>
             <div>
                 <label class="mb-2 block text-2xl font-bold uppercase">НИКНЕЙМ</label>
                 <input type="text" id="username" required
                        class="w-full border-4 border-blue-600 bg-black px-6 py-5 text-2xl text-blue-400 placeholder:text-blue-900 outline-none focus:bg-blue-950 transition-colors"
                        placeholder="Ivan1234">
+                <div id="usernameError" class="mt-2 hidden text-lg font-bold text-red-500"></div>
             </div>
+
             <div>
                 <label class="mb-2 block text-2xl font-bold uppercase">ЕМЕЙЛ</label>
                 <input type="email" id="email" required
@@ -153,37 +153,36 @@
 </div>
 
 <script>
-    // Элементы шагов
     const stepRegister = document.getElementById('step-register');
     const stepEmailConfirm = document.getElementById('step-email-confirm');
     const stepOtpPrompt = document.getElementById('step-otp-prompt');
     const stepOtpSetup = document.getElementById('step-otp-setup');
 
-    // Формы и инпуты
     const registerForm = document.getElementById('registerForm');
     const otpConfirmForm = document.getElementById('otpConfirmForm');
     const emailConfirmOtpGroup = document.getElementById('emailConfirmOtpGroup');
 
-    // Кнопки
     const btnEnableOtp = document.getElementById('btnEnableOtp');
     const btnSkipOtp = document.getElementById('btnSkipOtp');
     const confirmEmailBtn = document.getElementById('confirmEmailBtn');
     const resendEmailCodeBtn = document.getElementById('resendEmailCodeBtn');
 
-    // Текста и таймер
     const emailConfirmSubtitle = document.getElementById('emailConfirmSubtitle');
     const timerDisplay = document.getElementById('timerDisplay');
 
-    // Попап
     const systemPopup = document.getElementById('systemPopup');
     const popupMessage = document.getElementById('popupMessage');
+
+    const usernameInput = document.getElementById('username');
+    const usernameError = document.getElementById('usernameError');
 
     let userEmail = '';
     let userPassword = '';
     let userName = '';
     let emailTimerInterval = null;
+    let usernameCheckAbort = null;
+    let usernameCheckTimer = null;
 
-    // Утилиты попапа
     function showPopup(msg, isError = false) {
         popupMessage.textContent = msg;
         popupMessage.className = `text-2xl font-bold uppercase tracking-widest mb-6 ${isError ? 'text-red-500' : 'text-blue-400'}`;
@@ -199,7 +198,20 @@
         showElement.classList.remove('hidden');
     }
 
-    // Создание 6 квадратиков для почты
+    function showUsernameError(message) {
+        usernameError.textContent = message;
+        usernameError.classList.remove('hidden');
+        usernameInput.classList.add('border-red-500', 'text-red-400');
+        usernameInput.classList.remove('border-blue-600', 'text-blue-400');
+    }
+
+    function clearUsernameError() {
+        usernameError.textContent = '';
+        usernameError.classList.add('hidden');
+        usernameInput.classList.remove('border-red-500', 'text-red-400');
+        usernameInput.classList.add('border-blue-600', 'text-blue-400');
+    }
+
     function createOtpInputs(container) {
         container.innerHTML = '';
         for (let i = 0; i < 6; i++) {
@@ -247,11 +259,10 @@
         }
     }
 
-    // Логика таймера
     function startEmailTimer() {
         clearInterval(emailTimerInterval);
         resendEmailCodeBtn.classList.add('hidden');
-        let timeLeft = 300; // 5 минут
+        let timeLeft = 300;
 
         const updateTimerDisplay = () => {
             const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
@@ -272,13 +283,59 @@
         }, 1000);
     }
 
-    // Выполнение запроса регистрации
+    async function checkUsernameAvailability(username) {
+        if (!username) {
+            showUsernameError('НИКНЕЙМ ОБЯЗАТЕЛЕН');
+            return false;
+        }
+
+        if (usernameCheckAbort) {
+            usernameCheckAbort.abort();
+        }
+
+        usernameCheckAbort = new AbortController();
+
+        try {
+            const response = await fetch('/users/check/username', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username }),
+                signal: usernameCheckAbort.signal,
+                credentials: 'include'
+            });
+
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (_) {}
+
+            if (response.status === 422) {
+                const msg = data.error?.message || data.detail?.[0]?.msg || 'ОШИБКА ВАЛИДАЦИИ';
+                showUsernameError(msg);
+                return false;
+            }
+
+            if (!response.ok) {
+                const msg = data.error?.message || data.message || 'ОШИБКА ПРОВЕРКИ НИКНЕЙМА';
+                showUsernameError(msg);
+                return false;
+            }
+
+            clearUsernameError();
+            return true;
+        } catch (error) {
+            if (error.name === 'AbortError') return false;
+            showUsernameError('NETWORK ERROR');
+            return false;
+        }
+    }
+
     async function performRegistration() {
         try {
             const response = await fetch(`/auth/register`, {
                 method: 'POST',
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({"email": userEmail, "password": userPassword, "username": userName}),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "email": userEmail, "password": userPassword, "username": userName }),
                 credentials: "include"
             });
 
@@ -289,7 +346,6 @@
                 return;
             }
 
-            // Проверка на требование подтверждения почты
             const msgToCheck = data.error?.message || data.message || "";
 
             if (msgToCheck.includes("Sent code on")) {
@@ -307,26 +363,46 @@
                 showPopup(data.error?.message || "ОШИБКА РЕГИСТРАЦИИ", true);
             }
         } catch (error) {
-            showPopup('NETWORK_ERROR', true);
+            showPopup('ОШИБКА', true);
         }
     }
 
-    // ШАГ 1: Обработка формы
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         userEmail = document.getElementById('email').value.trim();
         userPassword = document.getElementById('password').value.trim();
-        userName = document.getElementById("username").value.trim();
+        userName = document.getElementById('username').value.trim();
 
         if (!userEmail || !userPassword || !userName) {
             showPopup('Пропущено поле или несколько полей', true);
             return;
         }
 
+        const usernameOk = await checkUsernameAvailability(userName);
+        if (!usernameOk) return;
+
         await performRegistration();
     });
 
-    // ШАГ 1.5: Подтверждение почты
+    usernameInput.addEventListener('input', () => {
+        clearUsernameError();
+        if (usernameCheckTimer) clearTimeout(usernameCheckTimer);
+
+        const value = usernameInput.value.trim();
+        if (!value) return;
+
+        usernameCheckTimer = setTimeout(() => {
+            checkUsernameAvailability(value);
+        }, 500);
+    });
+
+    usernameInput.addEventListener('blur', () => {
+        const value = usernameInput.value.trim();
+        if (!value) return;
+        checkUsernameAvailability(value);
+    });
+
     confirmEmailBtn.addEventListener('click', async () => {
         const code = getOtpCode(emailConfirmOtpGroup);
         if (!code) {
@@ -353,19 +429,16 @@
         }
     });
 
-    // Отправка кода повторно
     resendEmailCodeBtn.addEventListener('click', async () => {
         if (userEmail && userPassword) {
             await performRegistration();
         }
     });
 
-    // ШАГ 2: Отказ от OTP
     btnSkipOtp.addEventListener('click', () => {
         window.location.href = '/';
     });
 
-    // ШАГ 2 -> 3: Запрос QR и переход к вводу 2FA
     btnEnableOtp.addEventListener('click', async () => {
         try {
             const formdata = new FormData();
@@ -387,11 +460,9 @@
             console.warn("Бэкенд недоступен, показываю демо-интерфейс", error);
             document.getElementById('qrImage').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=otpauth://totp/Demo";
             switchStep(stepOtpPrompt, stepOtpSetup);
-            // showPopup('ERROR: MATRIX_FETCH_FAILED', true);
         }
     });
 
-    // ШАГ 4: Подтверждение OTP
     otpConfirmForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const otpCode = document.getElementById('otpCode').value.trim();
@@ -417,7 +488,6 @@
         }
     });
 
-    // Инициализация
     createOtpInputs(emailConfirmOtpGroup);
 </script>
 </body>
