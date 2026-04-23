@@ -19,6 +19,7 @@ from src.auth.presentation.api import router as auth_api_router
 from src.comments.infrastructure.db.orm import CommentsAdmin
 from src.core.taskiq_app import broker
 from src.games.infrastructure.db.orm import GamesAdmin
+from src.games.infrastructure.tasks.games import searcher_nullable_torrents
 from src.games.infrastructure.tasks.metadata import searcher_games
 from src.games.presentation.api import router as games_api_router
 from src.torrents.infrastructure.db.orm import TorrentsAdmin
@@ -46,10 +47,14 @@ scheduler = AsyncIOScheduler()
 
 
 def setup_tasks(scheduler: AsyncIOScheduler):
-    scheduler.add_job(searcher_games,
+    # scheduler.add_job(searcher_games,
+    #                   trigger="interval",
+    #                   minutes=60,
+    #                   next_run_time=datetime.datetime.now())
+    scheduler.add_job(searcher_nullable_torrents,
                       trigger="interval",
-                      minutes=60,
-                      next_run_time=datetime.datetime.now())
+                      minutes=120,
+                      next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=1))
     scheduler.start()
 
 
@@ -57,7 +62,7 @@ def setup_tasks(scheduler: AsyncIOScheduler):
 async def lifespan(app: FastAPI):
     await broker.startup()
     setup_logging()
-    # setup_tasks(scheduler)
+    setup_tasks(scheduler)
     yield
     await broker.shutdown()
 

@@ -73,6 +73,17 @@ class PGGamesRepository:
 
         return [game.to_entity() for game in games]
 
+    async def get_without_torrents(self) -> list[Game]:
+        stmt = (select(GamesOrm)
+                .where(~GamesOrm.torrents.any()))
+        result = await self.session.execute(stmt)
+        result = result.unique().scalars().all()
+
+        if not result:
+            raise NotFound()
+
+        return [i.to_entity() for i in result]
+
     async def get_all(self, data: GamesCollectionDTO) -> GamesCollection:
         stmt = (
             select(GamesOrm)
@@ -92,7 +103,6 @@ class PGGamesRepository:
 
         elif data.category and not data.category.isdigit():
             stmt = stmt.where(GamesOrm.genre == data.category)
-
 
         if data.tag:
             stmt = stmt.where(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))

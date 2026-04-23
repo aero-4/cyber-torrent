@@ -7,16 +7,15 @@ from src.torrents.infrastructure.services.torrents_loader import TorrentSearchPr
 
 
 async def searcher_torrents(game: Game) -> None:
-    logging.info("Loading torrents...")
-
     torrent = TorrentSearchProvider()
     uow = TorrentsUnitOfWork()
-
     success = 0
+
+    logging.info("Game: %s | Finding magnet-links...", game.name)
 
     search_results = await torrent.search(game.name)
     if not search_results:
-        logging.info("No finding torrents")
+        logging.info("No find magnet-links")
         return None
 
     async with uow:
@@ -26,11 +25,9 @@ async def searcher_torrents(game: Game) -> None:
                 await uow.torrents.add(t_data)
                 success += 1
 
-                logging.info(f"Added torrent: {t_data.name}")
+                logging.info(f"Added torrent: %s", t_data.name)
                 await uow.commit()
             except AlreadyExists as e:
-                logging.error(e)
+                logging.error(f'Error adding torrent: %s', e)
 
-    logging.info(f"Success torrents added: {success}")
-
-
+    logging.info(f"Success magnet-links added: %s", success)

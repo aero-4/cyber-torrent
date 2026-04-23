@@ -61,3 +61,4 @@ async def searcher_games() -> None:
     await redis.setex(name="metadata_page", value=page, time=timedelta(minutes=65))
 
     logging.info(f"Success added games: {success}")
+
