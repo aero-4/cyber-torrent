@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div id="home" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    </div>
+
+    <div id="pagination" class="flex flex-wrap justify-center items-center gap-2 mt-12">
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const home = document.getElementById("home");
+        const pagination = document.getElementById("pagination");
+
+        const LIMIT = 20;
+
+        const getUrlPage = () => {
+            const params = new URLSearchParams(window.location.search);
+            return parseInt(params.get('page')) || 1;
+        };
+
+        const getCategory = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("category")
+        }
+
+        const getTag = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("tag")
+        }
+
+        const getQuerySearch = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("query")
+        }
+
+        const getYear = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("year")
+        }
+
+        let currentPage = getUrlPage();
+        let currentCategory = getCategory();
+        let currentTag = getTag();
+        let currentSearch = getQuerySearch();
+        let currentYear = getYear();
+
+        const renderGames = (games) => {
+            if (!games || games.length === 0) {
+                home.innerHTML = "<p class='text-gray-500 col-span-full text-center py-10'>Игр больше нет.</p>";
+                return;
+            }
+
+            home.innerHTML = games.map(game => `
+                <a href="/game/${game.slug}" target="_blank"
+                   class="group  overflow-hidden shadow-lg hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col">
+                    <div class="relative aspect-video overflow-hidden">
+                        <img
+                            src="${"/" + game.background_image || 'https://via.placeholder.com/400x225?text=No+Image'}"
+                            alt="${game.name}"
+                            loading="lazy"
+                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        >
+                        ${game.metacritic ? `
+                            <span class="absolute top-2 right-2 bg-black/70 text-green-400 font-bold px-1.5 py-0.5 rounded text-xs border border-green-400/50">
+                                ${game.metacritic}
+                            </span>
+                        ` : ''}
+                    </div>
+
+                    <div class="p-3 flex flex-col flex-grow">
+                        <h3 class="text-sm md:text-base font-semibold text-gray-100 line-clamp-1 mb-1 group-hover:text-blue-400 transition-colors">
+                            ${game.name}
+                        </h3>
+
+                        <div class="mt-auto flex items-center justify-between">
+                            <span class="text-[10px] text-gray-400">
+                                ${game.release_date ? new Date(game.release_date).getFullYear() : 'N/A'}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+
+        const renderPagination = (current, totalItems) => {
+            pagination.innerHTML = '';
+            // Рассчитываем количество страниц (если бэк не прислал total, берем с запасом)
+            const totalPages = Math.ceil(totalItems / LIMIT) || current;
+
+            // Определяем диапазон кнопок (текущая +- 2)
+            let start = Math.max(1, current - 2);
+            let end = Math.min(totalPages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+
+            // Кнопка "<< Первая"
+            if (current > 1) {
+                pagination.appendChild(createPageBtn(1, '<<', false));
+            }
+
+            // Цифры
+            for (let i = start; i <= end; i++) {
+                pagination.appendChild(createPageBtn(i, i, i === current));
+            }
+
+            // Кнопка "Последняя >>"
+            // (Кнопка в конец активна, только если мы знаем total и мы не на последней странице)
+            if (current < totalPages) {
+                pagination.appendChild(createPageBtn(current + 1, '>>', false));
+            }
+        };
+
+        const createPageBtn = (page, text, isActive) => {
+            const btn = document.createElement('button');
+            btn.innerText = text;
+
+            if (isActive) {
+                btn.className = "bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-blue-500/20 !border-none";
+            } else {
+                btn.className = "bg-zinc-800 hover:bg-zinc-700 text-gray-200 px-4 py-2 rounded-lg transition-colors font-medium !border-none !text-base";
+            }
+
+            btn.onclick = () => {
+                if (isActive) return;
+                currentPage = page;
+
+                // Обновляем URL
+                const url = new URL(window.location);
+                url.searchParams.set('page', page);
+                window.history.pushState({}, '', url);
+
+                fetchGames();
+            };
+            return btn;
+        };
+
+        const fetchGames = async () => {
+            const offset = (currentPage - 1) * LIMIT;
+
+            try {
+                home.innerHTML = `
+                    <div class="col-span-full flex justify-center py-20">
+                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                    </div>`;
+
+
+                const response = await fetch('/api/v1/games/', {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        year: currentYear,
+                        tag: currentTag,
+                        category: currentCategory,
+                        query: currentSearch,
+                        offset: offset,
+                        limit: LIMIT
+                    })
+                });
+
+
+                const data = await response.json();
+
+                const games = data.games;
+                const totalCount = data.total_count;
+
+                renderGames(games);
+                renderPagination(currentPage, totalCount);
+
+                games.forEach(game => {
+                    sessionStorage.setItem(`game_detail_${game.slug}`, JSON.stringify(game));
+                });
+
+            } catch (error) {
+                home.innerHTML = "<p class='text-red-500 col-span-full text-center'>Ошибка загрузки контента.</p>";
+            }
+        };
+
+        window.onpopstate = () => {
+            currentPage = getUrlPage();
+            fetchGames();
+        };
+
+        fetchGames();
+    });
+</script>
+
+{% endblock %}
