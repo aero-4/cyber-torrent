@@ -15,7 +15,7 @@
         const home = document.getElementById("home");
         const pagination = document.getElementById("pagination");
 
-        const LIMIT = 40;
+        const LIMIT = 20;
 
         const getUrlPage = () => {
             const params = new URLSearchParams(window.location.search);
@@ -37,10 +37,16 @@
             return params.get("query")
         }
 
+        const getYear = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("year")
+        }
+
         let currentPage = getUrlPage();
         let currentCategory = getCategory();
         let currentTag = getTag();
         let currentSearch = getQuerySearch();
+        let currentYear = getYear();
 
         const renderGames = (games) => {
             if (!games || games.length === 0) {
@@ -143,10 +149,11 @@
                     </div>`;
 
 
-                const response = await fetch('/games/', {
+                const response = await fetch('/api/v1/games/', {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
+                        year: currentYear,
                         tag: currentTag,
                         category: currentCategory,
                         query: currentSearch,

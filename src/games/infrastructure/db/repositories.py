@@ -98,10 +98,10 @@ class PGGamesRepository:
             .limit(data.limit)
         )
 
-        if data.category and data.category.isdigit():
-            stmt = stmt.where(GamesOrm.release_date.icontains(data.category))
+        if data.year:
+            stmt = stmt.where(GamesOrm.release_date.icontains(data.year))
 
-        elif data.category and not data.category.isdigit():
+        if data.category:
             stmt = stmt.where(GamesOrm.genre == data.category)
 
         if data.tag:
@@ -114,6 +114,10 @@ class PGGamesRepository:
         result = result.unique().scalars().all()
 
         count_stmt = select(count(GamesOrm.id))
+
+        if data.year:
+            count_stmt = stmt.where(GamesOrm.release_date.icontains(data.year))
+
         if data.category:
             count_stmt = count_stmt.where(or_(GamesOrm.genre == data.category,
                                               GamesOrm.release_date.icontains(data.category)))

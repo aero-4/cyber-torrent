@@ -17,7 +17,6 @@ class TokenAuth(ITokenAuth):
     """
     Creating token for authorization
     """
-
     def __init__(self,
                  request: Request,
                  provider: ITokenProvider,

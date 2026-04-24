@@ -47,15 +47,15 @@ scheduler = AsyncIOScheduler()
 
 
 def setup_tasks(scheduler: AsyncIOScheduler):
-    # scheduler.add_job(searcher_games,
-    #                   trigger="interval",
-    #                   minutes=60,
-    #                   next_run_time=datetime.datetime.now())
+    scheduler.add_job(searcher_games,
+                      trigger="interval",
+                      minutes=60,
+                      next_run_time=datetime.datetime.now())
     scheduler.add_job(searcher_nullable_torrents,
                       trigger="interval",
                       minutes=120,
                       next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=1))
-    scheduler.start()
+    # scheduler.start()
 
 
 @asynccontextmanager
@@ -68,7 +68,8 @@ async def lifespan(app: FastAPI):
 
 
 logger = logging.getLogger(__name__)
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan,
+              root_path="/api/v1")
 admin = Admin(app, engine=engine, title="CyberTorrents Admin Panel")
 # csrf_protect = CsrfProtect()
 
@@ -97,8 +98,9 @@ async def get_secret(user_id: str = None):
 #                    excluded_paths=["/docs", "/auth/qr"],
 #                    header_name="X-2FA-Code",)
 # encryption_key=base64.b64encode(secrets.token_bytes(32))  # Optional)
-app.add_middleware(RefreshMiddleware)
-app.add_middleware(AuthorizationMiddleware)
+
+# app.add_middleware(RefreshMiddleware)
+# app.add_middleware(AuthorizationMiddleware)
 
 # app.add_middleware(CSRFMiddleware, secret=config.csrf.secret_key)
 

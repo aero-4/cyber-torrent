@@ -80,11 +80,11 @@
                 <div class="items-center flex flex-col gap-3">
                     <div class="flex flex-row gap-3">
 
-                        <a href="/auth/oauth2/google/url">
+                        <a href="/api/v1/auth/oauth2/google/url">
                             <img src="/static/icons/google.png" width="48" alt="google">
                         </a>
 
-                        <a href="/auth/oauth2/yandex/url">
+                        <a href="/api/v1/auth/oauth2/yandex/url">
                             <img src="/static/icons/yandex.png" width="48" alt="yandex" class="rounded-full">
                         </a>
                     </div>
@@ -442,7 +442,7 @@
         const formData = new FormData();
         formData.append('email', email);
 
-        const response = await fetch('/auth/otp/qr', {
+        const response = await fetch('/api/v1/auth/otp/qr', {
             method: 'POST',
             body: formData,
         });
@@ -472,7 +472,7 @@
             payload.otp_code = otpCode;
         }
 
-        const {data} = await postForm('/auth/login', payload);
+        const {data} = await postForm('/api/v1/auth/login', payload);
 
         if (data.status === 422) {
             setGlobalMessage(data.detail[0].message || data.detail, true);
@@ -540,7 +540,7 @@
         }
 
         try {
-            const response = await fetch(`/email/2fa/code/${code}`, {
+            const response = await fetch(`/api/v1/email/2fa/code/${code}`, {
                 method: 'GET'
             });
             const data = await safeJson(response);
@@ -588,7 +588,7 @@
         }
 
         try {
-            const {data} = await postForm('/auth/login', {
+            const {data} = await postForm('/api/v1/auth/login', {
                 token_key: tokenKey,
                 email: pendingEmail,
                 password: pendingPassword,
@@ -647,7 +647,7 @@
         }
 
         try {
-            const {data} = await postForm('/auth/otp/confirm', {
+            const {data} = await postForm('/api/v1/auth/otp/confirm', {
                 email,
                 otp_code: code,
             });

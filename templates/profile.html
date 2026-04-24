@@ -98,7 +98,7 @@
         formData.append('file', file);
 
         try {
-            const res = await fetch('/users/avatar', {
+            const res = await fetch('/api/v1/users/avatar', {
                 method: 'PATCH',
                 body: formData
             });
@@ -126,7 +126,7 @@
 
     async function loadUserData() {
         try {
-            const response = await fetch(`/users/me`, {method: "GET"});
+            const response = await fetch(`/api/v1/users/me`, {method: "GET"});
             const data = await response.json();
             if (!data.email) throw new Error();
 
@@ -210,7 +210,7 @@
         }
 
         try {
-            const res = await fetch('/users/change-password', {
+            const res = await fetch('/api/v1/users/change-password', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
@@ -255,7 +255,7 @@
 
     async function sendVerificationCode(email) {
         try {
-            const res = await fetch('/auth/email/2fa/sent-confirm/', {
+            const res = await fetch('/api/v1/auth/email/2fa/sent-confirm/', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'}
             });
@@ -284,7 +284,7 @@
         try {
             const formdata = new FormData();
             formdata.append("email", currentUserEmail);
-            const response = await fetch(`/auth/otp/qr`, {method: 'POST', body: formdata});
+            const response = await fetch(`/api/v1/auth/otp/qr`, {method: 'POST', body: formdata});
             if (!response.ok) throw new Error();
             const blob = await response.blob();
             document.getElementById('qrImage').src = URL.createObjectURL(blob);
@@ -357,7 +357,7 @@
         if (code.length < 6) return showPopup("ВВЕДИТЕ ВЕСЬ КОД", true);
 
         try {
-            const res = await fetch(`/auth/email/2fa/code/${code}`);
+            const res = await fetch(`/api/v1/auth/email/2fa/code/${code}`);
             if (res.ok) {
                 showPopup("ВЕРИФИКАЦИЯ ПРОЙДЕНА");
                 closeModals();
@@ -378,7 +378,7 @@
         fd.append('email', currentUserEmail);
         fd.append('otp_code', code);
         try {
-            const res = await fetch('/auth/otp/confirm', {method: 'POST', body: fd});
+            const res = await fetch('/api/v1/auth/otp/confirm', {method: 'POST', body: fd});
             if (res.ok) {
                 showPopup("OTP ЗАЩИТА АКТИВИРОВАНА");
                 closeModals();

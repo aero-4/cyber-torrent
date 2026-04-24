@@ -66,9 +66,9 @@ class GamesOrm(Base):
             release_date=self.release_date,
             background_image=self.background_image,
             description_raw=self.description_raw,
-            game_images=[i.to_entity() for i in self.game_images],
-            torrents=[i.to_entity() for i in self.torrents],
-            tags=[i.to_entity() for i in self.tags],
+            game_images=[i.to_entity() for i in self.game_images if isinstance(self.game_images, list)],
+            torrents=[i.to_entity() for i in self.torrents if self.torrents if isinstance(self.game_images, list)],
+            tags=[i.to_entity() for i in self.tags if self.tags if isinstance(self.game_images, list)],
             similar=similar
         )
 

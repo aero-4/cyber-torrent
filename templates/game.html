@@ -315,7 +315,7 @@
                 if (cached) renderComments(JSON.parse(cached));
             }
             try {
-                const res = await fetch('/comments/all', {
+                const res = await fetch('/api/v1/comments/all', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({game_id: game.id, offset: offset, limit: LIMIT})
@@ -340,7 +340,7 @@
             submitBtn.disabled = true;
             submitBtn.innerText = 'Отправка...';
             try {
-                const response = await fetch('/comments/', {
+                const response = await fetch('/api/v1/comments/', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({game_id: game.id, content: content})
