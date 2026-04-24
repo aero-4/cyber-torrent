@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Tuple, Any
+from typing import Tuple, Any, Coroutine
 
 import aiohttp
 from aiohttp import ClientTimeout
@@ -16,11 +16,11 @@ class MetadataParser:
         self.api_key = api_key
         self.base_url = "https://api.rawg.io/api/games"
 
-    async def search(self, page: int) -> tuple[Any]:
+    async def search(self, page: int) -> Coroutine[Any, Any, tuple[Any]]:
         try:
             results_data = await self.search_games(page)
-            updated_results_data = await self.translate_descriptions_games(results_data)
-            return updated_results_data
+            results_data = await self.translate_descriptions_games(results_data)
+            return results_data
         except Exception as e:
             logging.error(f"Error load metadata: {e}")
 
@@ -50,9 +50,10 @@ class MetadataParser:
             results: list[dict] = await asyncio.gather(*tasks)
             logging.debug(f"Translated {len(results)} games!")
             return results
+
         except Exception as e:
-            logging.error("Not worked updating description games")
-            raise e
+            logging.error("Not worked updating description games: %s", e)
+
 
     async def search_games(self, page: int = 1, max_size: int = 100, platform: str = "1"):
         params = {

@@ -38,7 +38,9 @@ class PGGamesRepository:
             select(GamesOrm)
             .where(GamesOrm.slug == slug)
             .options(
-                joinedload(GamesOrm.tags)
+                selectinload(GamesOrm.tags),
+                selectinload(GamesOrm.game_images),
+                selectinload(GamesOrm.torrents)
             )
         )
         result = await self.session.execute(stmt)
@@ -79,61 +81,48 @@ class PGGamesRepository:
         result = await self.session.execute(stmt)
         result = result.unique().scalars().all()
 
-        if not result:
-            raise NotFound()
-
         return [i.to_entity() for i in result]
 
     async def get_all(self, data: GamesCollectionDTO) -> GamesCollection:
+        filters = []
+
+        if data.year:
+            filters.append(GamesOrm.release_date.icontains(data.year))
+
+        if data.category:
+            filters.append(GamesOrm.genre == data.category)
+
+        if data.tag:
+            filters.append(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))
+
+        if data.query:
+            filters.append(GamesOrm.name.icontains(data.query))
+
+        count_stmt = select(func.count(GamesOrm.id)).where(*filters)
+        total_count = await self.session.scalar(count_stmt) or 0
+
+        if total_count == 0:
+            return GamesCollection(games=[], total_count=0)
+
         stmt = (
             select(GamesOrm)
+            .where(*filters)
             .options(
-                joinedload(GamesOrm.torrents),
-                joinedload(GamesOrm.tags)
+                selectinload(GamesOrm.game_images),
+                selectinload(GamesOrm.torrents),
+                selectinload(GamesOrm.tags),
             )
-            .order_by(
-                GamesOrm.created_at.desc()
-            )
+            .order_by(GamesOrm.created_at.desc())
             .offset(data.offset)
             .limit(data.limit)
         )
 
-        if data.year:
-            stmt = stmt.where(GamesOrm.release_date.icontains(data.year))
-
-        if data.category:
-            stmt = stmt.where(GamesOrm.genre == data.category)
-
-        if data.tag:
-            stmt = stmt.where(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))
-
-        if data.query:
-            stmt = stmt.where(GamesOrm.name.icontains(data.query))
-
-        result = await self.session.execute(stmt)
-        result = result.unique().scalars().all()
-
-        count_stmt = select(count(GamesOrm.id))
-
-        if data.year:
-            count_stmt = stmt.where(GamesOrm.release_date.icontains(data.year))
-
-        if data.category:
-            count_stmt = count_stmt.where(or_(GamesOrm.genre == data.category,
-                                              GamesOrm.release_date.icontains(data.category)))
-
-        if data.tag:
-            count_stmt = count_stmt.where(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))
-
-        if data.query:
-            count_stmt = count_stmt.where(GamesOrm.name.icontains(data.query))
-
-        result2 = await self.session.execute(count_stmt)
-        total_count = result2.scalar_one()
+        result = await self.session.scalars(stmt)
+        games = result.all()
 
         return GamesCollection(
-            games=[i.to_entity() for i in result],
-            total_count=total_count or 0
+            games=[i.to_entity() for i in games],
+            total_count=total_count
         )
 
     async def get_by_search(self, query: str) -> GamesCollection:

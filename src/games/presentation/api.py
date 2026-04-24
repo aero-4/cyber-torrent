@@ -17,8 +17,3 @@ async def all_games(dto: GamesCollectionDTO):
 @router.get("/{slug}")
 async def get_info_game_slug(slug: str):
     return await get_game(slug)
-
-
-@router.get("/search/")
-async def get_search_games(query: Annotated[str, Query(..., min_length=1)]):
-    return await search_games(query)

@@ -49,28 +49,43 @@ class GamesOrm(Base):
     release_date: Mapped[datetime.datetime] = mapped_column(DateTime(), default=get_timezone_now, nullable=True)
     background_image: Mapped[str] = mapped_column(String(), nullable=True)
     description_raw: Mapped[str] = mapped_column(Text(), nullable=True)
-    torrents: Mapped[List["TorrentsOrm"]] = relationship(back_populates="game_torrent", uselist=True, lazy="joined")
-    tags: Mapped[List["GamesTagsOrm"]] = relationship(back_populates="game", uselist=True, lazy="joined")
-    game_images: Mapped[List["GamesImagesOrm"]] = relationship(back_populates="game", uselist=True, lazy="joined")
+    torrents: Mapped[List["TorrentsOrm"]] = relationship(back_populates="game_torrent", uselist=True, lazy="select")
+    tags: Mapped[List["GamesTagsOrm"]] = relationship(back_populates="game", uselist=True)
+    game_images: Mapped[List["GamesImagesOrm"]] = relationship(back_populates="game", uselist=True)
 
     def to_entity(self, similar=None):
-        return Game(
-            id=self.id,
-            created_at=self.created_at,
-            updated_at=self.updated_at,
-            name=self.name,
-            slug=self.slug,
-            genre=self.genre,
-            platform=self.platform,
-            metacritic=self.metacritic,
-            release_date=self.release_date,
-            background_image=self.background_image,
-            description_raw=self.description_raw,
-            game_images=[i.to_entity() for i in self.game_images if isinstance(self.game_images, list)],
-            torrents=[i.to_entity() for i in self.torrents if self.torrents if isinstance(self.game_images, list)],
-            tags=[i.to_entity() for i in self.tags if self.tags if isinstance(self.game_images, list)],
-            similar=similar
-        )
+        try:
+            return Game(
+                id=self.id,
+                created_at=self.created_at,
+                updated_at=self.updated_at,
+                name=self.name,
+                slug=self.slug,
+                genre=self.genre,
+                platform=self.platform,
+                metacritic=self.metacritic,
+                release_date=self.release_date,
+                background_image=self.background_image,
+                description_raw=self.description_raw,
+                game_images=[i.to_entity() for i in self.game_images],
+                torrents=[i.to_entity() for i in self.torrents],
+                tags=[i.to_entity() for i in self.tags],
+                similar=similar
+            )
+        except:
+            return Game(
+                id=self.id,
+                created_at=self.created_at,
+                updated_at=self.updated_at,
+                name=self.name,
+                slug=self.slug,
+                genre=self.genre,
+                platform=self.platform,
+                metacritic=self.metacritic,
+                release_date=self.release_date,
+                background_image=self.background_image,
+                description_raw=self.description_raw,
+            )
 
 
 class GamesAdmin(BaseAdmin, model=GamesOrm):

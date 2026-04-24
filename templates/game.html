@@ -14,7 +14,8 @@
         </svg>
     </button>
 
-    <button onclick="changeLightboxImage(-1)" class="border-0 bg-transparent absolute left-0 top-0 bottom-0 w-20 md:w-32 flex items-center justify-center text-white/20 hover:text-white/80 hover:bg-white/5 transition-all z-40">
+    <button onclick="changeLightboxImage(-1)"
+            class="border-0 bg-transparent absolute left-0 top-0 bottom-0 w-20 md:w-32 flex items-center justify-center text-white/20 hover:text-white/80 hover:bg-white/5 transition-all z-40">
         <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
@@ -22,7 +23,8 @@
 
     <img id="lightbox-image" src="" class="bg-transparent max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl transition-transform duration-300" alt="Screenshot Full">
 
-    <button onclick="changeLightboxImage(1)" class="border-0 bg-transparent absolute right-0 top-0 bottom-0 w-20 md:w-32 flex items-center justify-center text-white/20 hover:text-white/80 hover:bg-white/5 transition-all z-40">
+    <button onclick="changeLightboxImage(1)"
+            class="border-0 bg-transparent absolute right-0 top-0 bottom-0 w-20 md:w-32 flex items-center justify-center text-white/20 hover:text-white/80 hover:bg-white/5 transition-all z-40">
         <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
         </svg>
@@ -95,9 +97,13 @@
         const LIMIT = 20;
 
         try {
-            const response = await fetch(`/games/${slug}`);
-            if (!response.ok) throw new Error("Игра не найдена");
-            game = await response.json();
+            game = sessionStorage.getItem(`game_detail_${slug}`)
+            if (!game) {
+                const response = await fetch(`/api/v1/games/${slug}`);
+                if (!response.ok) throw new Error("Игра не найдена");
+
+                game = await response.json();
+            }
 
             // Сохраняем скриншоты глобально для лайтбокса
             if (game.game_images) {
@@ -109,15 +115,6 @@
         }
 
         const cacheKey = `comments_cache_${game.id}`;
-
-        const maskUser = (user) => {
-            if (user && user.includes('@')) {
-                const [name, domain] = user.split('@');
-                return name.slice(0, Math.floor(name.length / 2)) + '***@' + domain;
-            }
-            return user || 'Аноним';
-        };
-
         const formatDate = (dateString) => {
             if (!dateString)
                 return '';

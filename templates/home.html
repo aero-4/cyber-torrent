@@ -59,7 +59,7 @@
                    class="group  overflow-hidden shadow-lg hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col">
                     <div class="relative aspect-video overflow-hidden">
                         <img
-                            src="${game.background_image || 'https://via.placeholder.com/400x225?text=No+Image'}"
+                            src="${"/" + game.background_image || 'https://via.placeholder.com/400x225?text=No+Image'}"
                             alt="${game.name}"
                             loading="lazy"
                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
