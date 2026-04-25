@@ -25,7 +25,7 @@ class ImagesDownloader:
         async with aiofiles.open(path, "wb") as file:
             async for chunk in content.iter_chunked(65536):
                 await file.write(chunk)
-        return path
+        return "/api/v1/" + path
 
     def _path_file(self, prefix: str = "png") -> str:
         name = str(uuid.uuid4())

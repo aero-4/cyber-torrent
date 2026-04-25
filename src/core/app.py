@@ -42,7 +42,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from src.core.domain.exceptions import AppException
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 scheduler = AsyncIOScheduler()
 
 
@@ -87,7 +89,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static",
+          StaticFiles(directory=BASE_DIR / "static"),
+          name="static")
 
 
 async def get_secret(user_id: str = None):
@@ -182,7 +186,6 @@ async def logging_requests(request: Request, call_next):
         },
     )
     return response
-
 
 # class CustomResponseCSRFMiddleware(CSRFMiddleware):
 #     def _get_error_response(self, request: Request) -> Response:
