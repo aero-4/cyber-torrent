@@ -22,7 +22,7 @@ class Oauth2Google(IOauth2Provider):
 
         params = {
             "client_id": self.client_id,
-            "redirect_uri": f"{config.app.APP_URI}/auth/oauth2/google",
+            "redirect_uri": f"{config.app.APP_URI}/api/v1/auth/oauth2/google",
             "response_type": "code",
             "scope": " ".join([
                 "openid",
@@ -42,7 +42,7 @@ class Oauth2Google(IOauth2Provider):
             "client_id": self.client_id,
             "client_secret": self.client_secret,
             "grant_type": "authorization_code",
-            "redirect_uri": config.app.APP_URI + "/auth/oauth2/google",
+            "redirect_uri": config.app.APP_URI + "/api/v1/auth/oauth2/google",
             "code": code
         }
         async with aiohttp.ClientSession() as session:

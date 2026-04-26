@@ -104,8 +104,8 @@ async def get_secret(user_id: str = None):
 #                    header_name="X-2FA-Code",)
 # encryption_key=base64.b64encode(secrets.token_bytes(32))  # Optional)
 
-# app.add_middleware(RefreshMiddleware)
-# app.add_middleware(AuthorizationMiddleware)
+app.add_middleware(RefreshMiddleware)
+app.add_middleware(AuthorizationMiddleware)
 
 # app.add_middleware(CSRFMiddleware, secret=config.csrf.secret_key)
 

@@ -123,6 +123,15 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
+<div id="systemPopup" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="alien-popup border-4 border-blue-600 bg-black p-8 text-center min-w-[320px] shadow-[0_0_40px_rgba(37,99,235,0.5)]">
+        <div id="popupMessage" class="text-2xl font-bold uppercase tracking-widest mb-6">TEXT</div>
+        <button onclick="closePopup()" class="border-2 border-blue-600 bg-blue-600/20 px-8 py-3 text-xl font-bold uppercase hover:bg-blue-600 hover:text-black transition-colors w-full">
+            ОК
+        </button>
+    </div>
+</div>
+
 <header class="bg-black sticky top-0 z-50 transition-colors duration-300 relative">
     <div class="line"></div>
 
@@ -212,8 +221,8 @@
 
         <section class="min-w-0">
             {% block content %}
-            <h1>Добро пожаловать</h1>
-            <p>Система функционирует нормально. Все протоколы поиска активны.</p>
+                <h1>Добро пожаловать</h1>
+                <p>Система функционирует нормально. Все протоколы поиска активны.</p>
             {% endblock %}
         </section>
     </div>
@@ -241,6 +250,8 @@
     const mobileCategoriesBtn = document.getElementById('mobileCategoriesBtn');
     const mobileCategoriesDropdown = document.getElementById('mobileCategoriesDropdown');
     const mobileCategoriesArrow = document.getElementById('mobileCategoriesArrow');
+    const systemPopup = document.getElementById('systemPopup');
+    const popupMessage = document.getElementById('popupMessage');
 
     function syncHeaderHeight() {
         document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`);
@@ -251,6 +262,16 @@
         mobileMenu.classList.toggle('hidden');
         syncHeaderHeight();
     };
+
+    function showPopup(msg, isError = false) {
+        popupMessage.textContent = msg;
+        popupMessage.className = `text-2xl font-bold uppercase tracking-widest mb-6 ${isError ? 'text-red-500' : 'text-blue-400'}`;
+        systemPopup.classList.remove('hidden');
+    }
+
+    function closePopup() {
+        systemPopup.classList.add('hidden');
+    }
 
     burgerBtn.onclick = toggleMenu;
     burgerBtnDesktop.onclick = toggleMenu;
