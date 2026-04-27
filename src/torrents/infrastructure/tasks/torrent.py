@@ -23,10 +23,10 @@ async def searcher_torrents(game: Game) -> None:
             t_data = TorrentCreate(game_id=game.id, **torrent_data)
             try:
                 await uow.torrents.add(t_data)
-                success += 1
-
-                logging.info(f"Added torrent: %s", t_data.name)
                 await uow.commit()
+
+                success += 1
+                logging.info(f"Added torrent: %s", t_data.name)
             except AlreadyExists as e:
                 logging.error(f'Error adding torrent: %s', e)
 

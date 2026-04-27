@@ -1,10 +1,10 @@
 import secrets
 from typing import Literal
 
-import pyotp
 from dotenv import find_dotenv, load_dotenv
 # from fastapi_csrf_protect import CsrfProtect
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import PostgresDsn
 
 ENV_FILE = find_dotenv()
 load_dotenv(ENV_FILE)
@@ -42,7 +42,22 @@ class OTPAuthConfig(BaseAppConfig):
 
 
 class DatabaseConfig(BaseAppConfig):
-    DATABASE_URI: str = "sqlite+aiosqlite:///test.db"
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
+    POSTGRES_DB: str
+    POSTGRES_PORT: int
+
+    @property
+    def DATABASE_URI(self) -> str:
+        return str(PostgresDsn.build(
+            scheme="postgresql+asyncpg",
+            username=self.POSTGRES_USER,
+            password=self.POSTGRES_PASSWORD,
+            host=self.POSTGRES_HOST,
+            port=self.POSTGRES_PORT,
+            path=self.POSTGRES_DB,
+        ))
 
 
 class EmailConfig(BaseAppConfig):
@@ -73,13 +88,13 @@ Mail expired after {expire_minutes} minutes.
 
 
 class AppConfig(BaseAppConfig):
-    HOST: str = "127.0.0.1"
-    PORT: int = 8000
-    USE_SSL: bool = False
+    APP_HOST: str = "127.0.0.1"
+    APP_PORT: int = 8000
+    APP_USE_SSL: bool = False
 
     @property
     def APP_URI(self):
-        return f"http{'s' if self.USE_SSL else ''}://{self.HOST}:{self.PORT}"
+        return f"http{'s' if self.APP_USE_SSL else ''}://{self.APP_HOST}:{self.APP_PORT}"
 
 
 class OAuth2Config(BaseAppConfig):

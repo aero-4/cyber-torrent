@@ -5,8 +5,8 @@ from src.core.config import config
 
 def main():
     uvicorn.run(app,
-                host=config.app.HOST,
-                port=config.app.PORT)
+                host=config.app.APP_HOST,
+                port=config.app.APP_PORT)
 
 
 if __name__ == '__main__':

@@ -24,5 +24,5 @@ class RedisCache:
 
     async def save_cache_object(self, key: str, obj: BaseModel):
         await self.redis.setex(key,
-                               timedelta(minutes=60),
+                               timedelta(minutes=10),
                                json.dumps(obj.model_dump(mode="json")))

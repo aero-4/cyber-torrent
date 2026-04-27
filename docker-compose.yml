@@ -8,7 +8,18 @@ services:
     depends_on:
       - rabbitmq
       - taskiq_worker
-    command: [ "sh", "-c", "uvicorn src.core.app:app --reload --host 0.0.0.0 --port 8000" ]
+    command: alembic upgrade head && uvicorn src.core.app:app --reload --host ${APP_HOST} --port ${APP_PORT}
+
+
+  postgresql:
+
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./logs/postgresql:/var/log/postgresql
+    env_file: .env
+    restart: always
+
 
   redis:
     image: redis:8-alpine
@@ -43,68 +54,6 @@ services:
       - rabbitmq
     command: taskiq worker src.core.taskiq_app:broker --fs-discover --tasks-pattern **/tasks/*.py
 
-#  taskiq:
-#    image: ghcr.io/danfimov/taskiq-dashboard:latest
-#    environment:
-#      TASKIQ_DASHBOARD__STORAGE_TYPE: sqlite
-#      TASKIQ_DASHBOARD__SQLITE__DSN: sqlite+aiosqlite:///taskiq.db
-#      TASKIQ_DASHBOARD__API__TOKEN: supersecret
-#    volumes:
-#      - taskiq:/app/taskiq-dashboard.db
-#    ports:
-#      - "8888:8888"
-
-
-
-#  flower:
-#    env_file: .env
-#
-#    working_dir: /usr/src/app
-#    build:
-#      context: .
-#    container_name: flower
-#    volumes:
-#      - ./src:/usr/src/app/src:delegated
-#    depends_on:
-#      - rabbitmq
-#      - celery_beat
-#      - celery_worker
-#    environment:
-#      FLOWER_USER: ${FLOWER_USER}
-#      FLOWER_PASSWORD: ${FLOWER_PASS}
-#    ports:
-#      - "5555:5555"
-#    command: [ "sh", "-c", "celery -A src.core.celery_app flower --port=5555 --basic_auth=admin:admin" ]
-#    restart: unless-stopped
-#
-#  celery_worker:
-#    env_file: .env
-#
-#    working_dir: /usr/src/app
-#    build:
-#      context: .
-#    container_name: celery_worker
-#    volumes:
-#      - ./src:/usr/src/app/src:delegated
-#    depends_on:
-#      - rabbitmq
-#    command: [ "sh", "-c", "celery -A src.core.celery_app worker --loglevel=info --concurrency=4" ]
-#    restart: always
-#
-#  celery_beat:
-#    env_file: .env
-#
-#    working_dir: /usr/src/app
-#    build:
-#      context: .
-#    volumes:
-#      - ./src:/usr/src/app/src:delegated
-#    depends_on:
-#      - rabbitmq
-#      - celery_worker
-#    command: [ "sh", "-c", "celery -A src.core.celery_app beat --loglevel=info --pidfile=/tmp/celerybeat.pid" ]
-#    restart: always
-
 networks:
   flower_shop_net:
     driver: bridge
@@ -113,3 +62,4 @@ volumes:
   rabbitmq-data:
   taskiq:
   redis-data:
+  postgres_data:

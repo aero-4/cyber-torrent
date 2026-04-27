@@ -9,179 +9,132 @@ from src.utils.files import read_lines
 
 
 class TorrentSearchProvider:
-    TRASH_WORDS = {
+    # Теги репакеров и платформ, которые мы ПРОСТО ИГНОРИРУЕМ при сравнении названий
+    # (Они легитимны для игр, мы их удаляем, чтобы сравнить "Thief" и "Thief")
+    GAME_TAGS = {
         "repack", "fitgirl", "dodi", "xatab", "corepack", "catalyst",
         "mechanic", "mechanics", "gog", "plaza", "kaos", "razor1911", "skidrow",
-        "pkg", "nsp", "xci", "iso", "reloaded", "prophet", "elamigos", "nosteam",
-        "steamrip", "cpy", "rld", "codex", "decepticon", "qoob", "brick", "mr",
-        "dj", "selizen", "selezen", "wanterlude", "darksiders", "rjaa", "rg",
-        "gameloaded",
+        "reloaded", "prophet", "elamigos", "nosteam", "steamrip", "cpy", "rld",
+        "codex", "decepticon", "qoob", "brick", "mr", "dj", "selizen", "selezen",
+        "wanterlude", "darksiders", "rjaa", "rg", "gameloaded", "pc", "windows",
+        "linux", "mac", "steam", "multi", "eng", "rus", "ru", "en", "complete",
+        "deluxe", "gold", "ultimate", "premium", "goty", "game", "edition",
+        "remastered", "enhanced", "anniversary", "collection", "bundle", "dlc",
+        "update", "patch", "build", "iso", "crack", "license"
     }
 
-    QUALITY_WORDS = {
-        "1080p", "720p", "2160p", "480p", "4k", "web", "webrip", "webdl", "web-dl",
-        "bluray", "brrip", "hdrip", "dvdrip", "r5", "remux", "x264", "x265", "hevc",
-        "avc", "aac", "dts", "flac", "mp3", "10bit", "8bit", "lossless", "multi",
-        "multi2", "multi3", "multi4", "multi5", "multi6", "multi7", "multi8",
-        "multi9", "multi10", "eng", "english", "rus", "russian",
-    }
-
-    PLATFORM_WORDS = {
-        "pc", "windows", "linux", "mac", "ps3", "ps4", "ps5", "xbox", "xbox360",
-        "xboxone", "switch", "android", "ios", "macos", "steam", "gog",
-    }
-
-    EDITION_WORDS = {
-        "complete", "deluxe", "gold", "ultimate", "premium", "goty", "game",
-        "edition", "remastered", "enhanced", "anniversary", "collection", "bundle",
-        "all", "dlc", "with", "include", "including",
-    }
-
-    VERSION_RE = re.compile(
-        r"\b(?:v|ver|version|build|update|patch|upd)\s*[\d]+(?:[.\-]\d+)*(?:[a-z])?\b",
-        re.IGNORECASE,
+    # СТОП-СЛОВА: Если мы видим это в названии, это 100% фильм, сериал, музыка или книга. БРАКУЕМ СРАЗУ.
+    MEDIA_TRASH_RE = re.compile(
+        r"\b("
+        r"1080p|720p|2160p|4k|480p|"  # Разрешения кино
+        r"bluray|brrip|bdrip|dvdrip|web-?dl|webrip|hdtv|"  # Источники
+        r"x264|x265|hevc|avc|10bit|hdr|"  # Кодеки видео
+        r"yify|yts|tigole|eztv|rmteam|flux|oft|r00t|"  # Релиз-группы кино/тв
+        r"s\d{1,2}e\d{1,2}|s\d{1,2}|season|"  # Сериалы (S01E01, S01)
+        r"aac\s?5\.1|dts-hd|atmos|ddp5\.1|"  # Аудио кино
+        r"flac|mp3|alac|"  # Музыка
+        r"epub|mobi|pdf"  # Книги
+        r")\b",
+        re.IGNORECASE
     )
-    YEAR_RE = re.compile(r"^(19\d{2}|20\d{2})$")
+
+    # Регулярки для вычищения мусора (версии, года), чтобы они не ломали математику слов
+    VERSION_RE = re.compile(r"\b(?:v|ver|version|build|update|patch|upd)\s*[\d]+(?:[.\-]\d+)*(?:[a-z])?\b", re.IGNORECASE)
+    YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
+    MULTI_RE = re.compile(r"\bmulti\d+\b", re.IGNORECASE)
 
     def __init__(self):
         self.name = None
-        self.trackers = None
+        self.trackers_string = ""
+        self._trackers_loaded = False
+
+    async def _load_trackers(self):
+        if not self._trackers_loaded:
+            try:
+                trackers = await read_lines("static/txt/trackers.txt")
+                trackers = [f"tr={urllib.parse.quote(tr)}" for tr in trackers if tr]
+                self.trackers_string = "&".join(trackers)
+            except Exception as e:
+                logging.error("Failed to load trackers: %s", e)
+                self.trackers_string = ""
+            self._trackers_loaded = True
 
     def is_black_list(self, name: str) -> bool:
-        bad = ("dodi", "igruha")
+        bad = ("igruha",)  # Убрал dodi, иначе ты не скачаешь нормальные репаки
         low = (name or "").casefold()
         return any(x in low for x in bad)
 
-    async def search(self, name: str, size: int = 100) -> list[dict]:
-        trackers = await read_lines("static/txt/trackers.txt")
-        trackers = [f"tr={tr}" for tr in trackers if tr]
-        self.trackers = "&".join(trackers)
+    def _is_media_trash(self, name: str) -> bool:
+        """Проверяет, является ли торрент фильмом, сериалом или музыкой."""
+        return bool(self.MEDIA_TRASH_RE.search(name))
 
-        url = f"https://torrents-csv.com/service/search?q={urllib.parse.quote(name)}&size={size}"
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status != 200:
-                    return []
-
-                data = await response.json()
-                logging.info("Search query: %s | Found torrents: %s", name, len(data.get("torrents", [])))
-
-                torrents = []
-                for item in data.get("torrents", []):
-                    magnet_data = self.check_magnet(item, name)
-                    if magnet_data:
-                        torrents.append(magnet_data)
-                return torrents
-
-    def _tokenize(self, text: str) -> list[str]:
+    def _get_clean_tokens(self, text: str) -> list[str]:
+        """Очищает строку и разбивает на полезные слова."""
         text = html.unescape(text or "")
         text = unicodedata.normalize("NFKC", text).casefold()
-        text = re.sub(r"[\u200b-\u200f\ufeff]", "", text)
-        text = text.replace("’", "").replace("'", "")
-        text = text.translate(str.maketrans({
-            "_": " ",
-            ".": " ",
-            "/": " ",
-            "\\": " ",
-            "|": " ",
-            "–": " ",
-            "—": " ",
-            ":": " ",
-            "™": " ",
-            "©": " ",
-            "®": " ",
-        }))
+
+        text = self.VERSION_RE.sub(" ", text)
+        text = self.YEAR_RE.sub(" ", text)
+        text = self.MULTI_RE.sub(" ", text)
+
+        # Заменяем всю пунктуацию на пробелы
         text = re.sub(r"[^a-z0-9]+", " ", text)
-        return [t for t in text.split() if t]
 
-    def _is_noise_token(self, token: str) -> bool:
-        if not token:
-            return True
-        if token in self.TRASH_WORDS:
-            return True
-        if token in self.QUALITY_WORDS:
-            return True
-        if token in self.PLATFORM_WORDS:
-            return True
-        if token in self.EDITION_WORDS:
-            return True
-        if re.fullmatch(r"multi\d+", token):
-            return True
-        if re.fullmatch(r"\d+p", token):
-            return True
-        return False
-
-    def _normalize_title(self, text: str) -> str:
         tokens = []
-        for tok in self._tokenize(text):
-            if self._is_noise_token(tok):
-                continue
-            if self.YEAR_RE.fullmatch(tok):
-                tokens.append(tok)
-                continue
-            tokens.append(tok)
-        return " ".join(tokens)
-
-    def _title_coverage(self, candidate: str, original: str) -> float:
-        c = set(self._tokenize(self._normalize_title(candidate)))
-        o = set(self._tokenize(self._normalize_title(original)))
-        if not c or not o:
-            return 0.0
-        return len(c & o) / len(o)
-
-    def _has_trigger_words(self, text: str) -> bool:
-        tokens = set(self._tokenize(text))
-        return any(
-            t in tokens
-            for t in (self.TRASH_WORDS | self.QUALITY_WORDS | self.PLATFORM_WORDS | self.EDITION_WORDS)
-        )
+        for t in text.split():
+            # Добавляем только те слова, которые не являются тегами игр
+            if t and t not in self.GAME_TAGS:
+                tokens.append(t)
+        return tokens
 
     def _accept_magnet(self, magnet_name: str, original_name: str) -> bool:
-        if self.is_black_list(magnet_name):
+        # 1. Жесткие блэклисты
+        if self.is_black_list(magnet_name) or self._is_media_trash(magnet_name):
             return False
 
-        candidate_norm = self._normalize_title(magnet_name)
-        original_norm = self._normalize_title(original_name)
+        # 2. Получаем чистые токены (без годов, версий и тегов FitGirl)
+        orig_tokens = self._get_clean_tokens(original_name)
+        cand_tokens = self._get_clean_tokens(magnet_name)
 
-        if not candidate_norm or not original_norm:
+        if not orig_tokens or not cand_tokens:
             return False
 
-        candidate_tokens = set(candidate_norm.split())
-        original_tokens = set(original_norm.split())
+        # 3. Математика слов
+        overlap = len(set(cand_tokens) & set(orig_tokens))
+        coverage = overlap / len(orig_tokens)
 
-        if not candidate_tokens or not original_tokens:
-            return False
+        # Доля "мусора" в самом торренте. Если искали Thief(1), а нашли Thief Simulator(2) -> ratio = 0.5
+        candidate_ratio = overlap / max(len(cand_tokens), 1)
 
-        if original_norm in candidate_norm or candidate_norm in original_norm:
-            return True
+        # 4. Логика принятия решений
+        if len(orig_tokens) == 1:
+            # Для однословных запросов (Thief, Doom, Control) совпадение должно быть идеальным.
+            # Если в названии есть хоть одно лишнее слово (Simulator) — бракуем.
+            return coverage == 1.0 and candidate_ratio == 1.0
 
-        overlap = len(candidate_tokens & original_tokens)
-        coverage = overlap / len(original_tokens)
+        if len(orig_tokens) == 2:
+            # Для двух слов (Thief Simulator) допускаем 1-2 лишних слова в торренте, но не больше
+            return coverage == 1.0 and candidate_ratio >= 0.5
 
-        has_noise = self._has_trigger_words(magnet_name)
-
-        if has_noise:
-            threshold = 0.72
-        else:
-            threshold = 0.45
-
-        if len(original_tokens) <= 2:
-            threshold = 0.35 if not has_noise else 0.6
-
-        return coverage >= threshold
+        # Для длинных названий допускаем незначительную потерю слов
+        return coverage >= 0.75 and candidate_ratio >= 0.4
 
     def check_magnet(self, item: dict, name: str) -> None | dict:
-        info_hash = item["infohash"]
-        magnet_name = item["name"]
+        info_hash = item.get("infohash")
+        magnet_name = item.get("name", "")
+
+        if not info_hash or not magnet_name:
+            return None
 
         if not self._accept_magnet(magnet_name, name):
             return None
 
-        logging.info("Magnet name - %s, Original name - %s", magnet_name, name)
+        logging.info("Magnet MATCHED: %s (Original: %s)", magnet_name, name)
 
-        size_bytes = item["size_bytes"]
-        magnet = f"magnet:?xt=urn:btih:{info_hash}&dn={urllib.parse.quote(name)}&{self.trackers}"
+        size_bytes = item.get("size_bytes", 0)
+        magnet = f"magnet:?xt=urn:btih:{info_hash}&dn={urllib.parse.quote(magnet_name)}"
+        if self.trackers_string:
+            magnet += f"&{self.trackers_string}"
 
         return {
             "name": magnet_name,
@@ -189,3 +142,30 @@ class TorrentSearchProvider:
             "size": size_bytes,
             "seeders": item.get("seeders", 0),
         }
+
+    async def search(self, name: str, size: int = 100) -> list[dict]:
+        await self._load_trackers()
+
+        url = f"https://torrents-csv.com/service/search?q={urllib.parse.quote(name)}&size={size}"
+
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(url) as response:
+                    if response.status != 200:
+                        logging.warning("Torrents-csv returned status %s", response.status)
+                        return []
+                    data = await response.json()
+            except Exception as e:
+                logging.error("Network error while fetching torrents: %s", e)
+                return []
+
+        logging.info("Search query: %s | Found raw torrents: %s", name, len(data.get("torrents", [])))
+
+        torrents = []
+        for item in data.get("torrents", []):
+            magnet_data = self.check_magnet(item, name)
+            if magnet_data:
+                torrents.append(magnet_data)
+
+        torrents.sort(key=lambda x: x["seeders"], reverse=True)
+        return torrents
