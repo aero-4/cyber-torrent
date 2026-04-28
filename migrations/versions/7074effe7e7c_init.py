@@ -61,7 +61,7 @@ def upgrade() -> None:
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('size', sa.Float(), nullable=False),
     sa.Column('seeders', sa.Integer(), nullable=False),
-    sa.Column('magnet', sa.String(length=1000), nullable=False),
+    sa.Column('magnet', sa.String(), nullable=False),
     sa.Column('game_id', sa.Integer(), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),

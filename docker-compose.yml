@@ -8,7 +8,11 @@ services:
     depends_on:
       - rabbitmq
       - taskiq_worker
-    command: bash -c "alembic upgrade head && uvicorn src.core.app:app --reload"
+      - postgres
+    command: bash -c "alembic upgrade head && python main.py"
+    restart: always
+    networks: [ backend_net ]
+
 
   postgres:
     image: postgres:16
@@ -24,6 +28,7 @@ services:
       retries: 10
     ports: [ "5432:5432" ]
     restart: always
+    networks: [ backend_net ]
 
   redis:
     image: redis:8-alpine
@@ -31,6 +36,7 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks: [ backend_net ]
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -50,6 +56,7 @@ services:
       timeout: 2s
       retries: 5
     restart: unless-stopped
+    networks: [ backend_net ]
 
   taskiq_worker:
     build: .
@@ -57,6 +64,36 @@ services:
     depends_on:
       - rabbitmq
     command: taskiq worker src.core.taskiq_app:broker --fs-discover --tasks-pattern **/tasks/*.py
+    networks: [ backend_net ]
+
+  nginx:
+    build:
+      context: .
+      dockerfile: infra/nginx/Dockerfile
+    image: nginx:stable
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/nginx.init.conf:/etc/nginx/nginx.conf:ro
+      - certbot_www:/var/www/certbot
+      - certbot_etc:/etc/letsencrypt
+    networks: [ backend_net ]
+
+  certbot:
+    image: certbot/certbot
+    depends_on:
+      - nginx
+    env_file: [ .env ]
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_etc:/etc/letsencrypt
+    entrypoint: >
+      sh -c "certbot certonly --webroot -w /var/www/certbot -d ${APP_DOMAIN} \
+      --email ${APP_DEVELOPER_EMAIL} --agree-tos --no-eff-email --non-interactive && echo 'CERT DONE'"
+    networks: [ backend_net ]
 
 networks:
   backend_net:
@@ -67,3 +104,5 @@ volumes:
   taskiq:
   redis-data:
   postgres_data:
+  certbot_www:
+  certbot_etc:

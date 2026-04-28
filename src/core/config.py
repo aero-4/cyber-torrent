@@ -132,7 +132,6 @@ class Config(BaseAppConfig):
     email: EmailConfig = EmailConfig()
     app: AppConfig = AppConfig()
     oauth2: OAuth2Config = OAuth2Config()
-    celery: CeleryConfig = CeleryConfig()
     metadata: MetadataConfig = MetadataConfig()
     taskiq: TaskiqConfig = TaskiqConfig()
     redis: RedisConfig = RedisConfig()

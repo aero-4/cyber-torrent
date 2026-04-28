@@ -81,6 +81,10 @@ admin.add_view(GamesAdmin)
 admin.add_view(TorrentsAdmin)
 admin.add_view(CommentsAdmin)
 
+app.mount("/static",
+          StaticFiles(directory=BASE_DIR / "static"),
+          name="static")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -88,10 +92,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.mount("/static",
-          StaticFiles(directory=BASE_DIR / "static"),
-          name="static")
 
 
 async def get_secret(user_id: str = None):
