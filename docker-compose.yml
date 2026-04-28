@@ -75,7 +75,7 @@ services:
       - app
     ports:
       - "80:80"
-      - "443:443"
+      - "8443:443"
     volumes:
       - ./infra/nginx/nginx.init.conf:/etc/nginx/nginx.conf:ro
       - certbot_www:/var/www/certbot
