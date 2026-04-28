@@ -65,7 +65,7 @@ class EmailConfig(BaseAppConfig):
     EMAIL_PORT: int
     EMAIL_USERNAME: str
     EMAIL_PASSWORD: str
-    TWO_FACTOR_EMAIL_MESSAGE_SUBJECT: str
+    TWO_FACTOR_EMAIL_MESSAGE_SUBJECT: str = "Confirm email"
     TWO_FACTOR_TOKEN_EXPIRE_SECONDS: int = 60 * 5
     CONFIRM_CODE_EMAIL_EXPIRE_SECONDS: int = 60 * 5
     USE_TLS: bool = True

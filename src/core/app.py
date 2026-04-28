@@ -24,12 +24,12 @@ from src.games.infrastructure.tasks.metadata import searcher_games
 from src.games.presentation.api import router as games_api_router
 from src.torrents.infrastructure.db.orm import TorrentsAdmin
 
-from views.home.home import router as home_view
-from views.login.login import router as login_view
-from views.register.register import router as register_view
-from views.profile.profile import router as profile_view
-from views.faq.faq import router as faq_view
-from views.game.game import router as game_view
+from src.views.home import router as home_view
+from src.views.login import router as login_view
+from src.views.register import router as register_view
+from src.views.profile import router as profile_view
+from src.views.faq import router as faq_view
+from src.views.game import router as game_view
 from src.core.infrastructure.setup_logging import setup_logging
 from src.db.engine import engine
 from src.users.infrastructure.db.orm import UsersAdmin

@@ -33,8 +33,6 @@ def upgrade() -> None:
                         sa.ForeignKeyConstraint(['game_id'], ['games.id'], ondelete='CASCADE'),
                         sa.PrimaryKeyConstraint('id')
                         )
-        with op.batch_alter_table('game_images', schema=None) as batch_op:
-            batch_op.create_unique_constraint(None, ['image'])
 
         # ### end Alembic commands ###
     except:

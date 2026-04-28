@@ -10,14 +10,14 @@ class Torrent(BaseModel):
     name: str
     seeders: int
     magnet: str
-    size: float | int | None = None
+    size: float | None = None
 
 
 class TorrentCreate(BaseModel):
     name: str
     seeders: int
     magnet: str
-    size: int
+    size: float
     game_id: int
 
 

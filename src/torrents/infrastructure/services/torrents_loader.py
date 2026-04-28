@@ -132,14 +132,16 @@ class TorrentSearchProvider:
         logging.info("Magnet MATCHED: %s (Original: %s)", magnet_name, name)
 
         size_bytes = item.get("size_bytes", 0)
+        size_gb = float(round(size_bytes / (1024 * 1024 * 1024), 2))
         magnet = f"magnet:?xt=urn:btih:{info_hash}&dn={urllib.parse.quote(magnet_name)}"
+
         if self.trackers_string:
             magnet += f"&{self.trackers_string}"
 
         return {
             "name": magnet_name,
             "magnet": magnet,
-            "size": size_bytes,
+            "size": size_gb,
             "seeders": item.get("seeders", 0),
         }
 

@@ -8,18 +8,22 @@ services:
     depends_on:
       - rabbitmq
       - taskiq_worker
-    command: alembic upgrade head && uvicorn src.core.app:app --reload --host ${APP_HOST} --port ${APP_PORT}
+    command: bash -c "alembic upgrade head && uvicorn src.core.app:app --reload"
 
-
-  postgresql:
-
+  postgres:
     image: postgres:16
+    env_file: [ .env ]
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./logs/postgresql:/var/log/postgresql
-    env_file: .env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h ${POSTGRES_HOST}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports: [ "5432:5432" ]
     restart: always
-
 
   redis:
     image: redis:8-alpine
@@ -55,7 +59,7 @@ services:
     command: taskiq worker src.core.taskiq_app:broker --fs-discover --tasks-pattern **/tasks/*.py
 
 networks:
-  flower_shop_net:
+  backend_net:
     driver: bridge
 
 volumes:

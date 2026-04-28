@@ -25,7 +25,7 @@ def upgrade() -> None:
         op.create_table('comments',
         sa.Column('game_id', sa.Integer(), nullable=False),
         sa.Column('user_id', sa.Integer(), nullable=False),
-        sa.Column('content', sa.Text(length=250), nullable=False),
+        sa.Column('content', sa.String(length=250), nullable=False),
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
@@ -33,8 +33,6 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
         )
-        # with op.batch_alter_table('game_images', schema=None) as batch_op:
-        #     batch_op.create_unique_constraint(None, ['image'])
 
         # ### end Alembic commands ###
     except:
