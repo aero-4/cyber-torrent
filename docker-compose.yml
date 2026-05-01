@@ -91,8 +91,8 @@ services:
       - certbot_www:/var/www/certbot
       - certbot_etc:/etc/letsencrypt
     entrypoint: >
-      sh -c "certbot certonly --webroot -w /var/www/certbot -d ${APP_DOMAIN} \
-      --email ${APP_DEVELOPER_EMAIL} --agree-tos --no-eff-email --non-interactive && echo 'CERT DONE'"
+      sh -c "certbot certonly --webroot -w /var/www/certbot -d cyber-torrent.top \
+      --email dimongames6@gmail.com --agree-tos --no-eff-email --non-interactive && echo 'CERT DONE'"
     networks: [ backend_net ]
 
 networks:
