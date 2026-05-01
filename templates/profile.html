@@ -128,7 +128,6 @@
         try {
             const response = await fetch(`/api/v1/users/me`, {method: "GET"});
             const data = await response.json();
-            if (!data.email) throw new Error();
 
             currentUserEmail = data.email;
 
@@ -179,15 +178,13 @@
                         ИЗМЕНИТЬ ПАРОЛЬ
                     </button>
 
-                    <button onclick="showPopup('ФУНКЦИЯ УДАЛЕНИЯ В РАЗРАБОТКЕ')"
-                        class="text-black py-5 px-4 font-bold uppercase transition-all border-4 border-red-900 text-red-900 hover:bg-red-900/10 hover:border-red-600 hover:text-red-600">
-                        УДАЛИТЬ АККАУНТ
-                    </button>
                 </div>
             `;
             document.getElementById('avatarInput').addEventListener('change', uploadAvatar);
         } catch (error) {
             userContainer.innerHTML = "<p class='text-red-500'>Не смог получить данные о пользователе.</p>";
+            console.error(error)
+
         }
     }
 

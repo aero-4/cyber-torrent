@@ -166,7 +166,6 @@
             </div>
         `;
 
-        // --- РЕНДЕР СКРИНШОТОВ ---
         const screenshotContainer = document.getElementById('screenshots-section');
         if (gameImages.length > 0) {
             screenshotContainer.innerHTML = `
@@ -183,7 +182,6 @@
             `;
         }
 
-        // --- РЕНДЕР ТОРРЕНТОВ ---
         const torrentSection = document.getElementById('torrent-section');
         if (game.torrents && game.torrents.length > 0) {
             torrentSection.innerHTML = `
@@ -208,7 +206,6 @@
             `;
         }
 
-        // --- РЕНДЕР ПОХОЖИХ ИГР (КАРУСЕЛЬ ИЗ game.similar) ---
         const similarSection = document.getElementById('similar-games-section');
         if (game.similar && game.similar.length > 0) {
             similarSection.innerHTML = `

@@ -115,7 +115,7 @@ async def get_token_page():
             <script>
                 const hash = window.location.hash.substring(1);
                 if (hash) {
-                    window.location.href = "/auth/oauth2/yandex/callback?" + hash;
+                    window.location.href = "/api/v1/auth/oauth2/yandex/callback?" + hash;
                 } else {
                     document.body.innerHTML = "Ошибка: Токен не найден в URL";
                 }

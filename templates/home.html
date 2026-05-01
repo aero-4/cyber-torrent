@@ -7,6 +7,7 @@
     </div>
 
     <div id="pagination" class="flex flex-wrap justify-center items-center gap-2 mt-12">
+
     </div>
 
 <script>
@@ -84,31 +85,25 @@
                 </a>
             `).join('');
 
-            window.scrollTo({top: 0, behavior: 'smooth'});
+            {#window.scrollTo({top: 0, behavior: 'smooth'});#}
         };
 
         const renderPagination = (current, totalItems) => {
             pagination.innerHTML = '';
-            // Рассчитываем количество страниц (если бэк не прислал total, берем с запасом)
             const totalPages = Math.ceil(totalItems / LIMIT) || current;
 
-            // Определяем диапазон кнопок (текущая +- 2)
             let start = Math.max(1, current - 2);
             let end = Math.min(totalPages, start + 4);
             if (end - start < 4) start = Math.max(1, end - 4);
 
-            // Кнопка "<< Первая"
             if (current > 1) {
                 pagination.appendChild(createPageBtn(1, '<<', false));
             }
 
-            // Цифры
             for (let i = start; i <= end; i++) {
                 pagination.appendChild(createPageBtn(i, i, i === current));
             }
 
-            // Кнопка "Последняя >>"
-            // (Кнопка в конец активна, только если мы знаем total и мы не на последней странице)
             if (current < totalPages) {
                 pagination.appendChild(createPageBtn(current + 1, '>>', false));
             }

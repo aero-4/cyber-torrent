@@ -90,6 +90,8 @@ Mail expired after {expire_minutes} minutes.
 class AppConfig(BaseAppConfig):
     APP_HOST: str = "127.0.0.1"
     APP_PORT: int = 8000
+    APP_ROOT_PATH: str = "/api/v1"
+
     APP_USE_SSL: bool = False
     APP_DOMAIN: str | None = None
 

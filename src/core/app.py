@@ -12,6 +12,8 @@ from sqladmin import Admin
 from starlette.responses import Response
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
+
+from src.core.config import config
 # from starlette_csrf import CSRFMiddleware
 
 from src.auth.presentation.middlewares import AuthorizationMiddleware, RefreshMiddleware
@@ -53,10 +55,10 @@ def setup_tasks(scheduler: AsyncIOScheduler):
                       trigger="interval",
                       minutes=60,
                       next_run_time=datetime.datetime.now())
-    scheduler.add_job(searcher_nullable_torrents,
-                      trigger="interval",
-                      minutes=120,
-                      next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=1))
+    # scheduler.add_job(searcher_nullable_torrents,
+    #                   trigger="interval",
+    #                   minutes=120,
+    #                   next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=1))
     scheduler.start()
 
 
@@ -70,9 +72,10 @@ async def lifespan(app: FastAPI):
 
 
 logger = logging.getLogger(__name__)
-app = FastAPI(lifespan=lifespan,
-              root_path="/api/v1")
-admin = Admin(app, engine=engine, title="CyberTorrents Admin Panel")
+app = FastAPI(lifespan=lifespan)
+admin = Admin(app,
+              engine=engine,
+              title="CyberTorrents Admin Panel")
 # csrf_protect = CsrfProtect()
 
 admin.add_view(UsersAdmin)
@@ -83,6 +86,7 @@ admin.add_view(CommentsAdmin)
 app.mount("/static",
           StaticFiles(directory=BASE_DIR / "static"),
           name="static")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -117,11 +121,11 @@ app.include_router(router=faq_view)
 app.include_router(router=game_view)
 
 # api
-app.include_router(router=auth_api_router, prefix="/auth", tags=["Auth"])
-app.include_router(router=users_api_router, prefix="/users", tags=["Users"])
-app.include_router(router=torrents_api_router, prefix="/torrents", tags=["Torrents"])
-app.include_router(router=games_api_router, prefix="/games", tags=["Games"])
-app.include_router(router=comments_api_router, prefix="/comments", tags=["Comments"])
+app.include_router(router=auth_api_router, prefix=f"{config.app.APP_ROOT_PATH}/auth", tags=["Auth"])
+app.include_router(router=users_api_router, prefix=f"{config.app.APP_ROOT_PATH}/users", tags=["Users"])
+app.include_router(router=torrents_api_router, prefix=f"{config.app.APP_ROOT_PATH}/torrents", tags=["Torrents"])
+app.include_router(router=games_api_router, prefix=f"{config.app.APP_ROOT_PATH}/games", tags=["Games"])
+app.include_router(router=comments_api_router, prefix=f"{config.app.APP_ROOT_PATH}/comments", tags=["Comments"])
 
 
 def create_error_response(
