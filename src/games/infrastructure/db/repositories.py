@@ -23,6 +23,28 @@ class PGGamesRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def get_count_games(self, data: GamesCollectionDTO) -> Game:
+        filters = []
+
+        if data.year:
+            filters.append(
+                func.extract("year", GamesOrm.release_date) == data.year
+            )
+
+        if data.category:
+            filters.append(GamesOrm.genre == data.category)
+
+        if data.tag:
+            filters.append(GamesOrm.tags.any(GamesTagsOrm.name == data.tag))
+
+        if data.query:
+            filters.append(GamesOrm.name.icontains(data.query))
+
+        count_stmt = select(func.count(GamesOrm.id)).where(*filters)
+        total_count = await self.session.scalar(count_stmt) or 0
+
+        return total_count
+
     async def get_by_id(self, id: int) -> Game:
         stmt = select(GamesOrm).where(UsersOrm.id == id)
         result = await self.session.execute(stmt)
@@ -87,7 +109,9 @@ class PGGamesRepository:
         filters = []
 
         if data.year:
-            filters.append(GamesOrm.release_date.icontains(data.year))
+            filters.append(
+                func.extract("year", GamesOrm.release_date) == data.year
+            )
 
         if data.category:
             filters.append(GamesOrm.genre == data.category)
@@ -132,7 +156,9 @@ class PGGamesRepository:
         result = await self.session.execute(stmt)
         result = result.unique().scalars().all()
 
-        count_stmt = select(count(GamesOrm.id))
+        count_stmt = select(count(GamesOrm.id)).where(
+            GamesOrm.name.icontains(query)
+        )
 
         result2 = await self.session.execute(count_stmt)
         total_count = result2.scalar_one()

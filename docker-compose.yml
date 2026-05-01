@@ -9,7 +9,7 @@ services:
       - rabbitmq
       - taskiq_worker
       - postgres
-    command: bash -c "alembic upgrade head && python main.py"
+    command: bash -c "alembic upgrade head && uvicorn src.core.app:app --host 0.0.0.0 --port 8000 --reload"
     restart: always
     networks: [ backend_net ]
 
@@ -66,34 +66,34 @@ services:
     command: taskiq worker src.core.taskiq_app:broker --fs-discover --tasks-pattern **/tasks/*.py
     networks: [ backend_net ]
 
-  nginx:
-    build:
-      context: .
-      dockerfile: infra/nginx/Dockerfile
-    image: nginx:stable
-    depends_on:
-      - app
-    ports:
-      - "80:80"
-      - "8443:443"
-    volumes:
-      - ./infra/nginx/nginx.init.conf:/etc/nginx/nginx.conf:ro
-      - certbot_www:/var/www/certbot
-      - certbot_etc:/etc/letsencrypt
-    networks: [ backend_net ]
-
-  certbot:
-    image: certbot/certbot
-    depends_on:
-      - nginx
-    env_file: [ .env ]
-    volumes:
-      - certbot_www:/var/www/certbot
-      - certbot_etc:/etc/letsencrypt
-    entrypoint: >
-      sh -c "certbot certonly --webroot -w /var/www/certbot -d cyber-torrent.top \
-      --email dimongames6@gmail.com --agree-tos --no-eff-email --non-interactive && echo 'CERT DONE'"
-    networks: [ backend_net ]
+#  nginx:
+#    build:
+#      context: .
+#      dockerfile: infra/nginx/Dockerfile
+#    image: nginx:stable
+#    depends_on:
+#      - app
+#    ports:
+#      - "80:80"
+#      - "8443:443"
+#    volumes:
+#      - ./infra/nginx/nginx.init.conf:/etc/nginx/nginx.conf:ro
+#      - certbot_www:/var/www/certbot
+#      - certbot_etc:/etc/letsencrypt
+#    networks: [ backend_net ]
+#
+#  certbot:
+#    image: certbot/certbot
+#    depends_on:
+#      - nginx
+#    env_file: [ .env ]
+#    volumes:
+#      - certbot_www:/var/www/certbot
+#      - certbot_etc:/etc/letsencrypt
+#    entrypoint: >
+#      sh -c "certbot certonly --webroot -w /var/www/certbot -d cyber-torrent.top \
+#      --email dimongames6@gmail.com --agree-tos --no-eff-email --non-interactive && echo 'CERT DONE'"
+#    networks: [ backend_net ]
 
 networks:
   backend_net:

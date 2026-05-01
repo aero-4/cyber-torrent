@@ -91,10 +91,11 @@ class AppConfig(BaseAppConfig):
     APP_HOST: str = "127.0.0.1"
     APP_PORT: int = 8000
     APP_USE_SSL: bool = False
+    APP_DOMAIN: str | None = None
 
     @property
     def APP_URI(self):
-        return f"http{'s' if self.APP_USE_SSL else ''}://{self.APP_HOST}:{self.APP_PORT}"
+        return f"http{'s' if self.APP_USE_SSL else ''}://{self.APP_HOST if not self.APP_USE_SSL else self.APP_DOMAIN}:{self.APP_PORT}"
 
 
 class OAuth2Config(BaseAppConfig):
@@ -108,10 +109,6 @@ class OAuth2Config(BaseAppConfig):
 class MetadataConfig(BaseAppConfig):
     RAWGIO_API_TOKEN: str = ""
 
-
-class CeleryConfig(BaseAppConfig):
-    CELERY_BROKER_URL: str
-    CELERY_RESULT_BACKEND: str
 
 
 class TaskiqConfig(BaseAppConfig):

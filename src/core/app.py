@@ -50,7 +50,6 @@ scheduler = AsyncIOScheduler()
 
 def setup_tasks(scheduler: AsyncIOScheduler):
     scheduler.add_job(searcher_games,
-                      args=(10,),
                       trigger="interval",
                       minutes=60,
                       next_run_time=datetime.datetime.now())

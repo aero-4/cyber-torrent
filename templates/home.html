@@ -49,7 +49,7 @@
 
         const renderGames = (games) => {
             if (!games || games.length === 0) {
-                home.innerHTML = "<p class='text-gray-500 col-span-full text-center py-10'>Игр больше нет.</p>";
+                home.innerHTML = "<p class='text-gray-500 col-span-full text-center py-10'>Игр больше нет</p>";
                 return;
             }
 
@@ -166,16 +166,13 @@
 
                 const games = data.games;
                 const totalCount = data.total_count;
-
+                console.log(games, totalCount)
                 renderGames(games);
                 renderPagination(currentPage, totalCount);
 
-                games.forEach(game => {
-                    sessionStorage.setItem(`game_detail_${game.slug}`, JSON.stringify(game));
-                });
-
             } catch (error) {
-                home.innerHTML = "<p class='text-red-500 col-span-full text-center'>Ошибка загрузки контента.</p>";
+                console.error("Ошибка", error)
+                home.innerHTML = "<p class='text-red-500 col-span-full text-center'>Игр пока что нет</p>";
             }
         };
 

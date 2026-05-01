@@ -1,10 +1,7 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 
 from src.games.presentation.dtos import GamesCollectionDTO
 from src.games.usecase.collect_games import collect_games, get_game
-from src.games.usecase.search_games import search_games
 
 router = APIRouter()
 

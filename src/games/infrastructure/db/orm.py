@@ -11,7 +11,7 @@ class GamesTagsOrm(Base):
     __tablename__ = "game_tags"
 
     game: Mapped["GamesOrm"] = relationship(back_populates="tags", lazy="joined")
-    game_id: Mapped[int] = mapped_column(ForeignKey("games.id", ondelete="CASCADE"))
+    game_id: Mapped[int] = mapped_column(ForeignKey("games.id", ondelete="CASCADE"), nullable=True)
     name: Mapped[str] = mapped_column(String(), nullable=False)
     image: Mapped[str] = mapped_column(String(), nullable=True)
 
@@ -27,7 +27,7 @@ class GamesImagesOrm(Base):
     __tablename__ = "game_images"
 
     game: Mapped["GamesOrm"] = relationship(back_populates="game_images")
-    game_id: Mapped[int] = mapped_column(ForeignKey("games.id", ondelete="CASCADE"))
+    game_id: Mapped[int] = mapped_column(ForeignKey("games.id", ondelete="CASCADE"), nullable=True)
     image: Mapped[str] = mapped_column(String(), nullable=False, unique=True)
 
     def to_entity(self):

@@ -29,8 +29,6 @@ class Oauth2Google(IOauth2Provider):
                 "profile",
                 "email"
             ]),
-            # "access_type": "offline",
-            # "state": ""
         }
         query = parse.urlencode(params, quote_via=parse.quote)
 

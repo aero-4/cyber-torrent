@@ -18,42 +18,47 @@ class MetadataParser:
 
     async def search(self, page: int) -> Coroutine[Any, Any, tuple[Any]]:
         try:
-            results_data = await self.search_games(page)
-            results_data = await self.translate_descriptions_games(results_data)
-            return results_data
+            results_data = await self.search_games(page)  # search
+            translated_data = await self.translate_descriptions_games(results_data)  # translate description
+            return translated_data
         except Exception as e:
             logging.error(f"Error load metadata: {e}")
 
-    async def translate_descriptions_games(self, games: list[dict]) -> tuple[Any]:
+    async def translate_descriptions_games(self, games: list[dict], concurrency_limit: int = 3) -> list[dict]:
         try:
+            sem = asyncio.Semaphore(concurrency_limit)
+
             async def _translate(game_data: dict) -> dict:
-                slug = game_data["slug"]
-                if not slug:
+                async with sem:
+                    slug = game_data.get("slug")
+                    if not slug:
+                        return {}
+
+                    try:
+                        data: dict = await self.get_details(slug)
+                        desc = data.get("description_raw") if isinstance(data, dict) else data[0].get("description_raw")
+                        if not desc:
+                            raise Exception("Desc not found")
+
+                        logging.debug(f"Update new description for game '{slug}': {desc}")
+                        translated_desc = await translate_text(desc)
+                        game_data['description_raw'] = translated_desc
+                        return game_data
+                    except Exception as e:
+                        logging.warning(f"Not translate desc '{slug}'. Reason {e}")
+
                     return {}
-
-                try:
-                    data: dict = await self.get_details(slug)
-                    desc = data.get("description_raw") if isinstance(data, dict) else data[0].get("description_raw")
-                    if not desc:
-                        raise Exception("Desc not found")
-
-                    logging.debug(f"Update new description for game '{slug}': {desc}")
-                    translated_desc = await translate_text(desc)
-                    game_data['description_raw'] = translated_desc
-                    return game_data
-                except Exception as e:
-                    logging.warning(f"Not translate desc '{slug}'. Reason {e}")
-
-                return {}
 
             tasks = [asyncio.create_task(_translate(game)) for game in games]
             results: list[dict] = await asyncio.gather(*tasks)
             logging.debug(f"Translated {len(results)} games!")
+
             return results
 
         except Exception as e:
             logging.error("Not worked updating description games: %s", e)
 
+        return games
 
     async def search_games(self, page: int = 1, max_size: int = 100, platform: str = "1"):
         params = {

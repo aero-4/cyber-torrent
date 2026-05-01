@@ -11,15 +11,17 @@ from fastapi.encoders import jsonable_encoder
 cache = RedisCache()
 
 
-async def collect_games(dto: GamesCollectionDTO) -> GamesCollection:
+async def collect_games(data: GamesCollectionDTO) -> GamesCollection:
     uow = GamesUnitOfWork()
 
-    collection_key = ":".join([str(i) for i in dto.model_dump(exclude_none=True).values()])
+    collection_key = ":".join([str(i) for i in data.model_dump(exclude_none=True).values()])
     games = await cache.get_cache_object(collection_key)
 
-    if not games:
-        async with uow:
-            games: GamesCollection = await uow.games.get_all(dto)
+    async with uow:
+        count = await uow.games.get_count_games(data)
+
+        if not games or games['total_count'] != count:
+            games: GamesCollection = await uow.games.get_all(data)
             await cache.save_cache_object(collection_key, games)
 
     return games
