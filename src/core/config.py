@@ -93,7 +93,7 @@ class AppConfig(BaseAppConfig):
     APP_ROOT_PATH: str = "/api/v1"
 
     APP_USE_SSL: bool = False
-    APP_DOMAIN: str | None = None
+    DOMAIN: str | None = None
 
     @property
     def APP_URI(self):

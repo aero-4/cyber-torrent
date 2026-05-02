@@ -1,23 +1,11 @@
-# Dockerfile
-FROM ubuntu:22.04
+FROM certbot/certbot:latest
 
-EXPOSE 6000 80
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bash coreutils \
+    && rm -rf /var/lib/apt/lists/*
 
-# читаем переменные среды из .env
-ARG APP_DOMAIN
-ARG APP_DEVELOPER_EMAIL
+COPY infra/certbot/entrypoint.sh /entrypoint.sh
+COPY infra/certbot/copy-certs.sh /copy-certs.sh
+RUN chmod +x /entrypoint.sh /copy-certs.sh
 
-# устанавливаем переменные среды в переменные
-ENV APP_DEVELOPER_EMAIL=$APP_DEVELOPER_EMAIL
-ENV APP_DOMAIN=$APP_DOMAIN
-
-WORKDIR /certbot
-
-COPY . /certbot/
-
-RUN apt-get update && \
-    apt-get -y install certbot && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-CMD ["sh", "generate-certificate.sh"]
+ENTRYPOINT ["/entrypoint.sh"]

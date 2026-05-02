@@ -1,33 +1,37 @@
 services:
   app:
-    env_file: .env
     build:
       context: .
-    ports:
-      - "8000:8000"
+    env_file: .env
+    expose:
+      - "8000"
     depends_on:
-      - rabbitmq
-      - taskiq_worker
-      - postgres
-    command: bash -c "alembic upgrade head && uvicorn src.core.app:app --host 0.0.0.0 --port 8000 --reload"
-    restart: always
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    command: bash -c "alembic upgrade head && uvicorn src.core.app:app --host 0.0.0.0 --port 8000"
+    restart: unless-stopped
     networks: [ backend_net ]
-
 
   postgres:
     image: postgres:16
-    env_file: [ .env ]
+    env_file: .env
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h ${POSTGRES_HOST}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h 127.0.0.1"]
       interval: 5s
       timeout: 5s
       retries: 10
-    ports: [ "5432:5432" ]
-    restart: always
+      start_period: 10s
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
     networks: [ backend_net ]
 
   redis:
@@ -36,64 +40,73 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    restart: unless-stopped
     networks: [ backend_net ]
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
     hostname: rabbitmq
-    container_name: rabbitmq
+    env_file: .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST}
     ports:
       - "5672:5672"
       - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: "guest"
-      RABBITMQ_DEFAULT_PASS: "guest"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 5s
-      timeout: 2s
-      retries: 5
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
     networks: [ backend_net ]
 
   taskiq_worker:
-    build: .
+    build:
+      context: .
     env_file: .env
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: taskiq worker src.core.taskiq_app:broker --fs-discover --tasks-pattern **/tasks/*.py
+    restart: unless-stopped
     networks: [ backend_net ]
 
-#  nginx:
-#    build:
-#      context: .
-#      dockerfile: infra/nginx/Dockerfile
-#    image: nginx:stable
-#    depends_on:
-#      - app
-#    ports:
-#      - "80:80"
-#      - "8443:443"
-#    volumes:
-#      - ./infra/nginx/nginx.init.conf:/etc/nginx/nginx.conf:ro
-#      - certbot_www:/var/www/certbot
-#      - certbot_etc:/etc/letsencrypt
-#    networks: [ backend_net ]
-#
-#  certbot:
-#    image: certbot/certbot
-#    depends_on:
-#      - nginx
-#    env_file: [ .env ]
-#    volumes:
-#      - certbot_www:/var/www/certbot
-#      - certbot_etc:/etc/letsencrypt
-#    entrypoint: >
-#      sh -c "certbot certonly --webroot -w /var/www/certbot -d cyber-torrent.top \
-#      --email dimongames6@gmail.com --agree-tos --no-eff-email --non-interactive && echo 'CERT DONE'"
-#    networks: [ backend_net ]
+  nginx:
+    build:
+      context: .
+      dockerfile: infra/nginx/Dockerfile
+    env_file: .env
+    depends_on:
+      app:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_etc:/etc/letsencrypt
+      - nginx_certs:/etc/nginx/certs
+    restart: unless-stopped
+    networks: [ backend_net ]
+
+  certbot:
+    build:
+      context: .
+      dockerfile: infra/certbot/Dockerfile
+    env_file: .env
+    depends_on:
+      nginx:
+        condition: service_started
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_etc:/etc/letsencrypt
+      - nginx_certs:/nginx-certs
+    restart: unless-stopped
+    networks: [ backend_net ]
 
 networks:
   backend_net:
@@ -101,8 +114,8 @@ networks:
 
 volumes:
   rabbitmq-data:
-  taskiq:
   redis-data:
   postgres_data:
   certbot_www:
   certbot_etc:
+  nginx_certs:
