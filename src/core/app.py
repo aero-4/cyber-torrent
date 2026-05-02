@@ -53,12 +53,12 @@ scheduler = AsyncIOScheduler()
 def setup_tasks(scheduler: AsyncIOScheduler):
     scheduler.add_job(searcher_games,
                       trigger="interval",
-                      minutes=60,
+                      minutes=config.metadata.SEARCH_GAMES_EVERY_MIN,
                       next_run_time=datetime.datetime.now())
     scheduler.add_job(searcher_nullable_torrents,
                       trigger="interval",
-                      minutes=120,
-                      next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=1))
+                      minutes=config.metadata.SEARCH_NULLABLE_TORRENTS_MIN,
+                      next_run_time=datetime.datetime.now() + datetime.timedelta(minutes=10))
     scheduler.start()
 
 

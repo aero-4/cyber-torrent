@@ -110,7 +110,8 @@ class OAuth2Config(BaseAppConfig):
 
 class MetadataConfig(BaseAppConfig):
     RAWGIO_API_TOKEN: str = ""
-
+    SEARCH_GAMES_EVERY_MIN: int = 30
+    SEARCH_NULLABLE_TORRENTS_MIN: int = 60
 
 
 class TaskiqConfig(BaseAppConfig):
