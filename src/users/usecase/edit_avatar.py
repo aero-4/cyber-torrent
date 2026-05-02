@@ -15,8 +15,8 @@ async def edit_new_avatar(avatar: UploadFile, user: User) -> str:
     avatar_image = f'/{random_name}'
 
     async with aiofiles.open(random_name, "wb") as file:
-        bytes = await avatar.read()
-        await file.write(bytes)
+        image_bytes = await avatar.read()
+        await file.write(image_bytes)
 
     async with uow:
         update_data = UserUpdate(id=user.id,
@@ -24,4 +24,4 @@ async def edit_new_avatar(avatar: UploadFile, user: User) -> str:
         await uow.users.update(update_data)
         await uow.commit()
 
-    return avatar_image
+    return random_name

@@ -117,10 +117,9 @@
                 const avatarEl = document.getElementById('userAvatar');
                 if (avatarEl) avatarEl.src = newAvatarUrl;
 
-                showPopup('АВАТАР УСПЕШНО ОБНОВЛЕН');
                 input.value = '';
             } catch (e) {
-                showPopup('СИСТЕМНАЯ ОШИБКА: НЕТ СВЯЗИ С СЕРВЕРОМ', true);
+                showPopup('НЕ СМОГ ОБНОВИТЬ АВАТАР. ОШИБКА СЕРВЕРА', true);
             }
         }
 
