@@ -26,3 +26,9 @@ class RedisCache:
         await self.redis.setex(key,
                                timedelta(minutes=10),
                                json.dumps(obj.model_dump(mode="json")))
+
+    async def increment(self) -> int | None:
+        amount = await self.redis.incrby("metadata_page")
+        if not amount:
+            return None
+        return int(amount)

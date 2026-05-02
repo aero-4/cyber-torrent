@@ -55,10 +55,10 @@ def setup_tasks(scheduler: AsyncIOScheduler):
                       trigger="interval",
                       minutes=60,
                       next_run_time=datetime.datetime.now())
-    # scheduler.add_job(searcher_nullable_torrents,
-    #                   trigger="interval",
-    #                   minutes=120,
-    #                   next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=1))
+    scheduler.add_job(searcher_nullable_torrents,
+                      trigger="interval",
+                      minutes=120,
+                      next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=1))
     scheduler.start()
 
 

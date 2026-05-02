@@ -61,7 +61,7 @@ async def qr_code_auth(request: Request, auth: TokenAuthDep, otp_form: UserOtpVe
     return {"message": "Otp verify confirm"}
 
 
-@router.post("/otp/qr")
+@router.get("/otp/qr")
 @check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
 async def qr_code(request: Request):
     qr_path = await generate_qr_code(request.state.user)
@@ -84,9 +84,9 @@ async def email_confirm_token_user(request: Request,
     return {"message": f"Sent confirm message '{email}'"}
 
 
-@router.get("/email/2fa/code/{code}")
+@router.post("/email/2fa/code/")
 @check_roles([UserRoles.NOT_VERIFIED, UserRoles.USER])
-async def email_first_confirm_code(request: Request, code: int, email_provider: EmailProvideDep, auth: TokenAuthDep):
+async def email_first_confirm_code(request: Request, email_provider: EmailProvideDep, auth: TokenAuthDep, code: int = Body(...)):
     await confirm_email(request.state.user, code, email_provider, auth)
     return {"message": "Email verified"}
 

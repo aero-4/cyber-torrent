@@ -16,8 +16,8 @@ async def generate_qr_code(user: User) -> str:
     uow = UsersUnitOfWork()
     otp_secret = user.otp_secret
 
-    async with uow:
-        if not user.otp_secret:
+    if not user.otp_secret:
+        async with uow:
             otp_secret = pyotp.random_base32()
             user_data = UserUpdate(
                 email=user.email,

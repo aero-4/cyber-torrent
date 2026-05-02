@@ -1,8 +1,6 @@
-import asyncio
 import logging
-from datetime import timedelta
 
-from src.core.infrastructure.redis import get_redis_client
+from src.games.infrastructure.services.redis_cache import RedisCache
 from src.games.domain.entities import GameCreate, GameTagsCreate
 from src.games.infrastructure.db.uow import GamesUnitOfWork
 from src.games.infrastructure.services.files_downloader import ImagesDownloader
@@ -11,18 +9,11 @@ from src.torrents.infrastructure.tasks.torrent import searcher_torrents
 
 
 async def searcher_games() -> None:
-    redis = get_redis_client()
+    redis = RedisCache()
     metadata = MetadataParser()
     uow = GamesUnitOfWork()
     images_provider = ImagesDownloader()
-
-    page = 10
-    try:
-        page = await redis.get("metadata_page")
-    except:
-        pass
-    page: int = int(page) + 1 if page else 1
-
+    page = await redis.increment()
     logging.info(f"[RAWGIO]: Metadata page: {page}")
     games_result = await metadata.search(page)
     success = 0
@@ -38,7 +29,7 @@ async def searcher_games() -> None:
             except:
                 pass
 
-            short_local_screens = await images_provider.save_some_images([i.get("image") for i in game["short_screenshots"]])
+            short_local_screens = await images_provider.save_some_images([i.get("image") for i in game["short_screenshots"] if not "/media/games/" in i.get("image")])
             local_background_image = await images_provider.save_one_image(game["background_image"])
             tags = [
                 GameTagsCreate(name=i["name"],
@@ -69,7 +60,5 @@ async def searcher_games() -> None:
 
             if game_obj:
                 await searcher_torrents(game_obj)
-
-    await redis.setex(name="metadata_page", value=page, time=timedelta(minutes=65))
 
     logging.info(f"Success added games: {success}")

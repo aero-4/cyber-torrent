@@ -11,8 +11,8 @@ from src.users.infrastructure.db.uow import UsersUnitOfWork
 
 async def edit_new_avatar(avatar: UploadFile, user: User) -> str:
     uow = UsersUnitOfWork()
-
-    random_name = Path(f"static/uploads/{uuid.uuid4()}.jpeg")
+    random_name = f"static/uploads/{uuid.uuid4()}.jpeg"
+    avatar_image = f'/{random_name}'
 
     async with aiofiles.open(random_name, "wb") as file:
         bytes = await avatar.read()
@@ -20,8 +20,8 @@ async def edit_new_avatar(avatar: UploadFile, user: User) -> str:
 
     async with uow:
         update_data = UserUpdate(id=user.id,
-                                 avatar_image=str(random_name))
+                                 avatar_image=avatar_image)
         await uow.users.update(update_data)
         await uow.commit()
 
-    return str(random_name)
+    return avatar_image
