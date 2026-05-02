@@ -97,7 +97,7 @@ class AppConfig(BaseAppConfig):
 
     @property
     def APP_URI(self):
-        return f"http{'s' if self.APP_USE_SSL else ''}://{self.APP_HOST if not self.APP_USE_SSL else self.APP_DOMAIN}:{self.APP_PORT}"
+        return f"http{'s' if self.APP_USE_SSL else ''}://{"" if self.DOMAIN == "" else self.APP_HOST}{"" if self.DOMAIN == "" else self.APP_PORT}"
 
 
 class OAuth2Config(BaseAppConfig):
