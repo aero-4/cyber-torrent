@@ -32,8 +32,8 @@
 1. Скачивание проекта
 
 ```bash
-git clone https://github.com/aero-4/cyber-torrent.git](https://github.com/aero-4/cybertorrent.git)
-cd cybertorrent
+git clone https://github.com/aero-4/cyber-torrent.git
+cd cyber-torrent
 ```
 
 2. Запуск приложения
